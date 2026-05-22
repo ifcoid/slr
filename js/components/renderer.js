@@ -24,7 +24,7 @@ export function renderApprovalContent(area, session, handleApproval) {
             session.prior_reviews_matrix.reviews.forEach((r, idx) => {
                 cards += `
                 <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 6px; margin-bottom: 15px; border-left: 4px solid #8b5cf6;">
-                    <h5 style="margin-top: 0; color: #c4b5fd; margin-bottom: 10px; font-size: 1.05em;"><i class="fa fa-book"></i> Review ${idx + 1}: ${r.author_year || 'Unknown'}</h5>
+                    <h5 style="margin-top: 0; color: #c4b5fd; margin-bottom: 10px; font-size: 1.05em;"><i class="fa fa-book"></i> ${r.author_year || 'Unknown'}</h5>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; font-size: 0.9em; line-height: 1.5;">
                         <div><strong style="color: #9ca3af;">Scope:</strong><br>${r.scope || '-'}</div>
                         <div><strong style="color: #9ca3af;">Methodology:</strong><br>${r.methodology || '-'}</div>

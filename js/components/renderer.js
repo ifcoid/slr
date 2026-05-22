@@ -46,19 +46,48 @@ export function renderApprovalContent(area, session, handleApproval) {
     } else if (status === 'M2_STEP3_WAITING_APPROVAL' && session.pico_definitions) {
         const pico = session.pico_definitions;
         html = wrapCard('PICO Definitions', `
-            <p><strong>Canonical Term:</strong> ${pico.canonical_term ? pico.canonical_term.term : ''} (${pico.canonical_term ? pico.canonical_term.justification : ''})</p>
+            <div style="margin-bottom: 15px;">
+                <h5 style="color: #c4b5fd; margin-bottom: 5px; margin-top: 0;">Canonical Term</h5>
+                <p><strong>Term:</strong> ${pico.canonical_term?.term || ''}</p>
+                <p><strong>Definition:</strong> ${pico.canonical_term?.definition || ''}</p>
+                <p><strong>Rejected Alternatives:</strong> ${pico.canonical_term?.rejected_alternatives || ''}</p>
+            </div>
             <hr style="border-color: rgba(255,255,255,0.1);">
-            <p><strong>Population:</strong> ${pico.p ? pico.p.operational_def.definition : ''}</p>
-            <p><em>What Counts:</em> ${pico.p ? pico.p.operational_def.what_counts : ''}</p>
-            <p><em>What Doesn't:</em> ${pico.p ? pico.p.operational_def.what_doesnt_count : ''}</p>
+            
+            <div style="margin-bottom: 15px;">
+                <h5 style="color: #c4b5fd; margin-bottom: 5px;">Population</h5>
+                <p><strong>Value:</strong> ${pico.p?.value || ''}</p>
+                <p><em>What Counts:</em> ${pico.p?.operational_def?.what_counts || ''}</p>
+                <p><em>What Doesn't:</em> ${pico.p?.operational_def?.what_doesnt_count || ''}</p>
+                <p><em>Edge Cases:</em> ${pico.p?.operational_def?.edge_cases || ''}</p>
+            </div>
             <hr style="border-color: rgba(255,255,255,0.1);">
-            <p><strong>Intervention:</strong> ${pico.i ? pico.i.operational_def.definition : ''}</p>
-            <p><em>What Counts:</em> ${pico.i ? pico.i.operational_def.what_counts : ''}</p>
-            <p><em>What Doesn't:</em> ${pico.i ? pico.i.operational_def.what_doesnt_count : ''}</p>
+            
+            <div style="margin-bottom: 15px;">
+                <h5 style="color: #c4b5fd; margin-bottom: 5px;">Intervention</h5>
+                <p><strong>Value:</strong> ${pico.i?.value || ''}</p>
+                <p><em>What Counts:</em> ${pico.i?.operational_def?.what_counts || ''}</p>
+                <p><em>What Doesn't:</em> ${pico.i?.operational_def?.what_doesnt_count || ''}</p>
+                <p><em>Edge Cases:</em> ${pico.i?.operational_def?.edge_cases || ''}</p>
+            </div>
             <hr style="border-color: rgba(255,255,255,0.1);">
-            <p><strong>Comparison:</strong> ${pico.c ? pico.c.operational_def.definition : ''}</p>
+            
+            <div style="margin-bottom: 15px;">
+                <h5 style="color: #c4b5fd; margin-bottom: 5px;">Comparison</h5>
+                <p><strong>Value:</strong> ${pico.c?.value || ''}</p>
+                <p><em>What Counts:</em> ${pico.c?.operational_def?.what_counts || ''}</p>
+                <p><em>What Doesn't:</em> ${pico.c?.operational_def?.what_doesnt_count || ''}</p>
+                <p><em>Edge Cases:</em> ${pico.c?.operational_def?.edge_cases || ''}</p>
+            </div>
             <hr style="border-color: rgba(255,255,255,0.1);">
-            <p><strong>Outcome:</strong> ${pico.o ? pico.o.operational_def.definition : ''}</p>
+            
+            <div style="margin-bottom: 15px;">
+                <h5 style="color: #c4b5fd; margin-bottom: 5px;">Outcome</h5>
+                <p><strong>Value:</strong> ${pico.o?.value || ''}</p>
+                <p><em>What Counts:</em> ${pico.o?.operational_def?.what_counts || ''}</p>
+                <p><em>What Doesn't:</em> ${pico.o?.operational_def?.what_doesnt_count || ''}</p>
+                <p><em>Edge Cases:</em> ${pico.o?.operational_def?.edge_cases || ''}</p>
+            </div>
         `);
 
     } else if (status === 'M2_STEP3_5_WAITING_FILTERS') {

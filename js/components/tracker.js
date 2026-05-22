@@ -27,6 +27,22 @@ export function startTracking(sessionId) {
     if (btnRefresh) {
         btnRefresh.addEventListener('click', fetchSessionStatus);
     }
+
+    const btnExitSession = document.getElementById('btn-exit-session');
+    if (btnExitSession) {
+        // Hapus event listener lama jika ada (mencegah multiple trigger)
+        const newBtn = btnExitSession.cloneNode(true);
+        btnExitSession.parentNode.replaceChild(newBtn, btnExitSession);
+        
+        newBtn.addEventListener('click', () => {
+            if (confirm("Anda yakin ingin keluar dari pemantauan sesi ini? (Proses agen di background mungkin masih berjalan)")) {
+                localStorage.removeItem('activeSessionId');
+                stopTracking();
+                toggleHidden('section-tracker', false);
+                toggleHidden('section-new-session', true);
+            }
+        });
+    }
 }
 
 function connectWebSocket(id) {

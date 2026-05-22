@@ -42,7 +42,10 @@
         <section id="section-tracker" class="glass-panel card hidden">
             <div class="tracker-header">
                 <h2>Status Sesi: <span id="display-session-id" class="text-highlight">...</span></h2>
-                <button id="btn-refresh" class="btn btn-icon">🔄 Refresh</button>
+                <div style="display: flex; gap: 10px;">
+                    <button id="btn-refresh" class="btn btn-icon">🔄 Refresh</button>
+                    <button id="btn-exit-session" class="btn btn-icon" style="background: rgba(239, 68, 68, 0.2); color: #ef4444; border-color: rgba(239, 68, 68, 0.3);">Keluar Sesi</button>
+                </div>
             </div>
             
             <div class="status-indicator">

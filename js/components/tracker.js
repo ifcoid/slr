@@ -162,6 +162,13 @@ function renderApprovalUI(session) {
                     <p><strong>Judul:</strong> ${topic.name}</p>
                     <p><strong>Gap:</strong> ${topic.gap}</p>
                     <p><strong>Pentingnya:</strong> ${topic.importance}</p>
+                    ${topic.references && topic.references.length > 0 ? `
+                    <div style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed rgba(255,255,255,0.2);">
+                        <p style="margin-bottom: 5px; font-size: 0.85em; color: var(--text-muted);"><strong><i class="fa fa-book"></i> Referensi Grounding:</strong></p>
+                        <ul style="font-size: 0.8em; color: var(--text-muted); padding-left: 20px; margin-bottom: 0;">
+                            ${topic.references.map(ref => `<li>${ref}</li>`).join('')}
+                        </ul>
+                    </div>` : ''}
                 </div>
                 <div style="margin-top: 1rem;">
                     <button class="btn btn-success btn-approve-topic" data-index="${idx}">Pilih Topik Ini</button>

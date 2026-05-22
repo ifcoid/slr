@@ -182,14 +182,14 @@ function renderApprovalUI(session) {
         });
     } else {
         // Generic approval for other steps
-        area.innerHTML += `
+        area.insertAdjacentHTML('beforeend', `
             <div style="padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 8px;">
                 <p style="margin-bottom: 1rem;">Silakan periksa hasil pekerjaan agen di MongoDB Compass. Apakah Anda setuju?</p>
                 <div style="display: flex; gap: 1rem;">
                     <button id="btn-generic-approve" class="btn btn-success">Setuju & Lanjut</button>
                 </div>
             </div>
-        `;
+        `);
         // Generic approve
         setTimeout(() => {
             const btnApprove = document.getElementById('btn-generic-approve');
@@ -200,14 +200,14 @@ function renderApprovalUI(session) {
     }
     
     // Always add Revise form at the bottom
-    area.innerHTML += `
+    area.insertAdjacentHTML('beforeend', `
         <hr>
         <h4>Atau Berikan Revisi (Feedback)</h4>
         <form id="form-revise" style="margin-top: 1rem;">
             <textarea id="input-feedback" rows="2" placeholder="Tulis instruksi revisi di sini..." required></textarea>
             <button type="submit" class="btn btn-danger" style="margin-top: 0.5rem;">Kirim Revisi</button>
         </form>
-    `;
+    `);
     
     setTimeout(() => {
         const formRevise = document.getElementById('form-revise');

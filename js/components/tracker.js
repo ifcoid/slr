@@ -107,7 +107,7 @@ async function fetchSessionStatus() {
             document.getElementById('interactive-area').innerHTML = `<p>Semua modul SLR telah berhasil diselesaikan!</p>`;
             toggleHidden('interactive-area', true);
             stopTracking();
-        } else if (session.status.includes('NEEDS_REVISION')) {
+        } else if (session.status.includes('NEEDS_REVISION') && !session.status.includes('ERROR')) {
             toggleHidden('status-spinner', false);
             document.getElementById('interactive-area').innerHTML = `<p>Sedang merevisi berdasar feedback...</p>`;
             toggleHidden('interactive-area', true);

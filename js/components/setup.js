@@ -7,6 +7,8 @@ export function initSetup() {
     const btnCloseSettings = document.getElementById('btn-close-settings');
     const inputBaseUrl = document.getElementById('input-base-url');
     const formLlmConfig = document.getElementById('form-llm-config');
+    const btnFetchModels = document.getElementById('btn-fetch-models');
+    const selectModel = document.getElementById('llm-model');
 
     // Load initial Base URL to input
     if (inputBaseUrl) {
@@ -25,11 +27,49 @@ export function initSetup() {
         btnCloseSettings.addEventListener('click', () => closeModal('modal-settings'));
     }
 
+    if (btnFetchModels) {
+        btnFetchModels.addEventListener('click', async () => {
+            const provider = document.getElementById('select-provider').value;
+            const apiKey = document.getElementById('input-api-key').value;
+            const baseUrl = inputBaseUrl ? inputBaseUrl.value : '';
+
+            if (!apiKey && provider !== 'claude') {
+                showToast('API Key diperlukan untuk memuat model!', 'error');
+                return;
+            }
+
+            setButtonLoading(btnFetchModels, true);
+            selectModel.innerHTML = '<option value="">Memuat model...</option>';
+            
+            try {
+                const res = await API.fetchModels(provider, apiKey, baseUrl);
+                selectModel.innerHTML = '';
+                if (res.models && res.models.length > 0) {
+                    res.models.forEach(m => {
+                        const opt = document.createElement('option');
+                        opt.value = m;
+                        opt.textContent = m;
+                        selectModel.appendChild(opt);
+                    });
+                    showToast('Model berhasil dimuat!');
+                } else {
+                    selectModel.innerHTML = '<option value="">Tidak ada model ditemukan</option>';
+                }
+            } catch (error) {
+                showToast(error.message, 'error');
+                selectModel.innerHTML = '<option value="">Gagal memuat model</option>';
+            } finally {
+                setButtonLoading(btnFetchModels, false, '🔄 Muat Model');
+            }
+        });
+    }
+
     if (formLlmConfig) {
         formLlmConfig.addEventListener('submit', async (e) => {
             e.preventDefault();
             const provider = document.getElementById('select-provider').value;
             const apiKey = document.getElementById('input-api-key').value;
+            const model = document.getElementById('llm-model').value;
             const btn = e.target.querySelector('button[type="submit"]');
 
             if (!apiKey) {
@@ -37,9 +77,14 @@ export function initSetup() {
                 return;
             }
 
+            if (!model) {
+                showToast('Pilih model terlebih dahulu!', 'error');
+                return;
+            }
+
             setButtonLoading(btn, true);
             try {
-                await API.updateLLMConfig(provider, apiKey);
+                await API.updateLLMConfig(provider, apiKey, model);
                 showToast(`Konfigurasi ${provider} berhasil disimpan!`);
                 document.getElementById('input-api-key').value = '';
                 closeModal('modal-settings');

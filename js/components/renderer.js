@@ -23,28 +23,33 @@ export function renderApprovalContent(area, session, handleApproval) {
         if (session.prior_reviews_matrix.reviews) {
             session.prior_reviews_matrix.reviews.forEach(r => {
                 rows += `<tr>
-                    <td style="padding: 8px; border: 1px solid rgba(255,255,255,0.1);">${r.citation || ''}</td>
-                    <td style="padding: 8px; border: 1px solid rgba(255,255,255,0.1);">${r.focus || ''}</td>
-                    <td style="padding: 8px; border: 1px solid rgba(255,255,255,0.1);">${r.limitation || ''}</td>
-                    <td style="padding: 8px; border: 1px solid rgba(255,255,255,0.1);">${r.contrast_point || ''}</td>
+                    <td style="padding: 8px; border: 1px solid rgba(255,255,255,0.1);">${r.author_year || ''}</td>
+                    <td style="padding: 8px; border: 1px solid rgba(255,255,255,0.1);">${r.scope || ''}</td>
+                    <td style="padding: 8px; border: 1px solid rgba(255,255,255,0.1);">${r.methodology || ''}</td>
+                    <td style="padding: 8px; border: 1px solid rgba(255,255,255,0.1);">${r.key_findings || ''}</td>
+                    <td style="padding: 8px; border: 1px solid rgba(255,255,255,0.1);">${r.limitations || ''}</td>
+                    <td style="padding: 8px; border: 1px solid rgba(255,255,255,0.1);">${r.selisih || ''}</td>
+                    <td style="padding: 8px; border: 1px solid rgba(255,255,255,0.1);">${r.synthesis_novelty || ''}</td>
                 </tr>`;
             });
         }
         
-        let table = `<table style="width: 100%; border-collapse: collapse; margin-bottom: 1rem; font-size: 0.9em;">
+        let table = `<div style="overflow-x: auto;"><table style="width: 100%; border-collapse: collapse; margin-bottom: 1rem; font-size: 0.85em;">
             <thead>
                 <tr style="background: rgba(0,0,0,0.2);">
-                    <th style="padding: 8px; border: 1px solid rgba(255,255,255,0.1);">Citation</th>
-                    <th style="padding: 8px; border: 1px solid rgba(255,255,255,0.1);">Focus</th>
-                    <th style="padding: 8px; border: 1px solid rgba(255,255,255,0.1);">Limitation</th>
-                    <th style="padding: 8px; border: 1px solid rgba(255,255,255,0.1);">Contrast Point</th>
+                    <th style="padding: 8px; border: 1px solid rgba(255,255,255,0.1);">Author/Year</th>
+                    <th style="padding: 8px; border: 1px solid rgba(255,255,255,0.1);">Scope</th>
+                    <th style="padding: 8px; border: 1px solid rgba(255,255,255,0.1);">Methodology</th>
+                    <th style="padding: 8px; border: 1px solid rgba(255,255,255,0.1);">Key Findings</th>
+                    <th style="padding: 8px; border: 1px solid rgba(255,255,255,0.1);">Limitations</th>
+                    <th style="padding: 8px; border: 1px solid rgba(255,255,255,0.1);">Selisih (Gap)</th>
+                    <th style="padding: 8px; border: 1px solid rgba(255,255,255,0.1);">Synthesis Novelty</th>
                 </tr>
             </thead>
             <tbody>${rows}</tbody>
-        </table>`;
+        </table></div>`;
         
-        let novelty = `<p><strong>Synthesis Novelty:</strong><br>${formatMarkdown(session.prior_reviews_matrix.synthesis_novelty)}</p>`;
-        html = wrapCard('Review of Prior Reviews (Matrix)', table + novelty);
+        html = wrapCard('Review of Prior Reviews (Matrix)', table);
 
     } else if (status === 'M2_STEP3_WAITING_APPROVAL' && session.pico_definitions) {
         const pico = session.pico_definitions;

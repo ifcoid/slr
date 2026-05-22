@@ -1,6 +1,7 @@
 // js/components/tracker.js
 import { API, getBaseURL } from '../api.js';
 import { showToast, toggleHidden } from '../ui.js';
+import { renderApprovalContent } from './renderer.js';
 
 let pollingInterval = null;
 let currentSessionId = null;
@@ -167,6 +168,10 @@ function renderApprovalUI(session) {
                 <div class="option-body">
                     <p><strong>Judul:</strong> ${topic.name}</p>
                     <p><strong>Gap:</strong> ${topic.gap}</p>
+                    <div style="background: rgba(59, 130, 246, 0.1); padding: 10px; border-radius: 4px; border-left: 3px solid #3b82f6; margin: 10px 0;">
+                        <p style="margin: 0; font-size: 0.9em;"><strong>Alasan Klasifikasi (${topic.type}):</strong> ${topic.type_reason}</p>
+                    </div>
+                    <p><strong>Bukti/Konteks (Evidence):</strong> ${topic.evidence}</p>
                     <p><strong>Pentingnya:</strong> ${topic.importance}</p>
                     ${topic.references && topic.references.length > 0 ? `
                     <div style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed rgba(255,255,255,0.2);">
@@ -194,22 +199,25 @@ function renderApprovalUI(session) {
             });
         });
     } else {
-        // Generic approval for other steps
-        area.insertAdjacentHTML('beforeend', `
-            <div style="padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 8px;">
-                <p style="margin-bottom: 1rem;">Silakan periksa hasil pekerjaan agen di MongoDB Compass. Apakah Anda setuju?</p>
-                <div style="display: flex; gap: 1rem;">
-                    <button id="btn-generic-approve" class="btn btn-success">Setuju & Lanjut</button>
+        const handled = renderApprovalContent(area, session, handleApproval);
+        if (!handled) {
+            // Generic approval for other steps
+            area.insertAdjacentHTML('beforeend', `
+                <div style="padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                    <p style="margin-bottom: 1rem;">Silakan periksa hasil pekerjaan agen di MongoDB Compass. Apakah Anda setuju?</p>
+                    <div style="display: flex; gap: 1rem;">
+                        <button id="btn-generic-approve" class="btn btn-success">Setuju & Lanjut</button>
+                    </div>
                 </div>
-            </div>
-        `);
-        // Generic approve
-        setTimeout(() => {
-            const btnApprove = document.getElementById('btn-generic-approve');
-            if (btnApprove) {
-                btnApprove.addEventListener('click', () => handleApproval({}));
-            }
-        }, 0);
+            `);
+            // Generic approve
+            setTimeout(() => {
+                const btnApprove = document.getElementById('btn-generic-approve');
+                if (btnApprove) {
+                    btnApprove.addEventListener('click', () => handleApproval({}));
+                }
+            }, 0);
+        }
     }
     
     // Always add Revise form at the bottom

@@ -19,37 +19,29 @@ export function renderApprovalContent(area, session, handleApproval) {
     };
 
     if (status === 'M2_STEP2_WAITING_APPROVAL' && session.prior_reviews_matrix) {
-        let rows = '';
+        let cards = '';
         if (session.prior_reviews_matrix.reviews) {
-            session.prior_reviews_matrix.reviews.forEach(r => {
-                rows += `<tr>
-                    <td style="padding: 8px; border: 1px solid rgba(255,255,255,0.1);">${r.author_year || ''}</td>
-                    <td style="padding: 8px; border: 1px solid rgba(255,255,255,0.1);">${r.scope || ''}</td>
-                    <td style="padding: 8px; border: 1px solid rgba(255,255,255,0.1);">${r.methodology || ''}</td>
-                    <td style="padding: 8px; border: 1px solid rgba(255,255,255,0.1);">${r.key_findings || ''}</td>
-                    <td style="padding: 8px; border: 1px solid rgba(255,255,255,0.1);">${r.limitations || ''}</td>
-                    <td style="padding: 8px; border: 1px solid rgba(255,255,255,0.1);">${r.selisih || ''}</td>
-                    <td style="padding: 8px; border: 1px solid rgba(255,255,255,0.1);">${r.synthesis_novelty || ''}</td>
-                </tr>`;
+            session.prior_reviews_matrix.reviews.forEach((r, idx) => {
+                cards += `
+                <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 6px; margin-bottom: 15px; border-left: 4px solid #8b5cf6;">
+                    <h5 style="margin-top: 0; color: #c4b5fd; margin-bottom: 10px; font-size: 1.05em;"><i class="fa fa-book"></i> Review ${idx + 1}: ${r.author_year || 'Unknown'}</h5>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; font-size: 0.9em; line-height: 1.5;">
+                        <div><strong style="color: #9ca3af;">Scope:</strong><br>${r.scope || '-'}</div>
+                        <div><strong style="color: #9ca3af;">Methodology:</strong><br>${r.methodology || '-'}</div>
+                        <div style="grid-column: 1 / -1;"><strong style="color: #9ca3af;">Key Findings:</strong><br>${r.key_findings || '-'}</div>
+                        <div style="grid-column: 1 / -1;"><strong style="color: #9ca3af;">Limitations:</strong><br>${r.limitations || '-'}</div>
+                        <div style="grid-column: 1 / -1; background: rgba(239, 68, 68, 0.1); padding: 10px; border-radius: 4px; border-left: 3px solid #ef4444;">
+                            <strong style="color: #fca5a5;">Selisih (Gap):</strong> ${r.selisih || '-'}
+                        </div>
+                        <div style="grid-column: 1 / -1; background: rgba(16, 185, 129, 0.1); padding: 10px; border-radius: 4px; border-left: 3px solid #10b981;">
+                            <strong style="color: #6ee7b7;">Synthesis Novelty:</strong> ${r.synthesis_novelty || '-'}
+                        </div>
+                    </div>
+                </div>`;
             });
         }
         
-        let table = `<div style="overflow-x: auto;"><table style="width: 100%; border-collapse: collapse; margin-bottom: 1rem; font-size: 0.85em;">
-            <thead>
-                <tr style="background: rgba(0,0,0,0.2);">
-                    <th style="padding: 8px; border: 1px solid rgba(255,255,255,0.1);">Author/Year</th>
-                    <th style="padding: 8px; border: 1px solid rgba(255,255,255,0.1);">Scope</th>
-                    <th style="padding: 8px; border: 1px solid rgba(255,255,255,0.1);">Methodology</th>
-                    <th style="padding: 8px; border: 1px solid rgba(255,255,255,0.1);">Key Findings</th>
-                    <th style="padding: 8px; border: 1px solid rgba(255,255,255,0.1);">Limitations</th>
-                    <th style="padding: 8px; border: 1px solid rgba(255,255,255,0.1);">Selisih (Gap)</th>
-                    <th style="padding: 8px; border: 1px solid rgba(255,255,255,0.1);">Synthesis Novelty</th>
-                </tr>
-            </thead>
-            <tbody>${rows}</tbody>
-        </table></div>`;
-        
-        html = wrapCard('Review of Prior Reviews (Matrix)', table);
+        html = wrapCard('Review of Prior Reviews (Matrix)', cards);
 
     } else if (status === 'M2_STEP3_WAITING_APPROVAL' && session.pico_definitions) {
         const pico = session.pico_definitions;

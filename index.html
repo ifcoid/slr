@@ -50,6 +50,17 @@
                 <h3 id="display-status">Menunggu...</h3>
             </div>
 
+            <!-- Virtual Terminal Log -->
+            <div class="terminal-container">
+                <div class="terminal-header">
+                    <span>🔴</span><span>🟡</span><span>🟢</span> 
+                    <span style="margin-left:10px; font-size:0.8rem; color:#666;">Agent Real-Time Logs</span>
+                </div>
+                <div id="terminal-logs" class="terminal-body">
+                    <!-- Logs will be appended here -->
+                </div>
+            </div>
+
             <div id="interactive-area" class="interactive-area hidden">
                 <!-- Content injected dynamically by tracker.js based on waiting approval state -->
             </div>

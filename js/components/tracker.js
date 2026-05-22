@@ -1,18 +1,25 @@
 // js/components/tracker.js
-import { API } from '../api.js';
+import { API, getBaseURL } from '../api.js';
 import { showToast, toggleHidden } from '../ui.js';
 
 let pollingInterval = null;
 let currentSessionId = null;
+let ws = null;
 
 export function startTracking(sessionId) {
     currentSessionId = sessionId;
     document.getElementById('display-session-id').textContent = sessionId;
     
+    // Clear terminal
+    document.getElementById('terminal-logs').innerHTML = '';
+    
+    // Connect WebSocket
+    connectWebSocket(sessionId);
+    
     // Initial fetch
     fetchSessionStatus();
     
-    // Start polling every 3 seconds
+    // Start polling every 3 seconds for UI status
     if (pollingInterval) clearInterval(pollingInterval);
     pollingInterval = setInterval(fetchSessionStatus, 3000);
     
@@ -22,10 +29,36 @@ export function startTracking(sessionId) {
     }
 }
 
+function connectWebSocket(id) {
+    if (ws) ws.close();
+    
+    // Convert http://... to ws://...
+    const httpBase = getBaseURL();
+    let wsBase = httpBase.replace(/^http/, 'ws');
+    
+    ws = new WebSocket(`${wsBase}/ws/logs/${id}`);
+    
+    ws.onmessage = (event) => {
+        const terminal = document.getElementById('terminal-logs');
+        const p = document.createElement('p');
+        p.textContent = event.data;
+        terminal.appendChild(p);
+        // Auto scroll
+        terminal.scrollTop = terminal.scrollHeight;
+    };
+    
+    ws.onerror = (err) => console.error("WebSocket Error:", err);
+    ws.onclose = () => console.log("WebSocket connection closed.");
+}
+
 export function stopTracking() {
     if (pollingInterval) {
         clearInterval(pollingInterval);
         pollingInterval = null;
+    }
+    if (ws) {
+        ws.close();
+        ws = null;
     }
 }
 

@@ -383,3 +383,40 @@ small {
 .modal-overlay.hiding .modal-content {
     transform: scale(0.95);
 }
+
+/* Virtual Terminal */
+.terminal-container {
+    background: #000000;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+    overflow: hidden;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.8);
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.terminal-header {
+    background: #1e1e1e;
+    padding: 8px 12px;
+    border-bottom: 1px solid #333;
+    user-select: none;
+}
+
+.terminal-header span {
+    font-size: 10px;
+}
+
+.terminal-body {
+    padding: 12px;
+    height: 250px;
+    overflow-y: auto;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.85rem;
+    color: #4ade80; /* Hacker green */
+    line-height: 1.5;
+}
+
+.terminal-body p {
+    margin: 0 0 4px 0;
+    word-wrap: break-word;
+}
+

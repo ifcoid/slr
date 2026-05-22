@@ -80,11 +80,31 @@ hr {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1rem 2rem;
-    border-bottom: 1px solid var(--surface-border);
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid transparent;
     position: sticky;
     top: 0;
     z-index: 10;
+    background: transparent;
+    transition: all 0.3s ease;
+}
+
+.main-header.scrolled {
+    padding: 0.75rem 2rem;
+    background: var(--surface-color);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--surface-border);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.main-header h1 {
+    margin-bottom: 0;
+    transition: font-size 0.3s ease;
+}
+
+.main-header.scrolled h1 {
+    font-size: 1.25rem;
 }
 
 /* Glassmorphism */

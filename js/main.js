@@ -21,5 +21,18 @@ document.addEventListener('DOMContentLoaded', () => {
         startTracking(sessionId);
     });
 
+    // 4. Header scroll effect
+    const mainHeader = document.querySelector('.main-header');
+    if (mainHeader) {
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 20) {
+                mainHeader.classList.add('scrolled');
+            } else {
+                mainHeader.classList.removeAttribute('class');
+                mainHeader.classList.add('main-header');
+            }
+        });
+    }
+
     console.log('Agentic SLR Orchestrator - Frontend Initialized');
 });

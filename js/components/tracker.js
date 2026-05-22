@@ -5,6 +5,7 @@ import { showToast, toggleHidden } from '../ui.js';
 let pollingInterval = null;
 let currentSessionId = null;
 let ws = null;
+let lastRenderedStatus = null;
 
 export function startTracking(sessionId) {
     currentSessionId = sessionId;
@@ -89,6 +90,13 @@ async function fetchSessionStatus() {
         const session = await API.getSession(currentSessionId);
         displayStatus.textContent = session.status || 'UNKNOWN';
         
+        // Prevent re-rendering UI if status hasn't changed, 
+        // to avoid wiping out user's input in textareas
+        if (session.status === lastRenderedStatus) {
+            return;
+        }
+        lastRenderedStatus = session.status;
+
         // Logic for animation and interaction based on status
         if (session.status && session.status.includes('WAITING_APPROVAL')) {
             toggleHidden('status-spinner', false); // Hide spinner
@@ -118,8 +126,6 @@ async function fetchSessionStatus() {
                 const btnRetry = document.getElementById('btn-retry-error');
                 if (btnRetry) {
                     btnRetry.addEventListener('click', () => {
-                        // Untuk retry, kita bisa reset status error-nya dan memanggil kembali API getSession
-                        // Tapi kita tidak punya API Retry khusus, jadi kita panggil ApproveStep kosong yang akan me-reset status
                         API.approveStep(currentSessionId, { is_retry: true });
                         showToast('Mencoba ulang...');
                         fetchSessionStatus();

@@ -97,20 +97,24 @@ export function renderApprovalContent(area, session, handleApproval) {
                 <p>Silakan isi detail batasan riset Anda:</p>
                 <form id="form-filters">
                     <div class="form-group" style="margin-bottom: 1rem;">
-                        <label>Rentang Waktu (Misal: 2018-2024)</label>
-                        <input type="text" id="filter-waktu" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #555; background: #222; color: #fff;" value="${session.scope_filters?.waktu || '[ISI DI SINI...]'}">
+                        <label>Rentang Tahun (Misal: 2018-2024)</label>
+                        <input type="text" id="filter-tahun" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #555; background: #222; color: #fff;" value="${session.scope_filters?.rentang_tahun || ''}">
                     </div>
                     <div class="form-group" style="margin-bottom: 1rem;">
-                        <label>Tipe Dokumen (Misal: Journal Article & Conference Paper)</label>
-                        <input type="text" id="filter-tipe" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #555; background: #222; color: #fff;" value="${session.scope_filters?.tipe_dokumen || '[ISI DI SINI...]'}">
+                        <label>Geografis (Misal: Global, Asia, USA)</label>
+                        <input type="text" id="filter-geografis" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #555; background: #222; color: #fff;" value="${session.scope_filters?.geografis || 'Global'}">
                     </div>
                     <div class="form-group" style="margin-bottom: 1rem;">
-                        <label>Sektor Publikasi (Misal: Computer Science & Medicine)</label>
-                        <input type="text" id="filter-sektor" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #555; background: #222; color: #fff;" value="${session.scope_filters?.sektor || '[ISI DI SINI...]'}">
+                        <label>Sektor / Bidang (Misal: Computer Science & Medicine)</label>
+                        <input type="text" id="filter-sektor" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #555; background: #222; color: #fff;" value="${session.scope_filters?.sektor || ''}">
                     </div>
                     <div class="form-group" style="margin-bottom: 1rem;">
-                        <label>Bahasa (Misal: English)</label>
-                        <input type="text" id="filter-bahasa" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #555; background: #222; color: #fff;" value="${session.scope_filters?.bahasa || '[ISI DI SINI...]'}">
+                        <label>Bahasa (Misal: English only)</label>
+                        <input type="text" id="filter-bahasa" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #555; background: #222; color: #fff;" value="${session.scope_filters?.bahasa || 'English only'}">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label>Lainnya (Misal: Hanya Jurnal Peer-Reviewed, Bebas Konferensi)</label>
+                        <input type="text" id="filter-lainnya" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #555; background: #222; color: #fff;" value="${session.scope_filters?.lainnya || ''}">
                     </div>
                     <button type="submit" class="btn btn-primary" style="margin-top: 10px;">Simpan Filters & Lanjut</button>
                 </form>
@@ -124,10 +128,11 @@ export function renderApprovalContent(area, session, handleApproval) {
                 formFilters.addEventListener('submit', async (e) => {
                     e.preventDefault();
                     const filterData = {
-                        waktu: document.getElementById('filter-waktu').value,
-                        tipe_dokumen: document.getElementById('filter-tipe').value,
+                        rentang_tahun: document.getElementById('filter-tahun').value,
+                        geografis: document.getElementById('filter-geografis').value,
                         sektor: document.getElementById('filter-sektor').value,
-                        bahasa: document.getElementById('filter-bahasa').value
+                        bahasa: document.getElementById('filter-bahasa').value,
+                        lainnya: document.getElementById('filter-lainnya').value
                     };
                     
                     try {
@@ -144,7 +149,6 @@ export function renderApprovalContent(area, session, handleApproval) {
                             })
                         });
                         
-                        // force reload
                         window.location.reload();
                     } catch (error) {
                         alert("Gagal update filter: " + error);

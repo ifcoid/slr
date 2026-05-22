@@ -16,8 +16,9 @@ export function startTracking(sessionId) {
     // Connect WebSocket
     connectWebSocket(sessionId);
     
-    // Initial fetch
+    // Initial fetch and wake up backend worker
     fetchSessionStatus();
+    API.resumeSession(sessionId).catch(e => console.log('Resume attempt info:', e));
     
     // Start polling every 3 seconds for UI status
     if (pollingInterval) clearInterval(pollingInterval);

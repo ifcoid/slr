@@ -43,8 +43,10 @@ export const API = {
         body: JSON.stringify({ id, topic })
     }),
     
-    getSession: (id) => apiFetch(`/sessions/${id}`, {
-        method: 'GET'
+    getSession: (id) => apiFetch(`/sessions/${id}`),
+
+    resumeSession: (id) => apiFetch(`/sessions/${id}/resume`, {
+        method: 'POST'
     }),
     
     approveStep: (id, payload = {}) => apiFetch(`/sessions/${id}/approve`, {

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agentic SLR Orchestrator</title>
+    <!-- Modern Font: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Main Style -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="background-mesh"></div>
+
+    <header class="glass-panel main-header">
+        <h1>Agentic SLR <span>Orchestrator</span></h1>
+        <button id="btn-settings" class="btn btn-icon" title="Pengaturan API">
+            ⚙️ Pengaturan
+        </button>
+    </header>
+
+    <main class="container">
+        <!-- Dashboard Section: Create Session -->
+        <section id="section-new-session" class="glass-panel card">
+            <h2>Mulai Sesi Riset Baru</h2>
+            <form id="form-new-session">
+                <div class="form-group">
+                    <label for="input-session-id">ID Sesi (tanpa spasi)</label>
+                    <input type="text" id="input-session-id" placeholder="misal: bci_riset_2026" required>
+                </div>
+                <div class="form-group">
+                    <label for="input-topic">Topik Riset Mentah</label>
+                    <textarea id="input-topic" rows="3" placeholder="misal: Penggunaan Active Learning pada klasifikasi data EEG..." required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Mulai Eksekusi Agen</button>
+            </form>
+        </section>
+
+        <!-- Tracker Section: Monitor Session -->
+        <section id="section-tracker" class="glass-panel card hidden">
+            <div class="tracker-header">
+                <h2>Status Sesi: <span id="display-session-id" class="text-highlight">...</span></h2>
+                <button id="btn-refresh" class="btn btn-icon">🔄 Refresh</button>
+            </div>
+            
+            <div class="status-indicator">
+                <div class="spinner hidden" id="status-spinner"></div>
+                <h3 id="display-status">Menunggu...</h3>
+            </div>
+
+            <div id="interactive-area" class="interactive-area hidden">
+                <!-- Content injected dynamically by tracker.js based on waiting approval state -->
+            </div>
+        </section>
+    </main>
+
+    <!-- Settings Modal -->
+    <div id="modal-settings" class="modal-overlay hidden">
+        <div class="glass-panel modal-content">
+            <div class="modal-header">
+                <h2>Pengaturan Sistem</h2>
+                <button id="btn-close-settings" class="btn-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <h3>Koneksi Backend Go</h3>
+                <div class="form-group">
+                    <label for="input-base-url">Base URL API Endpoint</label>
+                    <input type="url" id="input-base-url" value="http://localhost:8080/api" placeholder="http://localhost:8080/api" required>
+                    <small>Ubah ini jika backend Go Anda berjalan di host/port lain.</small>
+                </div>
+
+                <hr>
+
+                <h3>Konfigurasi LLM API Key</h3>
+                <form id="form-llm-config">
+                    <div class="form-group">
+                        <label for="select-provider">Provider</label>
+                        <select id="select-provider">
+                            <option value="gemini">Gemini (Google)</option>
+                            <option value="groq">Groq</option>
+                            <option value="zhipu">Zhipu (GLM)</option>
+                            <option value="claude">Claude (Anthropic)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="input-api-key">API Key</label>
+                        <input type="password" id="input-api-key" placeholder="Masukkan API Key...">
+                    </div>
+                    <button type="submit" class="btn btn-secondary">Simpan LLM Config</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Main Module Entry -->
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>

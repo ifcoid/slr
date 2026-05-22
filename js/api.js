@@ -1,7 +1,7 @@
 // js/api.js
 
 // Default Base URL
-let baseURL = localStorage.getItem('apiBaseURL') || 'http://localhost:8080/api';
+let baseURL = localStorage.getItem('apiBaseURL') || 'http://localhost:50607/api';
 
 export function getBaseURL() {
     return baseURL;

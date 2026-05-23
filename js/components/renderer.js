@@ -204,10 +204,25 @@ export function renderApprovalContent(area, session, handleApproval) {
         let rqList = '<ul style="list-style: none; padding: 0;">';
         session.research_questions.forEach((rq, idx) => {
             const warning = rq.is_orphan ? '<span style="color: #fca5a5; font-size: 0.8em; margin-left: 10px;">[⚠️ ORPHAN]</span>' : '';
+            
+            let traceHtml = '';
+            if (rq.traceability) {
+                traceHtml = `
+                    <div style="margin-top: 8px; padding: 8px; background: rgba(255,255,255,0.03); border-radius: 4px;">
+                        <div style="margin-bottom: 4px;"><strong>Gap:</strong> <span style="color: #d1d5db;">${rq.traceability.gap || '-'}</span></div>
+                        <div style="margin-bottom: 4px;"><strong>Prior Reviews:</strong> <span style="color: #d1d5db;">${rq.traceability.prior_reviews || '-'}</span></div>
+                        <div style="margin-bottom: 4px;"><strong>PICO:</strong> <span style="color: #d1d5db;">${rq.traceability.pico || '-'}</span></div>
+                        <div><strong>Scope:</strong> <span style="color: #d1d5db;">${rq.traceability.scope || '-'}</span></div>
+                    </div>
+                `;
+            }
+
             rqList += `
-                <li style="margin-bottom: 1rem; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 4px; border-left: 4px solid ${rq.is_orphan ? '#ef4444' : '#3b82f6'};">
-                    <strong>${rq.id}:</strong> ${rq.question} ${warning}<br>
-                    <small style="color: #9ca3af;">Type: ${rq.type} | Trace: ${rq.traceability}</small>
+                <li style="margin-bottom: 1rem; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 4px; border-left: 4px solid ${rq.is_orphan ? '#ef4444' : '#3b82f6'};">
+                    <h5 style="margin-top: 0; margin-bottom: 10px; color: #60a5fa; font-size: 1.05em;">RQ ${idx + 1} <span style="color: #a78bfa; font-size: 0.85em; font-weight: normal; margin-left: 10px;">(${rq.type})</span> ${warning}</h5>
+                    <div style="margin-bottom: 10px; font-size: 1.1em;">${rq.question}</div>
+                    <small style="color: #9ca3af;">Traceability:</small>
+                    ${traceHtml}
                 </li>
             `;
         });

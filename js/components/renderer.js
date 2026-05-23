@@ -12,6 +12,10 @@ export function renderApprovalContent(area, session, handleApproval) {
 
     const formatMarkdown = (md) => {
         if (!md) return '';
+        
+        // Percantik teks gaya === JUDUL ===
+        md = md.replace(/^===\s*(.*?)\s*===$/gm, '<div style="background: linear-gradient(90deg, rgba(59, 130, 246, 0.2) 0%, transparent 100%); border-left: 4px solid #3b82f6; padding: 6px 15px; font-weight: bold; color: #93c5fd; font-size: 0.9em; letter-spacing: 1px; text-transform: uppercase; margin: 10px 0; border-radius: 4px; display: inline-block;">$1</div>');
+
         if (window.marked) {
             return window.marked.parse(md);
         }

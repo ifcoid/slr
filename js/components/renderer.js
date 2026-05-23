@@ -12,7 +12,10 @@ export function renderApprovalContent(area, session, handleApproval) {
 
     const formatMarkdown = (md) => {
         if (!md) return '';
-        // Sangat simpel markdown parser
+        if (window.marked) {
+            return window.marked.parse(md);
+        }
+        // Fallback simpel markdown parser
         return md.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
                  .replace(/\*(.*?)\*/g, '<em>$1</em>')
                  .replace(/\n/g, '<br>');

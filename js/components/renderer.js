@@ -164,8 +164,24 @@ export function renderApprovalContent(area, session, handleApproval) {
         // Helper untuk menyulap URL menjadi link pendek yang bisa diklik
         const formatLinks = (text) => {
             if (!text) return '';
-            return text.replace(/https?:\/\/(www\.)?([-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6})\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/gi, function(url, www, domain) {
-                return `<a href="${url}" target="_blank" style="color: #60a5fa; text-decoration: none; border-bottom: 1px dotted #60a5fa;">${domain}</a>`;
+            return text.replace(/https?:\/\/(www\.)?([-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9]{1,6})\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/gi, function(url, www, domain) {
+                let trailing = '';
+                // Pisahkan tanda baca di akhir URL yang kemungkinan bukan bagian dari URL
+                while (url.endsWith(')') || url.endsWith('.') || url.endsWith(',') || url.endsWith(']')) {
+                    trailing = url.slice(-1) + trailing;
+                    url = url.slice(0, -1);
+                }
+                
+                // Kembalikan kurung tutup jika ternyata itu pasangan kurung buka dari URL Wikipedia dll
+                let openP = (url.match(/\(/g) || []).length;
+                let closeP = (url.match(/\)/g) || []).length;
+                while (trailing.startsWith(')') && openP > closeP) {
+                    url += ')';
+                    trailing = trailing.substring(1);
+                    closeP++;
+                }
+
+                return `<a href="${url}" target="_blank" style="color: #60a5fa; text-decoration: none; border-bottom: 1px dotted #60a5fa;">${domain}</a>` + trailing;
             });
         };
 

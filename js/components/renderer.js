@@ -252,16 +252,29 @@ export function renderApprovalContent(area, session, handleApproval) {
 
     } else if (status === 'M3_STEP1_WAITING_APPROVAL' && session.database_selection) {
         const dbs = session.database_selection;
-        let dbList = '<ul>';
-        if (dbs.databases) {
-            dbs.databases.forEach(db => {
-                dbList += `<li><strong>${db.name}</strong>: Coverage: ${db.coverage_strength} | Limit: ${db.limitation}</li>`;
+        
+        let dbList = '';
+        if (dbs.matriks_database) {
+            dbs.matriks_database.forEach(db => {
+                dbList += `
+                    <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 6px; margin-bottom: 15px; border-left: 4px solid #3b82f6;">
+                        <h5 style="margin-top: 0; color: #93c5fd; font-size: 1.05em;">${db.database}</h5>
+                        <div style="margin-bottom: 8px;"><strong>Coverage:</strong> ${db.coverage_strength}</div>
+                        <div style="margin-bottom: 8px;"><strong>Limitation:</strong> ${db.limitation}</div>
+                        <div><strong>Fit dengan Topik:</strong> ${db.fit_dengan_topik}</div>
+                    </div>
+                `;
             });
         }
-        dbList += '</ul>';
+
         html = wrapCard('Database Selection', `
+            <div style="margin-bottom: 15px;"><strong>Coverage Bidang:</strong><br> ${formatMarkdown(dbs.cek_coverage_bidang)}</div>
+            <h5 style="color: #a78bfa; margin-top: 20px;">Matriks Evaluasi Database</h5>
             ${dbList}
-            <p><strong>Final Justification:</strong><br>${dbs.final_justification || ''}</p>
+            <div style="margin-top: 15px; padding: 10px; background: rgba(16, 185, 129, 0.1); border-left: 4px solid #10b981; border-radius: 4px;">
+                <strong>Decision:</strong> <span style="color: #4ade80;">${dbs.decision}</span>
+            </div>
+            <div style="margin-top: 15px;"><strong>Final Justification:</strong><br>${formatMarkdown(dbs.justifikasi_final)}</div>
         `);
 
     } else if (status === 'M3_STEP2_WAITING_APPROVAL' && session.keywords) {

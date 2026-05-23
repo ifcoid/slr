@@ -481,3 +481,13 @@ tr:hover {
     background-color: rgba(255, 255, 255, 0.05);
 }
 
+/* Markdown Lists Styles */
+ul, ol {
+    margin-bottom: 1rem;
+    padding-left: 1.5rem;
+}
+
+li {
+    margin-bottom: 0.5rem;
+}
+

@@ -160,15 +160,24 @@ export function renderApprovalContent(area, session, handleApproval) {
 
     } else if (status === 'M2_STEP4_WAITING_APPROVAL' && session.scope_justifications) {
         const justifications = session.scope_justifications;
+        
+        // Helper untuk menyulap URL menjadi link pendek yang bisa diklik
+        const formatLinks = (text) => {
+            if (!text) return '';
+            return text.replace(/https?:\/\/(www\.)?([-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6})\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/gi, function(url, www, domain) {
+                return `<a href="${url}" target="_blank" style="color: #60a5fa; text-decoration: none; border-bottom: 1px dotted #60a5fa;">${domain}</a>`;
+            });
+        };
+
         let scList = '';
         justifications.forEach((sc) => {
             const statusColor = sc.status && sc.status.includes('Valid') ? '#10b981' : '#ef4444';
             scList += `
                 <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 6px; margin-bottom: 15px; border-left: 4px solid ${statusColor};">
                     <h5 style="margin-top: 0; color: #c4b5fd; margin-bottom: 10px; font-size: 1.05em;">${sc.name}</h5>
-                    <div style="margin-bottom: 8px;"><strong>Teoretis:</strong> <span style="color: #d1d5db;">${sc.theoretical}</span></div>
-                    <div style="margin-bottom: 8px;"><strong>Metodologis:</strong> <span style="color: #d1d5db;">${sc.methodological}</span></div>
-                    <div style="margin-bottom: 8px;"><strong>Praktis:</strong> <span style="color: #d1d5db;">${sc.practical}</span></div>
+                    <div style="margin-bottom: 8px;"><strong>Teoretis:</strong> <span style="color: #d1d5db;">${formatLinks(sc.theoretical)}</span></div>
+                    <div style="margin-bottom: 8px;"><strong>Metodologis:</strong> <span style="color: #d1d5db;">${formatLinks(sc.methodological)}</span></div>
+                    <div style="margin-bottom: 8px;"><strong>Praktis:</strong> <span style="color: #d1d5db;">${formatLinks(sc.practical)}</span></div>
                     <div><span style="background: ${statusColor}40; color: ${statusColor}; padding: 2px 8px; border-radius: 12px; font-size: 0.85em; font-weight: 500;">Status: ${sc.status}</span></div>
                 </div>
             `;

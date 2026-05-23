@@ -418,6 +418,18 @@ export function renderApprovalContent(area, session, handleApproval) {
                         <label>Total Hits Post-Filter</label>
                         <input type="text" id="m4-post" class="input-modern" value="${session.data_mining_log?.initial_sample?.total_hits_post_filter || ''}">
                     </div>
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label>20-50 Judul Pertama (Pisahkan dengan baris baru)</label>
+                        <textarea id="m4-titles" class="input-modern" rows="5">${(session.data_mining_log?.initial_sample?.sample_titles || []).join('\n')}</textarea>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label>Paper Kunci yang DITEMUKAN (Pisahkan dengan baris baru)</label>
+                        <textarea id="m4-found" class="input-modern" rows="3">${(session.data_mining_log?.initial_sample?.key_papers_found || []).join('\n')}</textarea>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label>Paper Kunci yang TIDAK DITEMUKAN / MISSED (Tulis NIHIL jika tidak ada)</label>
+                        <textarea id="m4-missing" class="input-modern" rows="3">${(session.data_mining_log?.initial_sample?.key_papers_missing || []).join('\n')}</textarea>
+                    </div>
                     <button type="submit" class="btn btn-primary">Lakukan Sanity Check</button>
                 </form>
             </div>
@@ -436,6 +448,9 @@ export function renderApprovalContent(area, session, handleApproval) {
                     newDataMiningLog.initial_sample.database = document.getElementById('m4-db').value;
                     newDataMiningLog.initial_sample.total_hits_pre_filter = document.getElementById('m4-pre').value;
                     newDataMiningLog.initial_sample.total_hits_post_filter = document.getElementById('m4-post').value;
+                    newDataMiningLog.initial_sample.sample_titles = document.getElementById('m4-titles').value.split('\n').filter(t => t.trim() !== '');
+                    newDataMiningLog.initial_sample.key_papers_found = document.getElementById('m4-found').value.split('\n').filter(t => t.trim() !== '');
+                    newDataMiningLog.initial_sample.key_papers_missing = document.getElementById('m4-missing').value.split('\n').filter(t => t.trim() !== '');
                     
                     try {
                         const btn = e.target.querySelector('button');

@@ -308,10 +308,27 @@ export function renderApprovalContent(area, session, handleApproval) {
             });
         }
         filters += '</ul>';
+        
+        let adaptedHtml = '';
+        if (ss.adapted_strings && ss.adapted_strings.length > 0) {
+            adaptedHtml = '<h5 style="color: #a78bfa; margin-top: 20px;">Adapted Strings (Other Databases)</h5>';
+            ss.adapted_strings.forEach(ad => {
+                adaptedHtml += `
+                    <div style="margin-bottom: 15px;">
+                        <strong>${ad.database}</strong>
+                        <div style="background: #1e1e1e; padding: 10px; border-radius: 4px; font-family: monospace; color: #93c5fd; font-size: 0.9em; margin-top: 5px; overflow-x: auto;">
+                            ${ad.query}
+                        </div>
+                    </div>
+                `;
+            });
+        }
+        
         html = wrapCard('Search String', `
             <div style="background: #1e1e1e; padding: 15px; border-radius: 6px; font-family: monospace; color: #a78bfa; margin-bottom: 1rem; overflow-x: auto;">
                 ${ss.scopus_query}
             </div>
+            ${adaptedHtml}
             <p><strong>Filters Applied:</strong></p>
             ${filters}
         `);

@@ -220,15 +220,17 @@ function renderApprovalUI(session) {
         }
     }
     
-    // Always add Revise form at the bottom
-    area.insertAdjacentHTML('beforeend', `
-        <hr>
-        <h4>Atau Berikan Revisi (Feedback)</h4>
-        <form id="form-revise" style="margin-top: 1rem;">
-            <textarea id="input-feedback" rows="2" placeholder="Tulis instruksi revisi di sini..." required></textarea>
-            <button type="submit" class="btn btn-danger" style="margin-top: 0.5rem;">Kirim Revisi</button>
-        </form>
-    `);
+    // Only add Revise form if this is an approval step (not a data-input step)
+    if (session.status.includes('APPROVAL')) {
+        area.insertAdjacentHTML('beforeend', `
+            <hr>
+            <h4>Atau Berikan Revisi (Feedback)</h4>
+            <form id="form-revise" style="margin-top: 1rem;">
+                <textarea id="input-feedback" rows="2" placeholder="Tulis instruksi revisi di sini..." required></textarea>
+                <button type="submit" class="btn btn-danger" style="margin-top: 0.5rem;">Kirim Revisi</button>
+            </form>
+        `);
+    }
     
     setTimeout(() => {
         const formRevise = document.getElementById('form-revise');

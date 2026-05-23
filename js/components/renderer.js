@@ -337,6 +337,16 @@ export function renderApprovalContent(area, session, handleApproval) {
         let execHtml = `
             <div style="background: rgba(255,255,255,0.05); padding: 1.5rem; border-radius: 8px; margin-bottom: 1rem;">
                 <h4 style="color: #60a5fa;">Aksi Diperlukan: Eksekusi Manual di Scopus</h4>
+                
+                ${session.search_string && session.search_string.pre_validation ? `
+                <div style="background: rgba(234, 179, 8, 0.1); border-left: 4px solid #eab308; padding: 10px 15px; margin-bottom: 1rem; border-radius: 4px;">
+                    <h5 style="color: #eab308; margin-top: 0; margin-bottom: 8px;">⚠️ Hasil Pre-Validasi (Penting)</h5>
+                    <div style="font-size: 0.9em;">
+                        ${formatMarkdown(session.search_string.pre_validation)}
+                    </div>
+                </div>
+                ` : ''}
+
                 <p><strong>Query:</strong></p>
                 <div style="background: #1e1e1e; padding: 15px; border-radius: 6px; font-family: monospace; color: #a78bfa; margin-bottom: 1rem; overflow-x: auto;">
                     ${session.search_string ? session.search_string.scopus_query : 'Kueri tidak ditemukan.'}

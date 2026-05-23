@@ -159,12 +159,21 @@ export function renderApprovalContent(area, session, handleApproval) {
         return true; // We handled rendering completely
 
     } else if (status === 'M2_STEP4_WAITING_APPROVAL' && session.scope_justifications) {
-        const sc = session.scope_justifications;
-        html = wrapCard('Scope Justifications', `
-            <p><strong>Theoretical:</strong> ${sc.theoretical ? sc.theoretical.justification : ''}</p>
-            <p><strong>Methodological:</strong> ${sc.methodological ? sc.methodological.justification : ''}</p>
-            <p><strong>Practical:</strong> ${sc.practical ? sc.practical.justification : ''}</p>
-        `);
+        const justifications = session.scope_justifications;
+        let scList = '';
+        justifications.forEach((sc) => {
+            const statusColor = sc.status && sc.status.includes('Valid') ? '#10b981' : '#ef4444';
+            scList += `
+                <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 6px; margin-bottom: 15px; border-left: 4px solid ${statusColor};">
+                    <h5 style="margin-top: 0; color: #c4b5fd; margin-bottom: 10px; font-size: 1.05em;">${sc.name}</h5>
+                    <div style="margin-bottom: 8px;"><strong>Teoretis:</strong> <span style="color: #d1d5db;">${sc.theoretical}</span></div>
+                    <div style="margin-bottom: 8px;"><strong>Metodologis:</strong> <span style="color: #d1d5db;">${sc.methodological}</span></div>
+                    <div style="margin-bottom: 8px;"><strong>Praktis:</strong> <span style="color: #d1d5db;">${sc.practical}</span></div>
+                    <div><span style="background: ${statusColor}40; color: ${statusColor}; padding: 2px 8px; border-radius: 12px; font-size: 0.85em; font-weight: 500;">Status: ${sc.status}</span></div>
+                </div>
+            `;
+        });
+        html = wrapCard('Justifikasi Batasan / Scope Riset (3 Lapis)', scList);
 
     } else if (status === 'M2_STEP5_WAITING_APPROVAL' && session.research_questions) {
         let rqList = '<ul style="list-style: none; padding: 0;">';

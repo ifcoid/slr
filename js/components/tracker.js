@@ -67,7 +67,15 @@ function connectWebSocket(id) {
     };
     
     ws.onerror = (err) => console.error("WebSocket Error:", err);
-    ws.onclose = () => console.log("WebSocket connection closed.");
+    ws.onclose = () => {
+        console.log("WebSocket connection closed. Attempting to reconnect in 2 seconds...");
+        setTimeout(() => {
+            // Only reconnect if we are still tracking this session
+            if (currentSessionId === id && document.getElementById('section-tracker') && !document.getElementById('section-tracker').classList.contains('hidden')) {
+                connectWebSocket(id);
+            }
+        }, 2000);
+    };
 }
 
 export function stopTracking() {

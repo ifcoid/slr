@@ -14,7 +14,7 @@ export function renderApprovalContent(area, session, handleApproval) {
         if (!md) return '';
         
         // Percantik teks gaya === JUDUL ===
-        md = md.replace(/^===\s*(.*?)\s*===$/gm, '<div style="background: linear-gradient(90deg, rgba(59, 130, 246, 0.2) 0%, transparent 100%); border-left: 4px solid #3b82f6; padding: 6px 15px; font-weight: bold; color: #93c5fd; font-size: 0.9em; letter-spacing: 1px; text-transform: uppercase; margin: 10px 0; border-radius: 4px; display: inline-block;">$1</div>');
+        md = md.replace(/^===\s*(.*?)\s*===$/gm, '\n\n<div style="background: linear-gradient(90deg, rgba(59, 130, 246, 0.2) 0%, transparent 100%); border-left: 4px solid #3b82f6; padding: 6px 15px; font-weight: bold; color: #93c5fd; font-size: 0.9em; letter-spacing: 1px; text-transform: uppercase; margin: 10px 0; border-radius: 4px; display: block;">$1</div>\n\n');
 
         if (window.marked) {
             return window.marked.parse(md);

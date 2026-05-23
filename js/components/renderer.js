@@ -234,12 +234,12 @@ export function renderApprovalContent(area, session, handleApproval) {
         const color = finer.is_pass ? '#4ade80' : '#fca5a5';
         html = wrapCard('FINER & Novelty Check', `
             <h3 style="color: ${color}; margin-top: 0;">Status: ${finer.is_pass ? 'PASSED' : 'FAILED'}</h3>
-            <p><strong>Feasibility:</strong> ${finer.f ? finer.f.reasoning : ''}</p>
-            <p><strong>Interesting:</strong> ${finer.i ? finer.i.reasoning : ''}</p>
-            <p><strong>Novelty:</strong> ${finer.n ? finer.n.reasoning : ''}</p>
-            <p><strong>Ethical:</strong> ${finer.e ? finer.e.reasoning : ''}</p>
-            <p><strong>Relevant:</strong> ${finer.r ? finer.r.reasoning : ''}</p>
-            <p><strong>Rekomendasi Utama:</strong> ${finer.actionable_recommendation || ''}</p>
+            <p><strong>Feasibility:</strong> ${finer.finer?.feasible || ''}</p>
+            <p><strong>Interesting:</strong> ${finer.finer?.interesting || ''}</p>
+            <p><strong>Novelty:</strong> ${finer.finer?.novel || ''}</p>
+            <p><strong>Ethical:</strong> ${finer.finer?.ethical || ''}</p>
+            <p><strong>Relevant:</strong> ${finer.finer?.relevant || ''}</p>
+            <p><strong>Rekomendasi Utama:</strong> ${finer.internal_coherence?.recommendation || ''}</p>
             ${session.modul2_summary ? `<hr style="border-color: rgba(255,255,255,0.1);"><p><strong>Summary:</strong><br>${formatMarkdown(session.modul2_summary.markdown)}</p>` : ''}
         `);
 

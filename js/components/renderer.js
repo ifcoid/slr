@@ -279,15 +279,22 @@ export function renderApprovalContent(area, session, handleApproval) {
 
     } else if (status === 'M3_STEP2_WAITING_APPROVAL' && session.keywords) {
         let kwList = '';
-        if (session.keywords && Array.isArray(session.keywords)) {
-            session.keywords.forEach(kw => {
-                kwList += `
-                    <div style="margin-bottom: 1rem; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 4px;">
-                        <strong>PICO Element: ${kw.pico_element}</strong><br>
-                        <em>Synonyms:</em> ${kw.main_synonyms ? kw.main_synonyms.join(', ') : ''}<br>
-                        <em style="color: #fca5a5;">Avoid:</em> ${kw.avoid_list ? kw.avoid_list.join(', ') : ''}
-                    </div>
-                `;
+        if (session.keywords) {
+            const keys = ['population', 'intervention', 'comparison', 'outcome'];
+            keys.forEach(k => {
+                const kw = session.keywords[k];
+                if (kw) {
+                    kwList += `
+                        <div style="margin-bottom: 1rem; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 4px; border-left: 4px solid #8b5cf6;">
+                            <h5 style="margin-top: 0; color: #c4b5fd; text-transform: capitalize;">${k}</h5>
+                            <strong>Canonical Term:</strong> ${kw.canonical_term || ''}<br>
+                            <em>Synonyms:</em> ${kw.main_synonyms ? kw.main_synonyms.join(', ') : ''}<br>
+                            <em>Alternative:</em> ${kw.alternative_terms ? kw.alternative_terms.join(', ') : ''}<br>
+                            <em style="color: #fca5a5;">Avoid:</em> ${kw.avoid_list ? kw.avoid_list.join(', ') : ''}
+                            ${kw.reasoning ? `<div style="margin-top: 5px; font-size: 0.9em; color: #a1a1aa;"><strong>Reasoning:</strong> ${kw.reasoning}</div>` : ''}
+                        </div>
+                    `;
+                }
             });
         }
         html = wrapCard('Keywords Development', kwList);

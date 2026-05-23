@@ -304,7 +304,7 @@ export function renderApprovalContent(area, session, handleApproval) {
         let filters = '<ul>';
         if (ss.filters) {
             ss.filters.forEach(f => {
-                filters += `<li><strong>${f.type} (${f.value}):</strong> ${f.justification}</li>`;
+                filters += `<li><strong>${f.filter} (${f.value}):</strong> ${f.justification}</li>`;
             });
         }
         filters += '</ul>';

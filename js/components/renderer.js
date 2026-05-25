@@ -1,4 +1,5 @@
 // js/components/renderer.js
+import { API } from '../api.js';
 export function renderApprovalContent(area, session, handleApproval) {
     const status = session.status;
     let html = '';

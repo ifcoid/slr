@@ -499,9 +499,47 @@ export function renderApprovalContent(area, session, handleApproval) {
         `);
 
     } else if (status === 'M4_STEP2_WAITING_IMPORT') {
+        let scopusQuery = session.search_log?.search_string_final || session.search_string?.scopus_query || 'Tidak tersedia';
+        let filterText = session.search_log?.filters_applied ? session.search_log.filters_applied.map(f => `${f.filter} (${f.value})`).join(' | ') : '-';
+        
+        let adaptedHtml = '';
+        if (session.search_string && session.search_string.adapted_strings) {
+            adaptedHtml = session.search_string.adapted_strings.map(ad => `
+                <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.1);">
+                    <strong style="color: #cbd5e1;">${ad.database}</strong>
+                    <div style="background: rgba(0,0,0,0.3); padding: 8px; border-radius: 4px; font-family: monospace; color: #a78bfa; font-size: 0.85em; margin: 4px 0; overflow-x: auto; white-space: pre-wrap;">${ad.query}</div>
+                </div>
+            `).join('');
+        }
+
+        let refHtml = `
+            <div style="background: rgba(59, 130, 246, 0.1); border-left: 4px solid #3b82f6; padding: 15px; margin-bottom: 1.5rem; border-radius: 4px;">
+                <h5 style="color: #60a5fa; margin-top: 0; margin-bottom: 8px;">ℹ️ Referensi Kueri & Panduan Ekspor</h5>
+                
+                <div style="margin-bottom: 15px;">
+                    <strong style="color: #cbd5e1;"><a href="https://www.scopus.com/pages/search/publications?type=advanced" target="_blank" style="color: #60a5fa; text-decoration: underline;">Scopus ↗</a></strong>
+                    <div style="background: rgba(0,0,0,0.3); padding: 8px; border-radius: 4px; font-family: monospace; color: #a78bfa; font-size: 0.85em; margin: 4px 0; overflow-x: auto; white-space: pre-wrap;">${scopusQuery}</div>
+                    <div style="font-size: 0.8em; color: #9ca3af;"><em>Export: Select All > Export > CSV (centang Citation, Abstract, dsb)</em></div>
+                </div>
+                ${adaptedHtml}
+                
+                <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1);">
+                    <strong style="color: #cbd5e1;">Filter yang Berlaku (Gunakan ini di semua database):</strong>
+                    <div style="font-size: 0.85em; color: #d1d5db; margin-top: 4px;">${filterText}</div>
+                </div>
+                
+                <div style="margin-top: 15px; font-size: 0.85em; color: #9ca3af;">
+                    <strong>Panduan Ekspor Lainnya:</strong><br>
+                    - <strong>IEEE Xplore</strong>: Advanced Search > Command Search > Export > CSV<br>
+                    - <strong>PubMed</strong>: Advanced Search > Save > Format: CSV / PubMed (NBIB)<br>
+                </div>
+            </div>
+        `;
+
         let importHtml = `
             <div style="background: rgba(255,255,255,0.05); padding: 1.5rem; border-radius: 8px; margin-bottom: 1rem;">
                 <h4 style="color: #60a5fa;">M4: Import Data (Multi-Database)</h4>
+                ${refHtml}
                 <div style="background: rgba(234, 179, 8, 0.1); border-left: 4px solid #eab308; padding: 15px; margin-bottom: 1.5rem; border-radius: 4px;">
                     <h5 style="color: #eab308; margin-top: 0; margin-bottom: 8px;">⚠️ Peringatan Penting</h5>
                     <p style="font-size: 0.9em; margin: 0;">Mengunggah file di sini akan <strong>menghapus dan menggantikan</strong> seluruh data paper (slr_papers) yang ada di sesi ini. Pastikan Anda mengunggah <strong>SEMUA</strong> file (Scopus, IEEE, dll) sekaligus dalam satu waktu untuk menghindari hilangnya data.</p>

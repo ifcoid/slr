@@ -795,8 +795,6 @@ export function renderApprovalContent(area, session, handleApproval) {
                 isHalted = true;
             }
             extraBtn += ` <button id="btn-reimport" class="btn btn-warning">Ulangi Import CSV</button>`;
-        } else if (status.includes('APPROVAL')) {
-            extraBtn = `<button id="btn-generic-revise" class="btn btn-warning">Tolak & Revisi</button>`;
         }
         
         area.insertAdjacentHTML('beforeend', `

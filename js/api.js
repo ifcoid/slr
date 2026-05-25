@@ -54,9 +54,9 @@ export const API = {
         body: JSON.stringify(payload)
     }),
     
-    reviseStep: (id, feedback) => apiFetch(`/sessions/${id}/revise`, {
+    reviseStep: (id, feedback, targetStatus = undefined) => apiFetch(`/sessions/${id}/revise`, {
         method: 'PUT',
-        body: JSON.stringify({ feedback })
+        body: JSON.stringify({ feedback, target_status: targetStatus })
     }),
 
     reimportData: (id) => apiFetch(`/sessions/${id}/reimport`, {

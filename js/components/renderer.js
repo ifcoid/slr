@@ -787,7 +787,8 @@ export function renderApprovalContent(area, session, handleApproval) {
         if (status === 'M4_STEP2_WAITING_APPROVAL') {
             if (session.data_mining_log?.pico_preview?.verdict?.includes('BACK')) {
                 isDanger = true;
-                extraBtn = `<button id="btn-generic-revise" class="btn btn-danger">Kembali ke Modul 3 (Revisi Kueri)</button>`;
+                extraBtn = `<button id="btn-revise-m2" class="btn btn-danger" style="margin-right: 0.5rem;">Kembali ke Modul 2 (Revisi PICO)</button>`;
+                extraBtn += `<button id="btn-generic-revise" class="btn btn-danger">Kembali ke Modul 3 (Revisi Kueri)</button>`;
             }
             if (session.data_mining_log?.pico_preview?.verdict === 'HALTED_MISSING_DATA') {
                 isDanger = true;
@@ -833,6 +834,25 @@ export function renderApprovalContent(area, session, handleApproval) {
                 });
             }
             
+            const btnReviseM2 = document.getElementById('btn-revise-m2');
+            if (btnReviseM2) {
+                btnReviseM2.addEventListener('click', async () => {
+                    const reason = prompt("Masukkan alasan revisi PICO (opsional):", "Menolak hasil dan merevisi Kriteria PICO di Modul 2.");
+                    if (reason !== null) {
+                        try {
+                            btnReviseM2.textContent = "Memproses...";
+                            btnReviseM2.disabled = true;
+                            await API.reviseStep(session.id, reason, "M2_STEP2_NEEDS_REVISION");
+                            window.location.reload();
+                        } catch(err) {
+                            alert(err.message);
+                            btnReviseM2.textContent = "Kembali ke Modul 2 (Revisi PICO)";
+                            btnReviseM2.disabled = false;
+                        }
+                    }
+                });
+            }
+            
             const btnRevise = document.getElementById('btn-generic-revise');
             if (btnRevise) {
                 btnRevise.addEventListener('click', async () => {
@@ -841,12 +861,8 @@ export function renderApprovalContent(area, session, handleApproval) {
                         try {
                             btnRevise.textContent = "Memproses...";
                             btnRevise.disabled = true;
-                            const res = await fetch(`http://localhost:50607/api/sessions/${session.id}/revise`, {
-                                method: 'PUT',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ feedback: reason })
-                            });
-                            if (!res.ok) throw new Error("Gagal mengirim revisi");
+                            // Default revise endpoint (usually sends to Modul 3 if M4)
+                            await API.reviseStep(session.id, reason);
                             window.location.reload();
                         } catch(err) {
                             alert(err.message);

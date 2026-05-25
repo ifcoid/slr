@@ -499,35 +499,63 @@ export function renderApprovalContent(area, session, handleApproval) {
         `);
 
     } else if (status === 'M4_STEP2_WAITING_IMPORT') {
-        html = wrapCard('Import CSV Data', `
-            <p>1. Export CSV dari Scopus, IEEE, dll.</p>
-            <p>2. Tambahkan kolom <strong>Database</strong> di Excel (misal diisi: 'Scopus').</p>
-            <p>3. Buka <strong>MongoDB Compass</strong>.</p>
-            <p>4. Buka database <strong>nsa</strong>, buat collection <strong>slr_papers</strong> jika belum ada.</p>
-            <p>5. Klik <strong>Add Data -> Import File</strong> dan masukkan gabungan CSV Anda ke sana.</p>
-            <p>6. Klik <strong>Proses Deduplikasi</strong> di bawah ini.</p>
-            <button id="btn-process-dedup" class="btn btn-primary" style="margin-top: 15px;">Proses Deduplikasi</button>
-        `);
-        
-        area.insertAdjacentHTML('beforeend', html);
+        let importHtml = `
+            <div style="background: rgba(255,255,255,0.05); padding: 1.5rem; border-radius: 8px; margin-bottom: 1rem;">
+                <h4 style="color: #60a5fa;">M4: Import Data (Multi-Database)</h4>
+                <div style="background: rgba(234, 179, 8, 0.1); border-left: 4px solid #eab308; padding: 15px; margin-bottom: 1.5rem; border-radius: 4px;">
+                    <h5 style="color: #eab308; margin-top: 0; margin-bottom: 8px;">⚠️ Peringatan Penting</h5>
+                    <p style="font-size: 0.9em; margin: 0;">Mengunggah file di sini akan <strong>menghapus dan menggantikan</strong> seluruh data paper (slr_papers) yang ada di sesi ini. Pastikan Anda mengunggah <strong>SEMUA</strong> file (Scopus, IEEE, dll) sekaligus dalam satu waktu untuk menghindari hilangnya data.</p>
+                </div>
+                <p>Silakan unggah file hasil export Anda (mendukung format <strong>.csv</strong>, <strong>.bib</strong>, dan format <strong>PubMed .nbib/.txt</strong>). Anda dapat memilih beberapa file sekaligus.</p>
+                
+                <form id="form-import-csv" style="margin-top: 15px;">
+                    <div style="border: 2px dashed rgba(255,255,255,0.2); border-radius: 8px; padding: 2rem; text-align: center; margin-bottom: 1rem;">
+                        <input type="file" id="csv-files" multiple accept=".csv,.bib,.nbib,.txt,.bibtex" style="width: 100%; color: #d1d5db; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 4px;">
+                    </div>
+                    <button type="submit" class="btn btn-primary" id="btn-import-csv">Mulai Import & Deduplikasi</button>
+                </form>
+            </div>
+        `;
+        area.insertAdjacentHTML('beforeend', importHtml);
         
         setTimeout(() => {
-            const btnDedup = document.getElementById('btn-process-dedup');
-            if (btnDedup) {
-                btnDedup.addEventListener('click', async () => {
+            const formImport = document.getElementById('form-import-csv');
+            if (formImport) {
+                formImport.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    
+                    const fileInput = document.getElementById('csv-files');
+                    if (fileInput.files.length === 0) {
+                        alert("Harap pilih setidaknya 1 file untuk diunggah!");
+                        return;
+                    }
+
+                    const formData = new FormData();
+                    for (let i = 0; i < fileInput.files.length; i++) {
+                        formData.append('files', fileInput.files[i]);
+                    }
+
                     try {
-                        btnDedup.textContent = "Memproses...";
-                        btnDedup.disabled = true;
+                        const btn = document.getElementById('btn-import-csv');
+                        btn.textContent = "Mengunggah & Memproses...";
+                        btn.disabled = true;
                         
-                        await fetch(`http://localhost:50607/api/sessions/${session.id}`, {
-                            method: 'PUT',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ status: 'M4_STEP2_PROCESS' })
+                        const res = await fetch(\`http://localhost:50607/api/sessions/\${session.id}/import-data\`, {
+                            method: 'POST',
+                            body: formData // Jangan set Content-Type, biarkan browser set multipart/form-data boundary
                         });
+                        
+                        if (!res.ok) {
+                            const err = await res.json();
+                            throw new Error(err.error || 'Terjadi kesalahan saat mengunggah file.');
+                        }
                         
                         window.location.reload();
                     } catch (error) {
-                        alert("Gagal memproses dedup: " + error);
+                        alert("Gagal mengimpor file: " + error.message);
+                        const btn = document.getElementById('btn-import-csv');
+                        btn.textContent = "Mulai Import & Deduplikasi";
+                        btn.disabled = false;
                     }
                 });
             }

@@ -636,7 +636,11 @@ export function renderApprovalContent(area, session, handleApproval) {
                 <div>
                     <h5 style="color: #a78bfa; margin-top: 0;">Basic Quality Audit</h5>
                     <p>Total Records: ${audit.total_records || 0}</p>
-                    <p>Missing Abstract: ${audit.missing_abstract || 0}</p>
+                    <p>Missing Abstract: ${audit.missing_abstract || 0} 
+                        ${audit.missing_abstract_sources && Object.keys(audit.missing_abstract_sources).length > 0 
+                            ? `<br><span style="font-size:0.85em; color:#9ca3af;">(Sumber: ${Object.entries(audit.missing_abstract_sources).map(([k,v]) => `${k}=${v}`).join(', ')})</span>` 
+                            : ''}
+                    </p>
                     <p>Missing DOI: ${audit.missing_doi || 0}</p>
                 </div>
                 <div>
@@ -758,9 +762,12 @@ export function renderApprovalContent(area, session, handleApproval) {
         let isDanger = false;
         
         // Special warning for M4_STEP2
-        if (status === 'M4_STEP2_WAITING_APPROVAL' && session.data_mining_log?.pico_preview?.verdict?.includes('BACK')) {
-            isDanger = true;
-            extraBtn = `<button id="btn-generic-revise" class="btn btn-danger">Kembali ke Modul 3 (Revisi Kueri)</button>`;
+        if (status === 'M4_STEP2_WAITING_APPROVAL') {
+            if (session.data_mining_log?.pico_preview?.verdict?.includes('BACK')) {
+                isDanger = true;
+                extraBtn = `<button id="btn-generic-revise" class="btn btn-danger">Kembali ke Modul 3 (Revisi Kueri)</button>`;
+            }
+            extraBtn += ` <button id="btn-reimport" class="btn btn-warning">Ulangi Import CSV</button>`;
         } else if (status.includes('APPROVAL')) {
             extraBtn = `<button id="btn-generic-revise" class="btn btn-warning">Tolak & Revisi</button>`;
         }
@@ -779,6 +786,25 @@ export function renderApprovalContent(area, session, handleApproval) {
             const btnApprove = document.getElementById('btn-generic-approve');
             if (btnApprove) {
                 btnApprove.addEventListener('click', () => handleApproval({}));
+            }
+            
+            const btnReimport = document.getElementById('btn-reimport');
+            if (btnReimport) {
+                btnReimport.addEventListener('click', async () => {
+                    const ok = confirm("Yakin ingin mengulang import CSV? Semua hasil audit saat ini akan direset.");
+                    if (ok) {
+                        try {
+                            btnReimport.textContent = "Memproses...";
+                            btnReimport.disabled = true;
+                            await API.reimportData(session.id);
+                            window.location.reload();
+                        } catch(err) {
+                            alert("Gagal re-import: " + err.message);
+                            btnReimport.textContent = "Ulangi Import CSV";
+                            btnReimport.disabled = false;
+                        }
+                    }
+                });
             }
             
             const btnRevise = document.getElementById('btn-generic-revise');

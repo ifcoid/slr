@@ -58,6 +58,10 @@ export const API = {
         method: 'PUT',
         body: JSON.stringify({ feedback })
     }),
+
+    reimportData: (id) => apiFetch(`/sessions/${id}/reimport`, {
+        method: 'PUT'
+    }),
     
     // LLM Config API
     updateLLMConfig: (provider, apiKey, defaultModel) => apiFetch('/llm/config', {

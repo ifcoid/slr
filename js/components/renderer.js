@@ -352,12 +352,21 @@ export function renderApprovalContent(area, session, handleApproval) {
                 <div style="background: #1e1e1e; padding: 15px; border-radius: 6px; font-family: monospace; color: #a78bfa; margin-bottom: 1rem; overflow-x: auto;">
                     ${session.search_string ? session.search_string.scopus_query : 'Kueri tidak ditemukan.'}
                 </div>
-                ${session.search_string && session.search_string.adapted_strings ? session.search_string.adapted_strings.map(ad => `
-                    <p><strong>Query ${ad.database}:</strong></p>
+                ${session.search_string && session.search_string.adapted_strings ? session.search_string.adapted_strings.map(ad => {
+                    let dbLink = '';
+                    if (ad.database.toLowerCase().includes('ieee')) dbLink = ' <a href="https://ieeexplore.ieee.org/search/advanced/command" target="_blank" style="color: #60a5fa; text-decoration: underline; font-size: 0.9em; font-weight: normal;">(Buka IEEE Command Search ↗)</a>';
+                    else if (ad.database.toLowerCase().includes('pubmed')) dbLink = ' <a href="https://pubmed.ncbi.nlm.nih.gov/advanced/" target="_blank" style="color: #60a5fa; text-decoration: underline; font-size: 0.9em; font-weight: normal;">(Buka PubMed Advanced Search ↗)</a>';
+                    else if (ad.database.toLowerCase().includes('web of science')) dbLink = ' <a href="https://www.webofscience.com/wos/alldb/advanced-search" target="_blank" style="color: #60a5fa; text-decoration: underline; font-size: 0.9em; font-weight: normal;">(Buka WoS Advanced Search ↗)</a>';
+                    return `
+                    <p style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 5px;">
+                        <strong>Query ${ad.database}:</strong>
+                        ${dbLink}
+                    </p>
                     <div style="background: #1e1e1e; padding: 10px; border-radius: 4px; font-family: monospace; color: #93c5fd; font-size: 0.9em; margin-bottom: 1rem; overflow-x: auto;">
                         ${ad.query}
                     </div>
-                `).join('') : ''}
+                    `;
+                }).join('') : ''}
                 <p>Silakan buka <a href="https://www.scopus.com/pages/search/publications?type=advanced" target="_blank" style="color: #60a5fa; text-decoration: underline;">Scopus Advanced Search ↗</a> (serta database lain yang telah Anda pilih), jalankan query masing-masing, aplikasikan filter di bawah ini. Lalu laporkan hasilnya pada kolom yang tersedia:</p>
                 
                 <div style="background: rgba(167, 139, 250, 0.1); border-left: 4px solid #a78bfa; padding: 10px 15px; margin-bottom: 1rem; border-radius: 4px; font-size: 0.9em;">

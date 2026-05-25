@@ -404,7 +404,7 @@ export function renderApprovalContent(area, session, handleApproval) {
         const ssInfo = session.search_log ? `
             <div style="background: rgba(59, 130, 246, 0.1); border-left: 4px solid #3b82f6; padding: 15px; margin-bottom: 1.5rem; border-radius: 4px;">
                 <h5 style="color: #60a5fa; margin-top: 0; margin-bottom: 8px;">ℹ️ Referensi Search String (Final)</h5>
-                <p style="font-size: 0.9em; margin-bottom: 8px;">Silakan <em>copy-paste</em> kueri di bawah ini ke Scopus untuk mengeksekusi pencarian akhir:</p>
+                <p style="font-size: 0.9em; margin-bottom: 8px;">Silakan <em>copy-paste</em> kueri di bawah ini ke <a href="https://www.scopus.com/pages/search/publications?type=advanced" target="_blank" style="color: #60a5fa; font-weight: bold; text-decoration: underline;">Scopus Advanced Search ↗</a> untuk mengeksekusi pencarian akhir:</p>
                 <div style="background: #1e1e1e; padding: 10px; border-radius: 4px; font-family: monospace; color: #a78bfa; font-size: 0.9em; margin-bottom: 10px; overflow-x: auto; white-space: pre-wrap;">
                     ${session.search_log.search_string_final}
                 </div>

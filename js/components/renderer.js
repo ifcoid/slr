@@ -401,10 +401,24 @@ export function renderApprovalContent(area, session, handleApproval) {
         `);
 
     } else if (status === 'M4_STEP1_WAITING_INPUT') {
+        const ssInfo = session.search_log ? `
+            <div style="background: rgba(59, 130, 246, 0.1); border-left: 4px solid #3b82f6; padding: 15px; margin-bottom: 1.5rem; border-radius: 4px;">
+                <h5 style="color: #60a5fa; margin-top: 0; margin-bottom: 8px;">ℹ️ Referensi Search String (Final)</h5>
+                <p style="font-size: 0.9em; margin-bottom: 8px;">Silakan <em>copy-paste</em> kueri di bawah ini ke Scopus untuk mengeksekusi pencarian akhir:</p>
+                <div style="background: #1e1e1e; padding: 10px; border-radius: 4px; font-family: monospace; color: #a78bfa; font-size: 0.9em; margin-bottom: 10px; overflow-x: auto; white-space: pre-wrap;">
+                    ${session.search_log.search_string_final}
+                </div>
+                <div style="font-size: 0.85em; color: #d1d5db;">
+                    <strong>Filter yang Berlaku:</strong> ${session.search_log.filters_applied ? session.search_log.filters_applied.map(f => `${f.filter} (${f.value})`).join(' | ') : '-'}
+                </div>
+            </div>
+        ` : '';
+
         let initHtml = `
             <div style="background: rgba(255,255,255,0.05); padding: 1.5rem; border-radius: 8px; margin-bottom: 1rem;">
                 <h4 style="color: #60a5fa;">M4: Finalisasi Eksekusi Scopus & Sanity Check</h4>
-                <p>Mohon melengkapi data dari pencarian final Anda (Modul 4) ke formulir ini:</p>
+                ${ssInfo}
+                <p>Setelah Anda melakukan pencarian di Scopus, mohon lengkapi formulir di bawah ini dengan data aktual:</p>
                 <form id="form-m4-init">
                     <div class="form-group" style="margin-bottom: 1rem;">
                         <label>Database Utama</label>

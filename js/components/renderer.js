@@ -578,7 +578,7 @@ export function renderApprovalContent(area, session, handleApproval) {
                         btn.textContent = "Mengunggah & Memproses...";
                         btn.disabled = true;
                         
-                        const res = await fetch(\`http://localhost:50607/api/sessions/\${session.id}/import-data\`, {
+                        const res = await fetch(`http://localhost:50607/api/sessions/${session.id}/import-data`, {
                             method: 'POST',
                             body: formData // Jangan set Content-Type, biarkan browser set multipart/form-data boundary
                         });

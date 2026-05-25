@@ -526,10 +526,14 @@ export function renderApprovalContent(area, session, handleApproval) {
             let ieeeFallback = scopusQuery.replace(/^TITLE-ABS-KEY\s*\(/i, '');
             if (ieeeFallback.endsWith(')')) ieeeFallback = ieeeFallback.slice(0, -1);
             
+            // IEEE limit is 10 wildcards. We remove ALL wildcards to be safe, as IEEE auto-stems.
+            ieeeFallback = ieeeFallback.replace(/\*/g, '');
+            
             adaptedHtml += `
                 <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.1);">
                     <strong style="color: #cbd5e1;"><a href="https://ieeexplore.ieee.org/search/advanced/command" target="_blank" style="color: #60a5fa; text-decoration: underline;">IEEE Xplore ↗</a> (Auto-adapted)</strong>
                     <div style="background: rgba(0,0,0,0.3); padding: 8px; border-radius: 4px; font-family: monospace; color: #a78bfa; font-size: 0.85em; margin: 4px 0; overflow-x: auto; white-space: pre-wrap;">${ieeeFallback}</div>
+                    <div style="font-size: 0.8em; color: #9ca3af; margin-top: 4px;"><em>Catatan: Simbol wildcard (*) telah dihapus otomatis karena batasan maksimal 10 wildcard dari IEEE. IEEE sudah memiliki fitur auto-stemming.</em></div>
                 </div>
             `;
         }

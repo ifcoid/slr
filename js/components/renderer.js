@@ -650,6 +650,28 @@ export function renderApprovalContent(area, session, handleApproval) {
             <p><strong>Match Ratio:</strong> ${pico.match_counts_pct || 0}%</p>
             <p><strong>Verdict:</strong> <span style="color: ${pico.verdict?.includes('PROCEED') ? '#4ade80' : '#fca5a5'};">${pico.verdict || ''}</span></p>
             <p><strong>Recommendation:</strong> ${pico.recommendation || ''}</p>
+            ${pico.samples_analyzed && pico.samples_analyzed.length > 0 ? `
+                <details style="margin-top: 15px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 4px;">
+                    <summary style="cursor: pointer; color: #60a5fa; font-weight: bold; margin-bottom: 10px;">Lihat Rincian Penilaian Sampel (${pico.samples_analyzed.length} Paper)</summary>
+                    <div style="max-height: 300px; overflow-y: auto; padding-right: 10px; margin-top: 10px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px;">
+                        ${pico.samples_analyzed.map((s, i) => {
+                            let color = '#d1d5db'; // default
+                            if (s.classification.includes('MATCH WHAT COUNTS')) color = '#4ade80';
+                            else if (s.classification.includes('DOESN\\'T') || s.classification.includes('DOES NOT')) color = '#fca5a5';
+                            else if (s.classification.includes('AMBIGU')) color = '#fcd34d';
+                            else if (s.classification.includes('OFF-TOPIC')) color = '#9ca3af';
+                            
+                            return `
+                            <div style="margin-bottom: 15px; border-bottom: 1px dashed rgba(255,255,255,0.1); padding-bottom: 10px;">
+                                <div style="font-size: 0.9em; font-weight: bold; margin-bottom: 4px;">${i+1}. ${s.title}</div>
+                                <div style="font-size: 0.8em; margin-bottom: 4px;"><span style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; color: ${color};">${s.classification}</span></div>
+                                <div style="font-size: 0.85em; color: #9ca3af;"><em>Alasan AI:</em> ${s.reasoning}</div>
+                            </div>
+                            `;
+                        }).join('')}
+                    </div>
+                </details>
+            ` : ''}
         `);
 
     } else if (status === 'M4_STEP3_WAITING_APPROVAL' && session.screening_setup) {
@@ -732,18 +754,55 @@ export function renderApprovalContent(area, session, handleApproval) {
     if (html !== '') {
         area.insertAdjacentHTML('beforeend', html);
         
+        let extraBtn = '';
+        let isDanger = false;
+        
+        // Special warning for M4_STEP2
+        if (status === 'M4_STEP2_WAITING_APPROVAL' && session.data_mining_log?.pico_preview?.verdict?.includes('BACK')) {
+            isDanger = true;
+            extraBtn = `<button id="btn-generic-revise" class="btn btn-danger">Kembali ke Modul 3 (Revisi Kueri)</button>`;
+        } else if (status.includes('APPROVAL')) {
+            extraBtn = `<button id="btn-generic-revise" class="btn btn-warning">Tolak & Revisi</button>`;
+        }
+        
         area.insertAdjacentHTML('beforeend', `
-            <div style="padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 8px;">
-                <p style="margin-bottom: 1rem;">Apakah Anda setuju dengan hasil di atas?</p>
-                <div style="display: flex; gap: 1rem;">
+            <div style="padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 8px; border-left: 4px solid ${isDanger ? '#ef4444' : '#3b82f6'};">
+                <p style="margin-bottom: 1rem;"><strong>Tindakan Anda:</strong> Apakah Anda setuju dengan hasil di atas?</p>
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
                     <button id="btn-generic-approve" class="btn btn-success">Setuju & Lanjut</button>
+                    ${extraBtn}
                 </div>
             </div>
         `);
+        
         setTimeout(() => {
             const btnApprove = document.getElementById('btn-generic-approve');
             if (btnApprove) {
                 btnApprove.addEventListener('click', () => handleApproval({}));
+            }
+            
+            const btnRevise = document.getElementById('btn-generic-revise');
+            if (btnRevise) {
+                btnRevise.addEventListener('click', async () => {
+                    const reason = prompt("Masukkan alasan atau catatan revisi (opsional):", "Menolak hasil dan meminta revisi.");
+                    if (reason !== null) {
+                        try {
+                            btnRevise.textContent = "Memproses...";
+                            btnRevise.disabled = true;
+                            const res = await fetch(`http://localhost:50607/api/sessions/${session.id}/revise`, {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ feedback: reason })
+                            });
+                            if (!res.ok) throw new Error("Gagal mengirim revisi");
+                            window.location.reload();
+                        } catch(err) {
+                            alert(err.message);
+                            btnRevise.textContent = "Tolak & Revisi";
+                            btnRevise.disabled = false;
+                        }
+                    }
+                });
             }
         }, 0);
         return true;

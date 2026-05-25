@@ -503,13 +503,29 @@ export function renderApprovalContent(area, session, handleApproval) {
         let filterText = session.search_log?.filters_applied ? session.search_log.filters_applied.map(f => `${f.filter} (${f.value})`).join(' | ') : '-';
         
         let adaptedHtml = '';
+        let hasIEEE = false;
         if (session.search_string && session.search_string.adapted_strings) {
-            adaptedHtml = session.search_string.adapted_strings.map(ad => `
+            adaptedHtml = session.search_string.adapted_strings.map(ad => {
+                if (ad.database.toLowerCase().includes('ieee')) hasIEEE = true;
+                return `
                 <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.1);">
                     <strong style="color: #cbd5e1;">${ad.database}</strong>
                     <div style="background: rgba(0,0,0,0.3); padding: 8px; border-radius: 4px; font-family: monospace; color: #a78bfa; font-size: 0.85em; margin: 4px 0; overflow-x: auto; white-space: pre-wrap;">${ad.query}</div>
                 </div>
-            `).join('');
+            `}).join('');
+        }
+        
+        if (!hasIEEE && scopusQuery && scopusQuery !== 'Tidak tersedia') {
+            // Generate fallback IEEE from Scopus query by removing TITLE-ABS-KEY
+            let ieeeFallback = scopusQuery.replace(/^TITLE-ABS-KEY\s*\(/i, '');
+            if (ieeeFallback.endsWith(')')) ieeeFallback = ieeeFallback.slice(0, -1);
+            
+            adaptedHtml += `
+                <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.1);">
+                    <strong style="color: #cbd5e1;">IEEE Xplore (Auto-adapted)</strong>
+                    <div style="background: rgba(0,0,0,0.3); padding: 8px; border-radius: 4px; font-family: monospace; color: #a78bfa; font-size: 0.85em; margin: 4px 0; overflow-x: auto; white-space: pre-wrap;">${ieeeFallback}</div>
+                </div>
+            `;
         }
 
         let refHtml = `

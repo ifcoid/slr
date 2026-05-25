@@ -325,7 +325,7 @@ export function renderApprovalContent(area, session, handleApproval) {
             });
         }
         
-        html = wrapCard('Search String', `
+        html = wrapCard('Search String (Scopus Utama)', `
             <div style="background: #1e1e1e; padding: 15px; border-radius: 6px; font-family: monospace; color: #a78bfa; margin-bottom: 1rem; overflow-x: auto;">
                 ${ss.scopus_query}
             </div>

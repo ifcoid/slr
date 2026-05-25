@@ -352,6 +352,12 @@ export function renderApprovalContent(area, session, handleApproval) {
                 <div style="background: #1e1e1e; padding: 15px; border-radius: 6px; font-family: monospace; color: #a78bfa; margin-bottom: 1rem; overflow-x: auto;">
                     ${session.search_string ? session.search_string.scopus_query : 'Kueri tidak ditemukan.'}
                 </div>
+                ${session.search_string && session.search_string.adapted_strings ? session.search_string.adapted_strings.map(ad => `
+                    <p><strong>Query ${ad.database}:</strong></p>
+                    <div style="background: #1e1e1e; padding: 10px; border-radius: 4px; font-family: monospace; color: #93c5fd; font-size: 0.9em; margin-bottom: 1rem; overflow-x: auto;">
+                        ${ad.query}
+                    </div>
+                `).join('') : ''}
                 <p>Silakan buka <a href="https://www.scopus.com/pages/search/publications?type=advanced" target="_blank" style="color: #60a5fa; text-decoration: underline;">Scopus Advanced Search ↗</a> (serta database lain yang telah Anda pilih), jalankan query masing-masing, aplikasikan filter (Tahun, Tipe Dokumen, dll). Lalu laporkan hasilnya di bawah:</p>
                 
                 <form id="form-scopus-hits">

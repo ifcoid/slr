@@ -352,7 +352,7 @@ export function renderApprovalContent(area, session, handleApproval) {
                 <div style="background: #1e1e1e; padding: 15px; border-radius: 6px; font-family: monospace; color: #a78bfa; margin-bottom: 1rem; overflow-x: auto;">
                     ${session.search_string ? session.search_string.scopus_query : 'Kueri tidak ditemukan.'}
                 </div>
-                <p>Silakan buka Scopus, jalankan query di atas, aplikasikan filter (Tahun, Tipe Dokumen, dll). Lalu laporkan hasilnya di bawah:</p>
+                <p>Silakan buka <a href="https://www.scopus.com/pages/search/publications?type=advanced" target="_blank" style="color: #60a5fa; text-decoration: underline;">Scopus Advanced Search ↗</a>, jalankan query di atas, aplikasikan filter (Tahun, Tipe Dokumen, dll). Lalu laporkan hasilnya di bawah:</p>
                 <form id="form-scopus-hits">
                     <div class="form-group" style="margin-bottom: 1rem;">
                         <label>Total Hits (Hasil Pencarian Akhir)</label>

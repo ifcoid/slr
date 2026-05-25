@@ -760,12 +760,17 @@ export function renderApprovalContent(area, session, handleApproval) {
         
         let extraBtn = '';
         let isDanger = false;
+        let isHalted = false;
         
         // Special warning for M4_STEP2
         if (status === 'M4_STEP2_WAITING_APPROVAL') {
             if (session.data_mining_log?.pico_preview?.verdict?.includes('BACK')) {
                 isDanger = true;
                 extraBtn = `<button id="btn-generic-revise" class="btn btn-danger">Kembali ke Modul 3 (Revisi Kueri)</button>`;
+            }
+            if (session.data_mining_log?.pico_preview?.verdict === 'HALTED_MISSING_DATA') {
+                isDanger = true;
+                isHalted = true;
             }
             extraBtn += ` <button id="btn-reimport" class="btn btn-warning">Ulangi Import CSV</button>`;
         } else if (status.includes('APPROVAL')) {
@@ -774,9 +779,9 @@ export function renderApprovalContent(area, session, handleApproval) {
         
         area.insertAdjacentHTML('beforeend', `
             <div style="padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 8px; border-left: 4px solid ${isDanger ? '#ef4444' : '#3b82f6'};">
-                <p style="margin-bottom: 1rem;"><strong>Tindakan Anda:</strong> Apakah Anda setuju dengan hasil di atas?</p>
+                <p style="margin-bottom: 1rem;"><strong>Tindakan Anda:</strong> ${isHalted ? 'Anda diwajibkan untuk mengulangi import CSV.' : 'Apakah Anda setuju dengan hasil di atas?'}</p>
                 <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-                    <button id="btn-generic-approve" class="btn btn-success">Setuju & Lanjut</button>
+                    ${!isHalted ? `<button id="btn-generic-approve" class="btn btn-success">Setuju & Lanjut</button>` : ''}
                     ${extraBtn}
                 </div>
             </div>

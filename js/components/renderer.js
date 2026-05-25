@@ -358,7 +358,18 @@ export function renderApprovalContent(area, session, handleApproval) {
                         ${ad.query}
                     </div>
                 `).join('') : ''}
-                <p>Silakan buka <a href="https://www.scopus.com/pages/search/publications?type=advanced" target="_blank" style="color: #60a5fa; text-decoration: underline;">Scopus Advanced Search ↗</a> (serta database lain yang telah Anda pilih), jalankan query masing-masing, aplikasikan filter (Tahun, Tipe Dokumen, dll). Lalu laporkan hasilnya di bawah:</p>
+                <p>Silakan buka <a href="https://www.scopus.com/pages/search/publications?type=advanced" target="_blank" style="color: #60a5fa; text-decoration: underline;">Scopus Advanced Search ↗</a> (serta database lain yang telah Anda pilih), jalankan query masing-masing, aplikasikan filter di bawah ini. Lalu laporkan hasilnya pada kolom yang tersedia:</p>
+                
+                <div style="background: rgba(167, 139, 250, 0.1); border-left: 4px solid #a78bfa; padding: 10px 15px; margin-bottom: 1rem; border-radius: 4px; font-size: 0.9em;">
+                    <strong style="color: #a78bfa;">Filter yang Wajib Diterapkan:</strong>
+                    <ul style="margin-top: 5px; margin-bottom: 0; padding-left: 20px; color: #d1d5db;">
+                        <li><strong>Rentang Tahun:</strong> ${session.scope_filters?.rentang_tahun || 'Semua tahun'}</li>
+                        <li><strong>Geografis:</strong> ${session.scope_filters?.geografis || 'Global'}</li>
+                        <li><strong>Bahasa:</strong> ${session.scope_filters?.bahasa || 'Semua bahasa'}</li>
+                        <li><strong>Sektor:</strong> ${session.scope_filters?.sektor || '-'}</li>
+                        <li><strong>Lainnya:</strong> ${session.scope_filters?.lainnya || '-'}</li>
+                    </ul>
+                </div>
                 
                 <form id="form-scopus-hits">
                     <div class="form-group" style="margin-bottom: 1rem;">

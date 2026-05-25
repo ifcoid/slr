@@ -491,3 +491,16 @@ li {
     margin-bottom: 0.5rem;
 }
 
+/* Markdown Code Styles */
+pre {
+    white-space: pre-wrap;
+    word-break: break-word;
+    word-wrap: break-word;
+    overflow-x: auto;
+}
+
+code {
+    white-space: pre-wrap;
+    word-break: break-word;
+    word-wrap: break-word;
+}

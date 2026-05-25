@@ -465,7 +465,10 @@ export function renderApprovalContent(area, session, handleApproval) {
                         <label>Paper Kunci yang TIDAK DITEMUKAN / MISSED (Tulis NIHIL jika tidak ada)</label>
                         <textarea id="m4-missing" class="input-modern" rows="3">${(session.data_mining_log?.initial_sample?.key_papers_missing || []).join('\n')}</textarea>
                     </div>
-                    <button type="submit" class="btn btn-primary">Lakukan Sanity Check</button>
+                    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                        <button type="submit" class="btn btn-primary">Lakukan Sanity Check</button>
+                        <button type="button" id="btn-escape-m3" class="btn btn-danger">Revisi Kueri (Kembali ke Modul 3)</button>
+                    </div>
                 </form>
             </div>
         `;
@@ -504,6 +507,25 @@ export function renderApprovalContent(area, session, handleApproval) {
                         window.location.reload();
                     } catch (error) {
                         alert("Gagal update data: " + error);
+                    }
+                });
+            }
+
+            const btnEscapeM3 = document.getElementById('btn-escape-m3');
+            if (btnEscapeM3) {
+                btnEscapeM3.addEventListener('click', async () => {
+                    const reason = prompt("Masukkan alasan revisi Kueri (opsional):", "Kembali ke Modul 3 untuk memperbaiki Kueri.");
+                    if (reason !== null) {
+                        try {
+                            btnEscapeM3.textContent = "Memproses...";
+                            btnEscapeM3.disabled = true;
+                            await API.reviseStep(session.id, reason, "M3_STEP3_NEEDS_REVISION");
+                            window.location.reload();
+                        } catch(err) {
+                            alert(err.message);
+                            btnEscapeM3.textContent = "Revisi Kueri (Kembali ke Modul 3)";
+                            btnEscapeM3.disabled = false;
+                        }
                     }
                 });
             }

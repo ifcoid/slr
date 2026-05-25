@@ -337,7 +337,7 @@ export function renderApprovalContent(area, session, handleApproval) {
     } else if (status === 'M3_STEP4_WAITING_EXECUTION') {
         let execHtml = `
             <div style="background: rgba(255,255,255,0.05); padding: 1.5rem; border-radius: 8px; margin-bottom: 1rem;">
-                <h4 style="color: #60a5fa;">Aksi Diperlukan: Eksekusi Manual di Scopus</h4>
+                <h4 style="color: #60a5fa;">Aksi Diperlukan: Eksekusi Manual Database</h4>
                 
                 ${session.search_string && session.search_string.pre_validation ? `
                 <div style="background: rgba(234, 179, 8, 0.1); border-left: 4px solid #eab308; padding: 10px 15px; margin-bottom: 1rem; border-radius: 4px;">
@@ -348,16 +348,28 @@ export function renderApprovalContent(area, session, handleApproval) {
                 </div>
                 ` : ''}
 
-                <p><strong>Query:</strong></p>
+                <p><strong>Query Scopus:</strong></p>
                 <div style="background: #1e1e1e; padding: 15px; border-radius: 6px; font-family: monospace; color: #a78bfa; margin-bottom: 1rem; overflow-x: auto;">
                     ${session.search_string ? session.search_string.scopus_query : 'Kueri tidak ditemukan.'}
                 </div>
-                <p>Silakan buka <a href="https://www.scopus.com/pages/search/publications?type=advanced" target="_blank" style="color: #60a5fa; text-decoration: underline;">Scopus Advanced Search ↗</a>, jalankan query di atas, aplikasikan filter (Tahun, Tipe Dokumen, dll). Lalu laporkan hasilnya di bawah:</p>
+                <p>Silakan buka <a href="https://www.scopus.com/pages/search/publications?type=advanced" target="_blank" style="color: #60a5fa; text-decoration: underline;">Scopus Advanced Search ↗</a> (serta database lain yang telah Anda pilih), jalankan query masing-masing, aplikasikan filter (Tahun, Tipe Dokumen, dll). Lalu laporkan hasilnya di bawah:</p>
+                
                 <form id="form-scopus-hits">
                     <div class="form-group" style="margin-bottom: 1rem;">
-                        <label>Total Hits (Hasil Pencarian Akhir)</label>
-                        <input type="text" id="input-hits" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #555; background: #222; color: #fff;" placeholder="Misal: 145 dokumen" required>
+                        <label>Scopus (Total Hits)</label>
+                        <input type="text" class="input-db-hit" data-db="Scopus" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #555; background: #222; color: #fff;" placeholder="Misal: 145 dokumen" required>
                     </div>
+                    ${session.search_string?.adapted_strings ? session.search_string.adapted_strings.map(ad => `
+                        <div class="form-group" style="margin-bottom: 1rem;">
+                            <label>${ad.database} (Total Hits)</label>
+                            <input type="text" class="input-db-hit" data-db="${ad.database}" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #555; background: #222; color: #fff;" placeholder="Misal: 50 dokumen" required>
+                        </div>
+                    `).join('') : ''}
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label>Grey Literature / Tambahan (Opsional)</label>
+                        <input type="text" class="input-db-hit" data-db="Lainnya" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #555; background: #222; color: #fff;" placeholder="Misal: arXiv: 20 dokumen">
+                    </div>
+
                     <button type="submit" class="btn btn-primary">Simpan Hits & Lanjut Evaluasi</button>
                 </form>
             </div>
@@ -369,7 +381,15 @@ export function renderApprovalContent(area, session, handleApproval) {
             if (formHits) {
                 formHits.addEventListener('submit', async (e) => {
                     e.preventDefault();
-                    const hits = document.getElementById('input-hits').value;
+                    
+                    const hitInputs = document.querySelectorAll('.input-db-hit');
+                    let hitsData = [];
+                    hitInputs.forEach(input => {
+                        if (input.value.trim() !== '') {
+                            hitsData.push(`${input.getAttribute('data-db')}: ${input.value}`);
+                        }
+                    });
+                    const hits = hitsData.join('\\n');
                     
                     try {
                         const btn = e.target.querySelector('button');

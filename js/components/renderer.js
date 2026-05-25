@@ -427,7 +427,7 @@ export function renderApprovalContent(area, session, handleApproval) {
                 <h5 style="color: #60a5fa; margin-top: 0; margin-bottom: 8px;">ℹ️ Referensi Search String (Final)</h5>
                 <p style="font-size: 0.9em; margin-bottom: 8px;">Silakan <em>copy-paste</em> kueri di bawah ini ke <a href="https://www.scopus.com/pages/search/publications?type=advanced" target="_blank" style="color: #60a5fa; font-weight: bold; text-decoration: underline;">Scopus Advanced Search ↗</a> untuk mengeksekusi pencarian akhir:</p>
                 <div style="background: #1e1e1e; padding: 10px; border-radius: 4px; font-family: monospace; color: #a78bfa; font-size: 0.9em; margin-bottom: 10px; overflow-x: auto; white-space: pre-wrap;">
-                    ${session.search_log.search_string_final}
+                    ${session.search_string?.scopus_query || session.search_log.search_string_final}
                 </div>
                 <div style="font-size: 0.85em; color: #d1d5db;">
                     <strong>Filter yang Berlaku:</strong> ${session.search_log.filters_applied ? session.search_log.filters_applied.map(f => `${f.filter} (${f.value})`).join(' | ') : '-'}

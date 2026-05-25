@@ -507,9 +507,15 @@ export function renderApprovalContent(area, session, handleApproval) {
         if (session.search_string && session.search_string.adapted_strings) {
             adaptedHtml = session.search_string.adapted_strings.map(ad => {
                 if (ad.database.toLowerCase().includes('ieee')) hasIEEE = true;
+                let dbLink = ad.database;
+                if (ad.database.toLowerCase().includes('pubmed')) {
+                    dbLink = `<a href="https://pubmed.ncbi.nlm.nih.gov/advanced/" target="_blank" style="color: #60a5fa; text-decoration: underline;">${ad.database} ↗</a>`;
+                } else if (ad.database.toLowerCase().includes('ieee')) {
+                    dbLink = `<a href="https://ieeexplore.ieee.org/search/advanced/command" target="_blank" style="color: #60a5fa; text-decoration: underline;">${ad.database} ↗</a>`;
+                }
                 return `
                 <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.1);">
-                    <strong style="color: #cbd5e1;">${ad.database}</strong>
+                    <strong style="color: #cbd5e1;">${dbLink}</strong>
                     <div style="background: rgba(0,0,0,0.3); padding: 8px; border-radius: 4px; font-family: monospace; color: #a78bfa; font-size: 0.85em; margin: 4px 0; overflow-x: auto; white-space: pre-wrap;">${ad.query}</div>
                 </div>
             `}).join('');
@@ -522,7 +528,7 @@ export function renderApprovalContent(area, session, handleApproval) {
             
             adaptedHtml += `
                 <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.1);">
-                    <strong style="color: #cbd5e1;">IEEE Xplore (Auto-adapted)</strong>
+                    <strong style="color: #cbd5e1;"><a href="https://ieeexplore.ieee.org/search/advanced/command" target="_blank" style="color: #60a5fa; text-decoration: underline;">IEEE Xplore ↗</a> (Auto-adapted)</strong>
                     <div style="background: rgba(0,0,0,0.3); padding: 8px; border-radius: 4px; font-family: monospace; color: #a78bfa; font-size: 0.85em; margin: 4px 0; overflow-x: auto; white-space: pre-wrap;">${ieeeFallback}</div>
                 </div>
             `;
@@ -546,8 +552,8 @@ export function renderApprovalContent(area, session, handleApproval) {
                 
                 <div style="margin-top: 15px; font-size: 0.85em; color: #9ca3af;">
                     <strong>Panduan Ekspor Lainnya:</strong><br>
-                    - <strong>IEEE Xplore</strong>: Advanced Search > Command Search > Export > CSV<br>
-                    - <strong>PubMed</strong>: Advanced Search > Save > Format: CSV / PubMed (NBIB)<br>
+                    - <a href="https://ieeexplore.ieee.org/search/advanced/command" target="_blank" style="color: #60a5fa; text-decoration: underline;">IEEE Xplore ↗</a>: Command Search > Export > CSV<br>
+                    - <a href="https://pubmed.ncbi.nlm.nih.gov/advanced/" target="_blank" style="color: #60a5fa; text-decoration: underline;">PubMed ↗</a>: Advanced Search > Save > Format: CSV / PubMed (NBIB)<br>
                 </div>
             </div>
         `;

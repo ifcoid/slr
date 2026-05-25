@@ -677,6 +677,26 @@ export function renderApprovalContent(area, session, handleApproval) {
                     </div>
                 </details>
             ` : ''}
+            ${session.pico_definitions ? `
+                <details style="margin-top: 10px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 4px;">
+                    <summary style="cursor: pointer; color: #a78bfa; font-weight: bold; margin-bottom: 10px;">Lihat Kriteria PICO yang Berlaku</summary>
+                    <div style="font-size: 0.85em; padding-right: 10px; margin-top: 10px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px;">
+                        ${['P', 'I', 'C', 'O'].map(k => {
+                            const p = session.pico_definitions[k.toLowerCase()];
+                            if (!p || !p.value) return '';
+                            return `
+                                <div style="margin-bottom: 10px;">
+                                    <strong>${k} - ${p.value}</strong>
+                                    <ul style="margin: 4px 0; padding-left: 20px; color: #d1d5db;">
+                                        <li><span style="color:#4ade80;">What Counts:</span> ${p.operational_def?.what_counts || '-'}</li>
+                                        <li><span style="color:#fca5a5;">What Doesn't Count:</span> ${p.operational_def?.what_doesnt_count || '-'}</li>
+                                    </ul>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                </details>
+            ` : ''}
         `);
 
     } else if (status === 'M4_STEP3_WAITING_APPROVAL' && session.screening_setup) {

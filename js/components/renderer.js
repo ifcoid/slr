@@ -657,7 +657,7 @@ export function renderApprovalContent(area, session, handleApproval) {
                         ${pico.samples_analyzed.map((s, i) => {
                             let color = '#d1d5db'; // default
                             if (s.classification.includes('MATCH WHAT COUNTS')) color = '#4ade80';
-                            else if (s.classification.includes('DOESN\\'T') || s.classification.includes('DOES NOT')) color = '#fca5a5';
+                            else if (s.classification.includes("DOESN'T") || s.classification.includes('DOES NOT')) color = '#fca5a5';
                             else if (s.classification.includes('AMBIGU')) color = '#fcd34d';
                             else if (s.classification.includes('OFF-TOPIC')) color = '#9ca3af';
                             

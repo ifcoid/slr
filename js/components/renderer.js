@@ -710,7 +710,23 @@ export function renderApprovalContent(area, session, handleApproval) {
                             ? `<br><span style="font-size:0.85em; color:#9ca3af;">(Sumber: ${Object.entries(audit.missing_abstract_sources).map(([k,v]) => `${k}=${v}`).join(', ')})</span>` 
                             : ''}
                     </p>
+                    ${audit.missing_abstract_details && audit.missing_abstract_details.length > 0 ? `
+                        <details style="margin-top: 5px; margin-bottom: 10px; background: rgba(0,0,0,0.2); padding: 5px 10px; border-radius: 4px; font-size: 0.85em;">
+                            <summary style="cursor: pointer; color: #fca5a5; font-weight: bold;">Lihat Rincian Artikel Tanpa Abstrak</summary>
+                            <ul style="margin: 5px 0 0 0; padding-left: 20px; max-height: 150px; overflow-y: auto; color: #d1d5db;">
+                                ${audit.missing_abstract_details.map(d => `<li style="margin-bottom:4px;"><em>${d.title || 'Tanpa Judul'}</em> <span style="color:#9ca3af;">[${d.database}]</span></li>`).join('')}
+                            </ul>
+                        </details>
+                    ` : ''}
                     <p>Missing DOI: ${audit.missing_doi || 0}</p>
+                    ${audit.missing_doi_details && audit.missing_doi_details.length > 0 ? `
+                        <details style="margin-top: 5px; background: rgba(0,0,0,0.2); padding: 5px 10px; border-radius: 4px; font-size: 0.85em;">
+                            <summary style="cursor: pointer; color: #fca5a5; font-weight: bold;">Lihat Rincian Artikel Tanpa DOI</summary>
+                            <ul style="margin: 5px 0 0 0; padding-left: 20px; max-height: 150px; overflow-y: auto; color: #d1d5db;">
+                                ${audit.missing_doi_details.map(d => `<li style="margin-bottom:4px;"><em>${d.title || 'Tanpa Judul'}</em> <span style="color:#9ca3af;">[${d.database}]</span></li>`).join('')}
+                            </ul>
+                        </details>
+                    ` : ''}
                 </div>
                 <div>
                     <h5 style="color: #a78bfa; margin-top: 0;">Deduplication</h5>

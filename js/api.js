@@ -64,9 +64,9 @@ export const API = {
     }),
     
     // LLM Config API
-    updateLLMConfig: (provider, apiKey, defaultModel) => apiFetch('/llm/config', {
+    updateLLMConfig: (provider, apiKey, defaultModel, baseUrl = "") => apiFetch('/llm/config', {
         method: 'PUT',
-        body: JSON.stringify({ provider, api_key: apiKey, default_model: defaultModel })
+        body: JSON.stringify({ provider, api_key: apiKey, default_model: defaultModel, base_url: baseUrl })
     }),
     
     fetchModels: (provider, apiKey, baseUrl) => apiFetch(`/llm/providers/${provider}/models`, {

@@ -31,7 +31,8 @@ export function initSetup() {
         btnFetchModels.addEventListener('click', async () => {
             const provider = document.getElementById('select-provider').value;
             const apiKey = document.getElementById('input-api-key').value;
-            const baseUrl = inputBaseUrl ? inputBaseUrl.value : '';
+            const llmBaseUrlInput = document.getElementById('llm-base-url');
+            const baseUrl = llmBaseUrlInput ? llmBaseUrlInput.value : '';
 
             if (!apiKey && provider !== 'claude') {
                 showToast('API Key diperlukan untuk memuat model!', 'error');
@@ -82,9 +83,12 @@ export function initSetup() {
                 return;
             }
 
+            const llmBaseUrlInput = document.getElementById('llm-base-url');
+            const baseUrl = llmBaseUrlInput ? llmBaseUrlInput.value : '';
+
             setButtonLoading(btn, true);
             try {
-                await API.updateLLMConfig(provider, apiKey, model);
+                await API.updateLLMConfig(provider, apiKey, model, baseUrl);
                 showToast(`Konfigurasi ${provider} berhasil disimpan!`);
                 document.getElementById('input-api-key').value = '';
                 closeModal('modal-settings');

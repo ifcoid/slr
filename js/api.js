@@ -59,6 +59,16 @@ export const API = {
         body: JSON.stringify({ feedback, target_status: targetStatus })
     }),
 
+    importData: (id, formData) => apiFetch(`/sessions/${id}/import-data`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': undefined // Biarkan browser yang atur boundary
+        },
+        body: formData
+    }),
+
+    getDisagreements: (id) => apiFetch(`/sessions/${id}/disagreements`),
+
     reimportData: (id) => apiFetch(`/sessions/${id}/reimport`, {
         method: 'PUT'
     }),

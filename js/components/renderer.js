@@ -815,11 +815,70 @@ export function renderApprovalContent(area, session, handleApproval) {
                     <p><strong>Status:</strong> ${kal.passed ? 'PASSED (>= 0.60)' : 'FAILED (< 0.60)'}</p>`;
         }
         
+        let briefingHtml = '';
+        if (session.screener_briefing) {
+            briefingHtml = `
+            <details style="margin-top: 15px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 4px;">
+                <summary style="cursor: pointer; color: #a78bfa; font-weight: bold;">Lihat Screener Briefing Saat Ini</summary>
+                <div style="font-size: 0.85em; margin-top: 10px; max-height: 250px; overflow-y: auto;">
+                    ${formatMarkdown(session.screener_briefing.briefing_doc)}
+                </div>
+            </details>
+            `;
+        }
+
         html = wrapCard('Hasil Kalibrasi Dual-Review (20 Sampel)', `
             ${info}
+            ${briefingHtml}
             <hr style="border-color: rgba(255,255,255,0.1); margin: 15px 0;">
-            <p>Jika FAILED, buka Compass koleksi <strong>slr_screening</strong>, cari yang <code>Agreement: DISAGREE</code>, pelajari AI Notes, lalu kirim Revisi kriteria ke form di bawah agar Briefing di-update lalu rerun Kalibrasi.</p>
+            <div id="disagreements-container-m5s2" style="background: rgba(239, 68, 68, 0.05); padding: 15px; border-radius: 6px; border-left: 3px solid #ef4444;">
+                <em><i class="fa fa-spinner fa-spin"></i> Memuat Disagreements (Root-Cause Analysis)...</em>
+            </div>
         `);
+
+        setTimeout(async () => {
+            const container = document.getElementById('disagreements-container-m5s2');
+            if (!container) return;
+            try {
+                const data = await API.getDisagreements(session.id);
+                if (data.disagreements && data.disagreements.length > 0) {
+                    let dHtml = `<h5 style="color: #fca5a5; margin-top: 0; margin-bottom: 10px;">Reviewer Disagreements (${data.disagreements.length} cases)</h5>`;
+                    data.disagreements.forEach((d, i) => {
+                        dHtml += `
+                        <details style="margin-bottom: 10px; background: rgba(0,0,0,0.3); border-radius: 4px; padding: 10px;">
+                            <summary style="cursor: pointer; font-weight: bold; font-size: 0.9em; color: #fcd34d;">
+                                Kasus ${i+1}: ${d.Title}
+                            </summary>
+                            <div style="font-size: 0.85em; margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.1);">
+                                <p style="color: #9ca3af; margin-bottom: 10px;"><strong>Abstract:</strong> ${d.Abstract}</p>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                                    <div style="background: rgba(59, 130, 246, 0.1); padding: 10px; border-radius: 4px; border-left: 3px solid #3b82f6;">
+                                        <strong style="color: #93c5fd;">R1 Decision (Z-AI):</strong> ${d.Screener_1_Decision}<br>
+                                        <div style="margin-top: 5px; color: #d1d5db;">${d.Screener_1_Notes}</div>
+                                    </div>
+                                    <div style="background: rgba(16, 185, 129, 0.1); padding: 10px; border-radius: 4px; border-left: 3px solid #10b981;">
+                                        <strong style="color: #6ee7b7;">R2 Decision (Groq):</strong> ${d.Screener_2_Decision}<br>
+                                        <div style="margin-top: 5px; color: #d1d5db;">${d.Screener_2_Notes}</div>
+                                    </div>
+                                </div>
+                                ${d.Conflict_Resolution && typeof d.Conflict_Resolution === 'object' ? `
+                                <div style="margin-top: 10px; background: rgba(167, 139, 250, 0.1); padding: 10px; border-radius: 4px; border-left: 3px solid #a78bfa;">
+                                    <strong style="color: #c4b5fd;">AI Arbitrator Advice:</strong> ${d.Conflict_Resolution.advice}<br>
+                                    <div style="margin-top: 5px; color: #e5e7eb;">${d.Conflict_Resolution.analysis}</div>
+                                </div>
+                                ` : ''}
+                            </div>
+                        </details>
+                        `;
+                    });
+                    container.innerHTML = dHtml;
+                } else {
+                    container.innerHTML = `<span style="color: #4ade80;">Semua sampel sudah sepakat (Tidak ada Disagree)!</span>`;
+                }
+            } catch (err) {
+                container.innerHTML = `<span style="color: #ef4444;">Gagal memuat disagreements: ${err.message}</span>`;
+            }
+        }, 0);
 
     } else if (status === 'M5_STEP3_WAITING_RESOLUTION') {
         const bLog = session.screening_results_log ? session.screening_results_log[session.screening_results_log.length-1] : null;
@@ -831,16 +890,58 @@ export function renderApprovalContent(area, session, handleApproval) {
                     <p><strong>Current Kappa:</strong> ${bLog.current_kappa.toFixed(3)} ${bLog.drift_detected ? '<span style="color:#fca5a5;">(DRIFT WARNING)</span>' : ''}</p>`;
         }
         
-        html = wrapCard('Batch Screening Selesai', `
+        html = wrapCard('Batch Screening Selesai (HitL Resolution Required)', `
             ${info}
             <hr style="border-color: rgba(255,255,255,0.1); margin: 15px 0;">
-            <p>Sesi dijeda agar Anda (HitL) dapat menyelesaikan <strong>Disagreements</strong>.</p>
-            <p>1. Buka MongoDB Compass -> koleksi <strong>slr_screening</strong>.<br>
-            2. Filter <code>{ "Agreement": "DISAGREE" }</code>.<br>
-            3. Baca <code>Conflict_Resolution</code> saran AI.<br>
-            4. Tentukan <code>Final_Decision</code> secara manual.<br>
-            5. Jika sudah, klik 'Setuju & Lanjut' untuk mengeksekusi batch selanjutnya atau menamatkan Modul 5.</p>
+            <div id="disagreements-container-m5s3" style="background: rgba(239, 68, 68, 0.05); padding: 15px; border-radius: 6px; border-left: 3px solid #ef4444;">
+                <em><i class="fa fa-spinner fa-spin"></i> Memuat Disagreements...</em>
+            </div>
+            <p style="margin-top: 15px; font-size: 0.9em;"><em>Note: Saat ini UI bersifat Read-Only untuk RCA. Buka MongoDB Compass -> koleksi <strong>slr_screening</strong> untuk mengisi kolom "Final_Decision" secara manual. Lalu tekan "Setuju & Lanjut".</em></p>
         `);
+
+        setTimeout(async () => {
+            const container = document.getElementById('disagreements-container-m5s3');
+            if (!container) return;
+            try {
+                const data = await API.getDisagreements(session.id);
+                if (data.disagreements && data.disagreements.length > 0) {
+                    let dHtml = `<h5 style="color: #fca5a5; margin-top: 0; margin-bottom: 10px;">Menunggu Keputusan Anda (${data.disagreements.length} cases)</h5>`;
+                    data.disagreements.forEach((d, i) => {
+                        dHtml += `
+                        <details style="margin-bottom: 10px; background: rgba(0,0,0,0.3); border-radius: 4px; padding: 10px;">
+                            <summary style="cursor: pointer; font-weight: bold; font-size: 0.9em; color: #fcd34d;">
+                                Kasus ${i+1}: ${d.Title}
+                            </summary>
+                            <div style="font-size: 0.85em; margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.1);">
+                                <p style="color: #9ca3af; margin-bottom: 10px;"><strong>Abstract:</strong> ${d.Abstract}</p>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                                    <div style="background: rgba(59, 130, 246, 0.1); padding: 10px; border-radius: 4px; border-left: 3px solid #3b82f6;">
+                                        <strong style="color: #93c5fd;">R1 Decision:</strong> ${d.Screener_1_Decision}<br>
+                                        <div style="margin-top: 5px; color: #d1d5db;">${d.Screener_1_Notes}</div>
+                                    </div>
+                                    <div style="background: rgba(16, 185, 129, 0.1); padding: 10px; border-radius: 4px; border-left: 3px solid #10b981;">
+                                        <strong style="color: #6ee7b7;">R2 Decision:</strong> ${d.Screener_2_Decision}<br>
+                                        <div style="margin-top: 5px; color: #d1d5db;">${d.Screener_2_Notes}</div>
+                                    </div>
+                                </div>
+                                ${d.Conflict_Resolution && typeof d.Conflict_Resolution === 'object' ? `
+                                <div style="margin-top: 10px; background: rgba(167, 139, 250, 0.1); padding: 10px; border-radius: 4px; border-left: 3px solid #a78bfa;">
+                                    <strong style="color: #c4b5fd;">AI Arbitrator Advice:</strong> ${d.Conflict_Resolution.advice}<br>
+                                    <div style="margin-top: 5px; color: #e5e7eb;">${d.Conflict_Resolution.analysis}</div>
+                                </div>
+                                ` : ''}
+                            </div>
+                        </details>
+                        `;
+                    });
+                    container.innerHTML = dHtml;
+                } else {
+                    container.innerHTML = `<span style="color: #4ade80;">Tidak ada konflik tersisa untuk diresolusi di batch ini.</span>`;
+                }
+            } catch (err) {
+                container.innerHTML = `<span style="color: #ef4444;">Gagal memuat disagreements: ${err.message}</span>`;
+            }
+        }, 0);
 
     } else if (status === 'M5_STEP4_WAITING_APPROVAL' || status === 'M5_DONE') {
         const ex = session.exclusion_table || {};

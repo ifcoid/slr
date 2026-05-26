@@ -819,7 +819,12 @@ export function renderApprovalContent(area, session, handleApproval) {
         if (session.screener_briefing) {
             briefingHtml = `
             <details style="margin-top: 15px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 4px;">
-                <summary style="cursor: pointer; color: #a78bfa; font-weight: bold;">Lihat Screener Briefing Saat Ini</summary>
+                <summary style="cursor: pointer; color: #a78bfa; font-weight: bold; display: flex; justify-content: space-between; align-items: center;">
+                    <span>Lihat Screener Briefing Saat Ini</span>
+                    <button id="btn-download-briefing" class="btn" style="padding: 4px 10px; font-size: 0.8em; background: #6b21a8; color: white; border: none; border-radius: 4px; cursor: pointer;" title="Download Screener Briefing Markdown">
+                        <i class="fa fa-download"></i> Download .md
+                    </button>
+                </summary>
                 <div style="font-size: 0.85em; margin-top: 10px; max-height: 250px; overflow-y: auto;">
                     ${formatMarkdown(session.screener_briefing.briefing_doc)}
                 </div>
@@ -837,12 +842,37 @@ export function renderApprovalContent(area, session, handleApproval) {
         `);
 
         setTimeout(async () => {
+            // Attach event listener for briefing download
+            const btnDownloadBriefing = document.getElementById('btn-download-briefing');
+            if (btnDownloadBriefing && session.screener_briefing) {
+                btnDownloadBriefing.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const blob = new Blob([session.screener_briefing.briefing_doc], { type: 'text/markdown' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `Screener_Briefing_${session.id}.md`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                });
+            }
+
             const container = document.getElementById('disagreements-container-m5s2');
             if (!container) return;
             try {
                 const data = await API.getDisagreements(session.id);
                 if (data.disagreements && data.disagreements.length > 0) {
-                    let dHtml = `<h5 style="color: #fca5a5; margin-top: 0; margin-bottom: 10px;">Reviewer Disagreements (${data.disagreements.length} cases)</h5>`;
+                    let dHtml = `
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <h5 style="color: #fca5a5; margin: 0;">Reviewer Disagreements (${data.disagreements.length} cases)</h5>
+                        <button id="btn-download-disagreements" class="btn" style="padding: 4px 10px; font-size: 0.8em; background: #b91c1c; color: white; border: none; border-radius: 4px; cursor: pointer;" title="Download Hasil Disagreements JSON">
+                            <i class="fa fa-download"></i> Download JSON
+                        </button>
+                    </div>`;
+                    
                     data.disagreements.forEach((d, i) => {
                         dHtml += `
                         <details style="margin-bottom: 10px; background: rgba(0,0,0,0.3); border-radius: 4px; padding: 10px;">
@@ -872,6 +902,24 @@ export function renderApprovalContent(area, session, handleApproval) {
                         `;
                     });
                     container.innerHTML = dHtml;
+
+                    const btnDownloadDisagreements = document.getElementById('btn-download-disagreements');
+                    if (btnDownloadDisagreements) {
+                        btnDownloadDisagreements.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const blob = new Blob([JSON.stringify(data.disagreements, null, 2)], { type: 'application/json' });
+                            const url = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = `Disagreements_Kalibrasi_${session.id}.json`;
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                            URL.revokeObjectURL(url);
+                        });
+                    }
+
                 } else {
                     container.innerHTML = `<span style="color: #4ade80;">Semua sampel sudah sepakat (Tidak ada Disagree)!</span>`;
                 }

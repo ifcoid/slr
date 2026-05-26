@@ -112,9 +112,10 @@
                     <div class="form-group" style="display: flex; gap: 10px; align-items: flex-end;">
                         <div style="flex: 1;">
                             <label>Default Model</label>
-                            <select id="llm-model" class="input-modern" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary);">
+                            <input type="text" id="llm-model" list="llm-model-list" class="input-modern" placeholder="Ketik atau pilih model..." style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary);">
+                            <datalist id="llm-model-list">
                                 <option value="">Masukkan API Key & Muat Model...</option>
-                            </select>
+                            </datalist>
                         </div>
                         <button type="button" id="btn-fetch-models" class="btn btn-secondary" style="height: 42px;">🔄 Muat Model</button>
                     </div>

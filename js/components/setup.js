@@ -40,25 +40,28 @@ export function initSetup() {
             }
 
             setButtonLoading(btnFetchModels, true);
-            selectModel.innerHTML = '<option value="">Memuat model...</option>';
+            const dataList = document.getElementById('llm-model-list');
+            if (dataList) dataList.innerHTML = '<option value="Memuat model..."></option>';
             
             try {
                 const res = await API.fetchModels(provider, apiKey, baseUrl);
-                selectModel.innerHTML = '';
+                if (dataList) dataList.innerHTML = '';
                 if (res.models && res.models.length > 0) {
                     res.models.forEach(m => {
                         const opt = document.createElement('option');
                         opt.value = m;
-                        opt.textContent = m;
-                        selectModel.appendChild(opt);
+                        if (dataList) dataList.appendChild(opt);
                     });
                     showToast('Model berhasil dimuat!');
+                    // Optionally set the first model as default if empty
+                    const selectModel = document.getElementById('llm-model');
+                    if (selectModel && !selectModel.value) selectModel.value = res.models[0];
                 } else {
-                    selectModel.innerHTML = '<option value="">Tidak ada model ditemukan</option>';
+                    if (dataList) dataList.innerHTML = '<option value="Tidak ada model ditemukan"></option>';
                 }
             } catch (error) {
                 showToast(error.message, 'error');
-                selectModel.innerHTML = '<option value="">Gagal memuat model</option>';
+                if (dataList) dataList.innerHTML = '<option value="Gagal memuat model"></option>';
             } finally {
                 setButtonLoading(btnFetchModels, false, '🔄 Muat Model');
             }

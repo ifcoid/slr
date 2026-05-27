@@ -868,10 +868,10 @@ export function renderApprovalContent(area, session, handleApproval) {
             `;
         }
 
-        html = wrapCard(\`Hasil Kalibrasi Dual-Review (\${totalSampelTeks} Sampel)\`, \`
-            \${errorBanner}
-            \${info}
-            \${briefingHtml}
+        html = wrapCard(`Hasil Kalibrasi Dual-Review (${totalSampelTeks} Sampel)`, `
+            ${errorBanner}
+            ${info}
+            ${briefingHtml}
             <hr style="border-color: rgba(255,255,255,0.1); margin: 15px 0;">
             <div id="disagreements-container-m5s2" style="background: rgba(239, 68, 68, 0.05); padding: 15px; border-radius: 6px; border-left: 3px solid #ef4444;">
                 <em><i class="fa fa-spinner fa-spin"></i> Memuat Disagreements (Root-Cause Analysis)...</em>

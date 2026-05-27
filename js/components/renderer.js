@@ -805,16 +805,52 @@ export function renderApprovalContent(area, session, handleApproval) {
             </div>
         `);
 
-    } else if (status === 'M5_STEP2_WAITING_APPROVAL') {
+    } else if (status === 'M5_STEP2_WAITING_APPROVAL' || status === 'M5_STEP2_WAITING_APPROVAL_ERROR') {
         const kal = session.kalibrasi_log ? session.kalibrasi_log[session.kalibrasi_log.length-1] : null;
         let info = '';
+        let totalSampelTeks = "20"; // default
         if (kal) {
+            totalSampelTeks = kal.total_sample ? kal.total_sample.toString() : "20";
             info = `<p><strong>Iterasi:</strong> ${kal.iterasi}</p>
-                    <p><strong>Agreement Pct:</strong> ${kal.agreement_pct.toFixed(2)}%</p>
-                    <p><strong>Cohen's Kappa:</strong> <span style="color: ${kal.passed ? '#4ade80' : '#fca5a5'}; font-size: 1.2em; font-weight: bold;">${kal.kappa.toFixed(3)}</span></p>
-                    <p><strong>Status:</strong> ${kal.passed ? 'PASSED (>= 0.60)' : 'FAILED (< 0.60)'}</p>`;
+                    <p><strong>Total Sampel Dievaluasi:</strong> ${kal.total_sample || '?'} paper</p>
+                    <p><strong>Sepakat (Agree):</strong> <span style="color: #4ade80;">${kal.agree_count || '?'} paper</span></p>
+                    <p><strong>Tidak Sepakat (Disagree):</strong> <span style="color: #fca5a5;">${kal.disagree_count || '?'} paper</span></p>
+                    <p><strong>Agreement Pct:</strong> ${kal.agreement_pct ? kal.agreement_pct.toFixed(2) : '0'}%</p>
+                    <p><strong>Cohen's Kappa:</strong> <span style="color: ${kal.passed ? '#4ade80' : '#fca5a5'}; font-size: 1.2em; font-weight: bold;">${kal.kappa ? kal.kappa.toFixed(3) : '0.000'}</span></p>
+                    <p><strong>Status:</strong> ${kal.passed ? 'PASSED (>= 0.60 atau Agreemnt >= 90%)' : 'FAILED'}</p>
+                    
+                    <details style="margin-top: 10px; background: rgba(0,0,0,0.1); padding: 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.05);">
+                        <summary style="cursor: pointer; color: #9ca3af; font-size: 0.85em; font-weight: bold;">Lihat Transparansi Perhitungan Matematis (XAI)</summary>
+                        <div style="font-size: 0.8em; margin-top: 10px; color: #d1d5db; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <div>
+                                <strong style="color: #60a5fa;">Matriks Keputusan:</strong><br>
+                                - Keduanya INCLUDE: ${kal.both_include || 0}<br>
+                                - Keduanya EXCLUDE: ${kal.both_exclude || 0}<br>
+                                - R1 INC / R2 EXC: ${kal.r1_inc_r2_exc || 0}<br>
+                                - R1 EXC / R2 INC: ${kal.r1_exc_r2_inc || 0}
+                            </div>
+                            <div>
+                                <strong style="color: #60a5fa;">Variabel Cohen's Kappa:</strong><br>
+                                - P(o) [Observed Agreement]: ${kal.po ? kal.po.toFixed(4) : '0.0000'}<br>
+                                - P(e) [Expected Agreement]: ${kal.pe ? kal.pe.toFixed(4) : '0.0000'}<br>
+                                - Rumus Kappa: (P(o) - P(e)) / (1 - P(e))
+                            </div>
+                        </div>
+                    </details>`;
         }
         
+        let errorBanner = '';
+        if (session.system_error) {
+            errorBanner = `
+            <div style="background: rgba(220, 38, 38, 0.15); padding: 15px; border-radius: 6px; border-left: 4px solid #dc2626; margin-bottom: 20px;">
+                <h4 style="color: #f87171; margin-top: 0; margin-bottom: 5px;"><i class="fa fa-exclamation-triangle"></i> System Error Interruption</h4>
+                <p style="color: #fca5a5; font-size: 0.9em; margin: 0;">Proses kalibrasi dihentikan paksa karena terjadi kegagalan teknis (misal: timeout koneksi LLM, API limit). Harap periksa log di bawah ini dan coba lagi dengan mengirim ulang instruksi revisi kosong untuk men-trigger ulang.</p>
+                <div style="background: rgba(0,0,0,0.3); padding: 10px; margin-top: 10px; border-radius: 4px; font-family: monospace; font-size: 0.8em; color: #ef4444; max-height: 100px; overflow-y: auto;">
+                    ${session.system_error}
+                </div>
+            </div>`;
+        }
+
         let briefingHtml = '';
         if (session.screener_briefing) {
             briefingHtml = `
@@ -832,9 +868,10 @@ export function renderApprovalContent(area, session, handleApproval) {
             `;
         }
 
-        html = wrapCard('Hasil Kalibrasi Dual-Review (20 Sampel)', `
-            ${info}
-            ${briefingHtml}
+        html = wrapCard(\`Hasil Kalibrasi Dual-Review (\${totalSampelTeks} Sampel)\`, \`
+            \${errorBanner}
+            \${info}
+            \${briefingHtml}
             <hr style="border-color: rgba(255,255,255,0.1); margin: 15px 0;">
             <div id="disagreements-container-m5s2" style="background: rgba(239, 68, 68, 0.05); padding: 15px; border-radius: 6px; border-left: 3px solid #ef4444;">
                 <em><i class="fa fa-spinner fa-spin"></i> Memuat Disagreements (Root-Cause Analysis)...</em>

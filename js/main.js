@@ -35,8 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (window.scrollY > 20) {
                 mainHeader.classList.add('scrolled');
             } else {
-                mainHeader.classList.removeAttribute('class');
-                mainHeader.classList.add('main-header');
+                mainHeader.classList.remove('scrolled');
             }
         });
     }

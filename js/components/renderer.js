@@ -979,9 +979,35 @@ export function renderApprovalContent(area, session, handleApproval) {
                     <p><strong>Disagreement Cases:</strong> <span style="color: #fca5a5;">${bLog.disagreement_cases}</span></p>
                     <p><strong>Current Kappa:</strong> ${bLog.current_kappa.toFixed(3)} ${bLog.drift_detected ? '<span style="color:#fca5a5;">(DRIFT WARNING)</span>' : ''}</p>`;
         }
+        let briefingHtml = '';
+        if (session.screener_briefing) {
+            briefingHtml = `
+            <details style="margin-top: 15px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 4px;">
+                <summary style="cursor: pointer; color: #a78bfa; font-weight: bold; display: flex; justify-content: space-between; align-items: center;">
+                    <span><i class="fa fa-file-text"></i> Lihat Screener Briefing (Kriteria xAI)</span>
+                    <button id="btn-download-briefing-m5s3" class="btn" style="padding: 4px 10px; font-size: 0.8em; background: #6b21a8; color: white; border: none; border-radius: 4px; cursor: pointer;" title="Download Screener Briefing Markdown">
+                        <i class="fa fa-download"></i> Download .md
+                    </button>
+                </summary>
+                <div style="font-size: 0.85em; margin-top: 10px; max-height: 250px; overflow-y: auto;">
+                    ${formatMarkdown(session.screener_briefing.briefing_doc)}
+                </div>
+            </details>
+            <details style="margin-top: 10px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 4px;">
+                <summary style="cursor: pointer; color: #60a5fa; font-weight: bold;">
+                    <span><i class="fa fa-info-circle"></i> Cara Kerja AI Supervisor (Neuro Symbolic)</span>
+                </summary>
+                <div style="font-size: 0.85em; margin-top: 10px; color: #d1d5db; line-height: 1.5;">
+                    <p>Dalam kerangka <strong>Neuro-Symbolic AI</strong>, AI Supervisor berfungsi murni sebagai arbitrator rasional. Ia diberikan <em>Screener Briefing</em> (aturan simbolik absolut) dan catatan dari kedua AI Screener (R1 yang liberal & R2 yang ketat). Supervisor kemudian dilatih untuk mencari akar masalah (root cause) dari konflik tersebut dan memberikan rekomendasi logis <em>(Explainable AI)</em> tanpa memiliki otoritas untuk mengambil keputusan mutlak.</p>
+                    <p>Otoritas keputusan mutlak <em>(Final Decision)</em> tetap berada sepenuhnya di tangan Anda sebagai <strong>Human in the Loop (HITL)</strong> untuk memastikan kepatuhan metodologi (PRISMA).</p>
+                </div>
+            </details>
+            `;
+        }
         
         html = wrapCard('Batch Screening Selesai (HitL Resolution Required)', `
             ${info}
+            ${briefingHtml}
             <hr style="border-color: rgba(255,255,255,0.1); margin: 15px 0;">
             <div id="disagreements-container-m5s3" style="background: rgba(239, 68, 68, 0.05); padding: 15px; border-radius: 6px; border-left: 3px solid #ef4444;">
                 <em><i class="fa fa-spinner fa-spin"></i> Memuat Disagreements...</em>
@@ -1050,6 +1076,26 @@ export function renderApprovalContent(area, session, handleApproval) {
                         `;
                     });
                     container.innerHTML = dHtml;
+                    
+                    // Attach event listener for briefing download if it exists
+                    setTimeout(() => {
+                        const btnDownloadBriefing = document.getElementById('btn-download-briefing-m5s3');
+                        if (btnDownloadBriefing && session.screener_briefing) {
+                            btnDownloadBriefing.addEventListener('click', (e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                const blob = new Blob([session.screener_briefing.briefing_doc], { type: 'text/markdown' });
+                                const url = URL.createObjectURL(blob);
+                                const a = document.createElement('a');
+                                a.href = url;
+                                a.download = `Screener_Briefing_${session.id}.md`;
+                                document.body.appendChild(a);
+                                a.click();
+                                document.body.removeChild(a);
+                                URL.revokeObjectURL(url);
+                            });
+                        }
+                    }, 100);
                 } else {
                     container.innerHTML = `<span style="color: #4ade80;">Tidak ada konflik tersisa untuk diresolusi di batch ini.</span>`;
                 }

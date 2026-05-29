@@ -928,12 +928,17 @@ export function renderApprovalContent(area, session, handleApproval) {
                                         <div style="margin-top: 5px; color: #d1d5db;">${d.Screener_2_Notes}</div>
                                     </div>
                                 </div>
-                                ${d.Conflict_Resolution && typeof d.Conflict_Resolution === 'object' ? `
+                                ${d.Conflict_Resolution ? (typeof d.Conflict_Resolution === 'object' ? `
                                 <div style="margin-top: 10px; background: rgba(167, 139, 250, 0.1); padding: 10px; border-radius: 4px; border-left: 3px solid #a78bfa;">
                                     <strong style="color: #c4b5fd;">AI Arbitrator Advice:</strong> ${d.Conflict_Resolution.advice}<br>
                                     <div style="margin-top: 5px; color: #e5e7eb;">${d.Conflict_Resolution.analysis}</div>
                                 </div>
-                                ` : ''}
+                                ` : `
+                                <div style="margin-top: 10px; background: rgba(167, 139, 250, 0.1); padding: 10px; border-radius: 4px; border-left: 3px solid #a78bfa;">
+                                    <strong style="color: #c4b5fd;">AI Supervisor:</strong><br>
+                                    <div style="margin-top: 5px; color: #e5e7eb; white-space: pre-wrap;">${d.Conflict_Resolution}</div>
+                                </div>
+                                `) : ''}
                             </div>
                         </details>
                         `;
@@ -1009,12 +1014,17 @@ export function renderApprovalContent(area, session, handleApproval) {
                                         <div style="margin-top: 5px; color: #d1d5db;">${d.Screener_2_Notes}</div>
                                     </div>
                                 </div>
-                                ${d.Conflict_Resolution && typeof d.Conflict_Resolution === 'object' ? `
+                                ${d.Conflict_Resolution ? (typeof d.Conflict_Resolution === 'object' ? `
                                 <div style="margin-top: 10px; background: rgba(167, 139, 250, 0.1); padding: 10px; border-radius: 4px; border-left: 3px solid #a78bfa;">
                                     <strong style="color: #c4b5fd;">AI Arbitrator Advice:</strong> ${d.Conflict_Resolution.advice}<br>
                                     <div style="margin-top: 5px; color: #e5e7eb;">${d.Conflict_Resolution.analysis}</div>
                                 </div>
-                                ` : ''}
+                                ` : `
+                                <div style="margin-top: 10px; background: rgba(167, 139, 250, 0.1); padding: 10px; border-radius: 4px; border-left: 3px solid #a78bfa;">
+                                    <strong style="color: #c4b5fd;">AI Supervisor:</strong><br>
+                                    <div style="margin-top: 5px; color: #e5e7eb; white-space: pre-wrap;">${d.Conflict_Resolution}</div>
+                                </div>
+                                `) : ''}
                             </div>
                         </details>
                         `;

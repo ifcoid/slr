@@ -48,14 +48,39 @@ export function startTracking(sessionId) {
     }
 }
 
+function setWSStatus(status, text) {
+    const indicator = document.getElementById('ws-status-indicator');
+    const led = document.getElementById('ws-led');
+    const textSpan = document.getElementById('ws-text');
+    if (!indicator || !led || !textSpan) return;
+    
+    indicator.classList.remove('hidden');
+    led.className = 'led'; // reset
+    if (status === 'connected') {
+        led.classList.add('led-green');
+        textSpan.textContent = text || 'Live Log Connected';
+    } else if (status === 'disconnected') {
+        led.classList.add('led-red');
+        textSpan.textContent = text || 'Live Log Disconnected';
+    } else if (status === 'connecting') {
+        led.classList.add('led-yellow');
+        textSpan.textContent = text || 'Connecting...';
+    }
+}
+
 function connectWebSocket(id) {
     if (ws) ws.close();
+    setWSStatus('connecting');
     
     // Convert http://... to ws://...
     const httpBase = getBaseURL();
     let wsBase = httpBase.replace(/^http/, 'ws');
     
     ws = new WebSocket(`${wsBase}/ws/logs/${id}`);
+    
+    ws.onopen = () => {
+        setWSStatus('connected');
+    };
     
     ws.onmessage = (event) => {
         const terminal = document.getElementById('terminal-logs');
@@ -66,9 +91,14 @@ function connectWebSocket(id) {
         terminal.scrollTop = terminal.scrollHeight;
     };
     
-    ws.onerror = (err) => console.error("WebSocket Error:", err);
+    ws.onerror = (err) => {
+        console.error("WebSocket Error:", err);
+        setWSStatus('disconnected', 'Connection Error');
+    };
+    
     ws.onclose = () => {
         console.log("WebSocket connection closed. Attempting to reconnect in 2 seconds...");
+        setWSStatus('disconnected', 'Reconnecting...');
         setTimeout(() => {
             // Only reconnect if we are still tracking this session
             if (currentSessionId === id && document.getElementById('section-tracker') && !document.getElementById('section-tracker').classList.contains('hidden')) {
@@ -87,6 +117,8 @@ export function stopTracking() {
         ws.close();
         ws = null;
     }
+    const indicator = document.getElementById('ws-status-indicator');
+    if (indicator) indicator.classList.add('hidden');
 }
 
 async function fetchSessionStatus() {

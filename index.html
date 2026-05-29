@@ -18,7 +18,11 @@
 
     <header class="glass-panel main-header">
         <h1>Agentic SLR <span>Orchestrator</span></h1>
-        <div style="display: flex; gap: 10px;">
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <div id="ws-status-indicator" class="ws-status-indicator hidden" title="Status Koneksi Live Log">
+                <span id="ws-led" class="led led-red"></span>
+                <span id="ws-text" style="font-weight: 500;">Disconnected</span>
+            </div>
             <button id="btn-settings" class="btn btn-icon" title="Pengaturan API">
                 ⚙️ Pengaturan
             </button>

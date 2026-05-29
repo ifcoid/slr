@@ -230,6 +230,31 @@ small {
     background: rgba(255,255,255,0.05);
 }
 
+/* WebSocket LED Indicator */
+.ws-status-indicator {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem 0.75rem;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--surface-border);
+    border-radius: 20px;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.led {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    box-shadow: 0 0 5px currentColor;
+}
+
+.led-green { background-color: var(--success-color); color: var(--success-color); }
+.led-red { background-color: var(--danger-color); color: var(--danger-color); }
+.led-yellow { background-color: var(--warning-color); color: var(--warning-color); }
+
 /* Tracker Section */
 .tracker-header {
     display: flex;

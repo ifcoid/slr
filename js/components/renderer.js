@@ -981,10 +981,37 @@ export function renderApprovalContent(area, session, handleApproval) {
             <div id="disagreements-container-m5s3" style="background: rgba(239, 68, 68, 0.05); padding: 15px; border-radius: 6px; border-left: 3px solid #ef4444;">
                 <em><i class="fa fa-spinner fa-spin"></i> Memuat Disagreements...</em>
             </div>
-            <p style="margin-top: 15px; font-size: 0.9em;"><em>Note: Saat ini UI bersifat Read-Only untuk RCA. Buka MongoDB Compass -> koleksi <strong>slr_screening</strong> untuk mengisi kolom "Final_Decision" secara manual. Lalu tekan "Setuju & Lanjut".</em></p>
+            <p style="margin-top: 15px; font-size: 0.9em;"><em>Note: Buka MongoDB Compass -> koleksi <strong>slr_screening</strong> untuk mengisi kolom "Final_Decision" secara manual jika Anda ingin lanjut.</em></p>
+            <div style="display: flex; gap: 1rem; margin-top: 15px;">
+                <button id="btn-generic-approve" class="btn btn-success">Sudah Direview Manual (Setuju & Lanjut)</button>
+                <button id="btn-retry-batch" class="btn btn-danger">⚠️ Ulangi Batch Ini (Hapus & Eksekusi Ulang)</button>
+            </div>
         `);
 
         setTimeout(async () => {
+            const btnApprove = document.getElementById('btn-generic-approve');
+            if (btnApprove) {
+                btnApprove.addEventListener('click', () => {
+                    // Karena fungsi ini ada di tracker.js, kita dispatch event manual atau panggil API
+                    fetch(\`http://localhost:50607/api/sessions/\${session.id}/approve\`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: '{}' })
+                        .then(() => window.location.reload());
+                });
+            }
+            const btnRetry = document.getElementById('btn-retry-batch');
+            if (btnRetry) {
+                btnRetry.addEventListener('click', () => {
+                    if (confirm("Apakah Anda yakin ingin menghapus data batch ini dan memanggil ulang AI (Zhipu & Groq) untuk 20 paper ini?")) {
+                        btnRetry.disabled = true;
+                        btnRetry.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Memuat Ulang Batch...';
+                        fetch(\`http://localhost:50607/api/sessions/\${session.id}/revise\`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ feedback: "Re-run batch due to AI failure", target_status: "M5_STEP3_BATCH_SCREENING" })
+                        }).then(() => window.location.reload());
+                    }
+                });
+            }
+
             const container = document.getElementById('disagreements-container-m5s3');
             if (!container) return;
             try {
@@ -1027,6 +1054,7 @@ export function renderApprovalContent(area, session, handleApproval) {
                 container.innerHTML = `<span style="color: #ef4444;">Gagal memuat disagreements: ${err.message}</span>`;
             }
         }, 0);
+        return true;
 
     } else if (status === 'M5_STEP4_WAITING_APPROVAL' || status === 'M5_DONE') {
         const ex = session.exclusion_table || {};

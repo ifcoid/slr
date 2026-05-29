@@ -1097,22 +1097,22 @@ export function renderApprovalContent(area, session, handleApproval) {
             
             const btnM5Approve = document.getElementById('btn-m5-approve');
             if (btnM5Approve) {
-                btnM5Approve.addEventListener('click', () => {
-                    fetch(`http://localhost:50607/api/sessions/${session.id}/approve`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: '{}' })
-                        .then(() => window.location.reload());
-                });
+                btnM5Approve.addEventListener('click', () => handleApproval({}));
             }
             const btnM5Retry = document.getElementById('btn-m5-retry-batch');
             if (btnM5Retry) {
-                btnM5Retry.addEventListener('click', () => {
+                btnM5Retry.addEventListener('click', async () => {
                     if (confirm("Apakah Anda yakin ingin menghapus data batch ini dan memanggil ulang AI (Zhipu & Groq) untuk 20 paper ini?")) {
-                        btnM5Retry.disabled = true;
-                        btnM5Retry.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Memuat Ulang Batch...';
-                        fetch(`http://localhost:50607/api/sessions/${session.id}/revise`, {
-                            method: 'PUT',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ feedback: "Re-run batch due to AI failure", target_status: "M5_STEP3_BATCH_SCREENING" })
-                        }).then(() => window.location.reload());
+                        try {
+                            btnM5Retry.disabled = true;
+                            btnM5Retry.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Memuat Ulang Batch...';
+                            await API.reviseStep(session.id, "Re-run batch due to AI failure", "M5_STEP3_BATCH_SCREENING");
+                            window.location.reload();
+                        } catch (err) {
+                            alert("Gagal memuat ulang batch: " + err.message);
+                            btnM5Retry.disabled = false;
+                            btnM5Retry.innerHTML = '⚠️ Ulangi Batch Ini (Hapus & Eksekusi Ulang)';
+                        }
                     }
                 });
             }

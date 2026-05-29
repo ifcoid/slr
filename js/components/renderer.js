@@ -986,7 +986,7 @@ export function renderApprovalContent(area, session, handleApproval) {
             <div id="disagreements-container-m5s3" style="background: rgba(239, 68, 68, 0.05); padding: 15px; border-radius: 6px; border-left: 3px solid #ef4444;">
                 <em><i class="fa fa-spinner fa-spin"></i> Memuat Disagreements...</em>
             </div>
-            <p style="margin-top: 15px; font-size: 0.9em;"><em>Note: Buka MongoDB Compass -> koleksi <strong>slr_screening</strong> untuk mengisi kolom "Final_Decision" secara manual jika Anda ingin lanjut.</em></p>
+            <p style="margin-top: 15px; font-size: 0.9em;"><em>Note: Silakan pilih keputusan akhir Anda dan berikan catatan resolusi pada setiap kasus di atas.</em></p>
         `);
 
         setTimeout(async () => {
@@ -995,8 +995,15 @@ export function renderApprovalContent(area, session, handleApproval) {
             try {
                 const data = await API.getDisagreements(session.id);
                 if (data.disagreements && data.disagreements.length > 0) {
-                    let dHtml = `<h5 style="color: #fca5a5; margin-top: 0; margin-bottom: 10px;">Menunggu Keputusan Anda (${data.disagreements.length} cases)</h5>`;
+                    let dHtml = `
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <h5 style="color: #fca5a5; margin: 0;">Menunggu Keputusan Anda (${data.disagreements.length} cases)</h5>
+                        <button id="btn-download-m5s3-disagreements" class="btn" style="padding: 4px 10px; font-size: 0.8em; background: #b91c1c; color: white; border: none; border-radius: 4px; cursor: pointer;" title="Download Hasil Disagreements JSON">
+                            <i class="fa fa-download"></i> Download JSON
+                        </button>
+                    </div>`;
                     data.disagreements.forEach((d, i) => {
+                        const pid = typeof d._id === 'object' ? (d._id.$oid || d._id) : d._id;
                         dHtml += `
                         <details style="margin-bottom: 10px; background: rgba(0,0,0,0.3); border-radius: 4px; padding: 10px;">
                             <summary style="cursor: pointer; font-weight: bold; font-size: 0.9em; color: #fcd34d;">
@@ -1025,6 +1032,19 @@ export function renderApprovalContent(area, session, handleApproval) {
                                     <div style="margin-top: 5px; color: #e5e7eb; white-space: pre-wrap;">${d.Conflict_Resolution}</div>
                                 </div>
                                 `) : ''}
+                                
+                                <div class="conflict-resolution-form" data-paperid="${pid}" style="margin-top: 15px; padding: 15px; background: rgba(0,0,0,0.5); border-radius: 4px; border: 1px solid rgba(255,255,255,0.2);">
+                                    <h6 style="color: #60a5fa; margin-top: 0; margin-bottom: 10px;">Resolusi Anda (HitL)</h6>
+                                    <div style="display: flex; gap: 15px; margin-bottom: 10px;">
+                                        <label style="cursor: pointer; display: flex; align-items: center; gap: 5px;">
+                                            <input type="radio" name="fd_${pid}" value="INCLUDE"> <strong style="color:#4ade80">INCLUDE</strong>
+                                        </label>
+                                        <label style="cursor: pointer; display: flex; align-items: center; gap: 5px;">
+                                            <input type="radio" name="fd_${pid}" value="EXCLUDE"> <strong style="color:#fca5a5">EXCLUDE</strong>
+                                        </label>
+                                    </div>
+                                    <textarea class="cr-notes" placeholder="Tuliskan catatan/alasan keputusan akhir Anda di sini..." style="width: 100%; padding: 8px; border-radius: 4px; background: rgba(255,255,255,0.05); color: white; border: 1px solid rgba(255,255,255,0.1); resize: vertical; min-height: 60px;"></textarea>
+                                </div>
                             </div>
                         </details>
                         `;
@@ -1080,7 +1100,7 @@ export function renderApprovalContent(area, session, handleApproval) {
         if (status === 'M5_STEP3_WAITING_RESOLUTION') {
             isDanger = true;
             isHalted = true;
-            extraBtn = `<button id="btn-m5-approve" class="btn btn-success">Sudah Direview Manual (Setuju & Lanjut)</button>
+            extraBtn = `<button id="btn-m5-approve" class="btn btn-success">Simpan Keputusan & Lanjutkan</button>
                         <button id="btn-m5-retry-batch" class="btn btn-danger">⚠️ Ulangi Batch Ini (Hapus & Eksekusi Ulang)</button>`;
         }
         
@@ -1107,7 +1127,63 @@ export function renderApprovalContent(area, session, handleApproval) {
             
             const btnM5Approve = document.getElementById('btn-m5-approve');
             if (btnM5Approve) {
-                btnM5Approve.addEventListener('click', () => handleApproval({}));
+                btnM5Approve.addEventListener('click', async () => {
+                    const forms = document.querySelectorAll('.conflict-resolution-form');
+                    const resolutions = [];
+                    for (const form of forms) {
+                        const pid = form.getAttribute('data-paperid');
+                        const rb = form.querySelector(`input[name="fd_${pid}"]:checked`);
+                        const ta = form.querySelector('.cr-notes');
+                        if (!rb) {
+                            alert("Mohon pilih INCLUDE atau EXCLUDE untuk semua kasus konflik!");
+                            return;
+                        }
+                        if (!ta.value.trim()) {
+                            alert("Mohon isi kolom catatan pada semua kasus resolusi konflik!");
+                            return;
+                        }
+                        resolutions.push({
+                            paper_id: pid,
+                            final_decision: rb.value,
+                            conflict_resolution: ta.value.trim()
+                        });
+                    }
+                    if (resolutions.length > 0) {
+                        try {
+                            btnM5Approve.disabled = true;
+                            btnM5Approve.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Menyimpan...';
+                            await API.resolveConflicts(session.id, { resolutions });
+                            window.location.reload();
+                        } catch (err) {
+                            alert("Gagal menyimpan resolusi: " + err.message);
+                            btnM5Approve.disabled = false;
+                            btnM5Approve.innerHTML = 'Simpan Keputusan & Lanjutkan';
+                        }
+                    } else {
+                        // Jika tidak ada form (semua sudah disepakati)
+                        handleApproval({});
+                    }
+                });
+            }
+
+            const btnDownloadM5S3 = document.getElementById('btn-download-m5s3-disagreements');
+            if (btnDownloadM5S3) {
+                btnDownloadM5S3.addEventListener('click', async () => {
+                    try {
+                        const data = await API.getDisagreements(session.id);
+                        const blob = new Blob([JSON.stringify(data.disagreements, null, 2)], { type: 'application/json' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `Menunggu_Keputusan_${session.id}.json`;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                    } catch (err) {
+                        alert("Gagal mengunduh data: " + err.message);
+                    }
+                });
             }
             const btnM5Retry = document.getElementById('btn-m5-retry-batch');
             if (btnM5Retry) {

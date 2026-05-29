@@ -94,6 +94,11 @@ export const API = {
 
     getDisagreements: (id) => apiFetch(`/sessions/${id}/disagreements`),
 
+    resolveConflicts: (id, payload) => apiFetch(`/sessions/${id}/resolve-conflicts`, {
+        method: 'POST',
+        body: JSON.stringify(payload)
+    }),
+
     reimportData: (id) => apiFetch(`/sessions/${id}/reimport`, {
         method: 'PUT'
     }),

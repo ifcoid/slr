@@ -57,9 +57,9 @@ export const API = {
         method: 'POST',
         body: JSON.stringify({ username, password })
     }),
-    register: (username, password) => apiFetch('/auth/register', {
+    register: (username, password, inviteCode) => apiFetch('/auth/register', {
         method: 'POST',
-        body: JSON.stringify({ username, password })
+        body: JSON.stringify({ username, password, invite_code: inviteCode })
     }),
 
     // Session API

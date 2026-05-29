@@ -993,7 +993,7 @@ export function renderApprovalContent(area, session, handleApproval) {
             if (btnApprove) {
                 btnApprove.addEventListener('click', () => {
                     // Karena fungsi ini ada di tracker.js, kita dispatch event manual atau panggil API
-                    fetch(\`http://localhost:50607/api/sessions/\${session.id}/approve\`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: '{}' })
+                    fetch(`http://localhost:50607/api/sessions/${session.id}/approve`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: '{}' })
                         .then(() => window.location.reload());
                 });
             }
@@ -1003,7 +1003,7 @@ export function renderApprovalContent(area, session, handleApproval) {
                     if (confirm("Apakah Anda yakin ingin menghapus data batch ini dan memanggil ulang AI (Zhipu & Groq) untuk 20 paper ini?")) {
                         btnRetry.disabled = true;
                         btnRetry.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Memuat Ulang Batch...';
-                        fetch(\`http://localhost:50607/api/sessions/\${session.id}/revise\`, {
+                        fetch(`http://localhost:50607/api/sessions/${session.id}/revise`, {
                             method: 'PUT',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ feedback: "Re-run batch due to AI failure", target_status: "M5_STEP3_BATCH_SCREENING" })

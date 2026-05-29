@@ -15,16 +15,31 @@ export function setBaseURL(url) {
 // Universal fetch wrapper
 async function apiFetch(endpoint, options = {}) {
     try {
+        const headers = {
+            'Content-Type': 'application/json',
+            ...options.headers
+        };
+
+        const token = localStorage.getItem('auth_token');
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+
         const response = await fetch(`${baseURL}${endpoint}`, {
             ...options,
-            headers: {
-                'Content-Type': 'application/json',
-                ...options.headers
-            }
+            headers
         });
         
         const data = await response.json().catch(() => ({}));
         
+        if (response.status === 401) {
+            // Unauthorized, redirect to login
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('user_data');
+            window.location.reload();
+            throw new Error('Sesi berakhir atau tidak valid. Silakan login kembali.');
+        }
+
         if (!response.ok) {
             throw new Error(data.error || `HTTP Error ${response.status}`);
         }
@@ -37,6 +52,16 @@ async function apiFetch(endpoint, options = {}) {
 }
 
 export const API = {
+    // Auth API
+    login: (username, password) => apiFetch('/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({ username, password })
+    }),
+    register: (username, password) => apiFetch('/auth/register', {
+        method: 'POST',
+        body: JSON.stringify({ username, password })
+    }),
+
     // Session API
     createSession: (id, topic) => apiFetch('/sessions', {
         method: 'POST',

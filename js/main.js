@@ -1,10 +1,18 @@
 // js/main.js
 import { initSetup } from './components/setup.js';
+import { initAuth } from './components/auth.js';
 import { initSession } from './components/session.js';
 import { startTracking } from './components/tracker.js';
 import { toggleHidden } from './ui.js';
 
 document.addEventListener('DOMContentLoaded', () => {
+    // 0. Init Auth
+    initAuth();
+
+    if (!localStorage.getItem('auth_token')) {
+        return; // Hentikan inisialisasi lain jika belum login
+    }
+
     // 1. Initialize API Base URL and LLM Config Setup logic
     initSetup();
 

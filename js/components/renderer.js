@@ -982,36 +982,9 @@ export function renderApprovalContent(area, session, handleApproval) {
                 <em><i class="fa fa-spinner fa-spin"></i> Memuat Disagreements...</em>
             </div>
             <p style="margin-top: 15px; font-size: 0.9em;"><em>Note: Buka MongoDB Compass -> koleksi <strong>slr_screening</strong> untuk mengisi kolom "Final_Decision" secara manual jika Anda ingin lanjut.</em></p>
-            <div style="display: flex; gap: 1rem; margin-top: 15px;">
-                <button id="btn-generic-approve" class="btn btn-success">Sudah Direview Manual (Setuju & Lanjut)</button>
-                <button id="btn-retry-batch" class="btn btn-danger">⚠️ Ulangi Batch Ini (Hapus & Eksekusi Ulang)</button>
-            </div>
         `);
 
         setTimeout(async () => {
-            const btnApprove = document.getElementById('btn-generic-approve');
-            if (btnApprove) {
-                btnApprove.addEventListener('click', () => {
-                    // Karena fungsi ini ada di tracker.js, kita dispatch event manual atau panggil API
-                    fetch(`http://localhost:50607/api/sessions/${session.id}/approve`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: '{}' })
-                        .then(() => window.location.reload());
-                });
-            }
-            const btnRetry = document.getElementById('btn-retry-batch');
-            if (btnRetry) {
-                btnRetry.addEventListener('click', () => {
-                    if (confirm("Apakah Anda yakin ingin menghapus data batch ini dan memanggil ulang AI (Zhipu & Groq) untuk 20 paper ini?")) {
-                        btnRetry.disabled = true;
-                        btnRetry.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Memuat Ulang Batch...';
-                        fetch(`http://localhost:50607/api/sessions/${session.id}/revise`, {
-                            method: 'PUT',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ feedback: "Re-run batch due to AI failure", target_status: "M5_STEP3_BATCH_SCREENING" })
-                        }).then(() => window.location.reload());
-                    }
-                });
-            }
-
             const container = document.getElementById('disagreements-container-m5s3');
             if (!container) return;
             try {
@@ -1054,7 +1027,6 @@ export function renderApprovalContent(area, session, handleApproval) {
                 container.innerHTML = `<span style="color: #ef4444;">Gagal memuat disagreements: ${err.message}</span>`;
             }
         }, 0);
-        return true;
 
     } else if (status === 'M5_STEP4_WAITING_APPROVAL' || status === 'M5_DONE') {
         const ex = session.exclusion_table || {};
@@ -1095,9 +1067,21 @@ export function renderApprovalContent(area, session, handleApproval) {
             extraBtn += ` <button id="btn-reimport" class="btn btn-warning">Ulangi Import CSV</button>`;
         }
         
+        if (status === 'M5_STEP3_WAITING_RESOLUTION') {
+            isDanger = true;
+            isHalted = true;
+            extraBtn = `<button id="btn-m5-approve" class="btn btn-success">Sudah Direview Manual (Setuju & Lanjut)</button>
+                        <button id="btn-m5-retry-batch" class="btn btn-danger">⚠️ Ulangi Batch Ini (Hapus & Eksekusi Ulang)</button>`;
+        }
+        
+        let warningText = 'Apakah Anda setuju dengan hasil di atas?';
+        if (isHalted) {
+            warningText = status === 'M4_STEP2_WAITING_APPROVAL' ? 'Anda diwajibkan untuk mengulangi import CSV.' : 'Perhatian: Ada indikasi kegagalan AI. Anda bisa mengulangi batch atau melanjutkannya.';
+        }
+        
         area.insertAdjacentHTML('beforeend', `
             <div style="padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 8px; border-left: 4px solid ${isDanger ? '#ef4444' : '#3b82f6'};">
-                <p style="margin-bottom: 1rem;"><strong>Tindakan Anda:</strong> ${isHalted ? 'Anda diwajibkan untuk mengulangi import CSV.' : 'Apakah Anda setuju dengan hasil di atas?'}</p>
+                <p style="margin-bottom: 1rem;"><strong>Tindakan Anda:</strong> ${warningText}</p>
                 <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
                     ${!isHalted ? `<button id="btn-generic-approve" class="btn btn-success">Setuju & Lanjut</button>` : ''}
                     ${extraBtn}
@@ -1109,6 +1093,28 @@ export function renderApprovalContent(area, session, handleApproval) {
             const btnApprove = document.getElementById('btn-generic-approve');
             if (btnApprove) {
                 btnApprove.addEventListener('click', () => handleApproval({}));
+            }
+            
+            const btnM5Approve = document.getElementById('btn-m5-approve');
+            if (btnM5Approve) {
+                btnM5Approve.addEventListener('click', () => {
+                    fetch(`http://localhost:50607/api/sessions/${session.id}/approve`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: '{}' })
+                        .then(() => window.location.reload());
+                });
+            }
+            const btnM5Retry = document.getElementById('btn-m5-retry-batch');
+            if (btnM5Retry) {
+                btnM5Retry.addEventListener('click', () => {
+                    if (confirm("Apakah Anda yakin ingin menghapus data batch ini dan memanggil ulang AI (Zhipu & Groq) untuk 20 paper ini?")) {
+                        btnM5Retry.disabled = true;
+                        btnM5Retry.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Memuat Ulang Batch...';
+                        fetch(`http://localhost:50607/api/sessions/${session.id}/revise`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ feedback: "Re-run batch due to AI failure", target_status: "M5_STEP3_BATCH_SCREENING" })
+                        }).then(() => window.location.reload());
+                    }
+                });
             }
             
             const btnReimport = document.getElementById('btn-reimport');

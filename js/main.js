@@ -3,7 +3,7 @@ import { initSetup } from './components/setup.js';
 import { initAuth } from './components/auth.js';
 import { initSession } from './components/session.js';
 import { startTracking } from './components/tracker.js';
-import { toggleHidden } from './ui.js';
+import { toggleHidden, openModal } from './ui.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     // 0. Init Auth
@@ -15,6 +15,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 1. Initialize API Base URL and LLM Config Setup logic
     initSetup();
+
+    if (!localStorage.getItem('apiBaseURL')) {
+        console.warn('apiBaseURL tidak ditemukan di localStorage. Membuka modal pengaturan otomatis.');
+        openModal('modal-settings');
+    }
 
     // 2. Cek apakah ada sesi aktif yang tersimpan sebelumnya
     const activeSessionId = localStorage.getItem('activeSessionId');

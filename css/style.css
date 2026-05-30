@@ -529,3 +529,23 @@ code {
     word-break: break-word;
     word-wrap: break-word;
 }
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+    .main-header {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 1rem;
+        gap: 15px;
+    }
+    .header-controls {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        z-index: 50; /* Memastikan tombol di atas elemen lain */
+    }
+    .main-header h1 {
+        font-size: 1.5rem;
+    }
+}

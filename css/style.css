@@ -277,6 +277,8 @@ small {
 .status-indicator h3 {
     margin: 0;
     font-size: 1.1rem;
+    word-break: break-word;
+    overflow-wrap: break-word;
 }
 
 /* Options / Approval Cards */

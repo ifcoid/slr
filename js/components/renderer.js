@@ -1095,6 +1095,23 @@ export function renderApprovalContent(area, session, handleApproval) {
                                 URL.revokeObjectURL(url);
                             });
                         }
+
+                        const btnDownloadM5S3 = document.getElementById('btn-download-m5s3-disagreements');
+                        if (btnDownloadM5S3) {
+                            btnDownloadM5S3.addEventListener('click', (e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                const blob = new Blob([JSON.stringify(data.disagreements, null, 2)], { type: 'application/json' });
+                                const url = URL.createObjectURL(blob);
+                                const a = document.createElement('a');
+                                a.href = url;
+                                a.download = `Menunggu_Keputusan_${session.id}.json`;
+                                document.body.appendChild(a);
+                                a.click();
+                                document.body.removeChild(a);
+                                URL.revokeObjectURL(url);
+                            });
+                        }
                     }, 100);
                 } else {
                     container.innerHTML = `<span style="color: #4ade80;">Tidak ada konflik tersisa untuk diresolusi di batch ini.</span>`;
@@ -1212,25 +1229,7 @@ export function renderApprovalContent(area, session, handleApproval) {
                 });
             }
 
-            const btnDownloadM5S3 = document.getElementById('btn-download-m5s3-disagreements');
-            if (btnDownloadM5S3) {
-                btnDownloadM5S3.addEventListener('click', async () => {
-                    try {
-                        const data = await API.getDisagreements(session.id);
-                        const blob = new Blob([JSON.stringify(data.disagreements, null, 2)], { type: 'application/json' });
-                        const url = URL.createObjectURL(blob);
-                        const a = document.createElement('a');
-                        a.href = url;
-                        a.download = `Menunggu_Keputusan_${session.id}.json`;
-                        document.body.appendChild(a);
-                        a.click();
-                        document.body.removeChild(a);
-                        URL.revokeObjectURL(url);
-                    } catch (err) {
-                        alert("Gagal mengunduh data: " + err.message);
-                    }
-                });
-            }
+
             const btnM5Retry = document.getElementById('btn-m5-retry-batch');
             if (btnM5Retry) {
                 btnM5Retry.addEventListener('click', async () => {

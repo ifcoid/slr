@@ -16,6 +16,11 @@ export function initSetup() {
         inputBaseUrl.addEventListener('change', (e) => {
             setBaseURL(e.target.value);
             showToast('Base URL API berhasil diperbarui!');
+            
+            if (btnSettings) {
+                btnSettings.style.color = '#10b981';
+                btnSettings.innerHTML = '⚙️ Configured';
+            }
         });
     }
 

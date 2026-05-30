@@ -9,16 +9,26 @@ document.addEventListener('DOMContentLoaded', () => {
     // 0. Init Auth
     initAuth();
 
-    if (!localStorage.getItem('auth_token')) {
-        return; // Hentikan inisialisasi lain jika belum login
-    }
-
     // 1. Initialize API Base URL and LLM Config Setup logic
     initSetup();
 
+    const btnSettings = document.getElementById('btn-settings');
     if (!localStorage.getItem('apiBaseURL')) {
         console.warn('apiBaseURL tidak ditemukan di localStorage. Membuka modal pengaturan otomatis.');
         openModal('modal-settings');
+        if (btnSettings) {
+            btnSettings.style.color = '#ef4444';
+            btnSettings.innerHTML = '⚠️ Set API URL!';
+        }
+    } else {
+        if (btnSettings) {
+            btnSettings.style.color = '#10b981';
+            btnSettings.innerHTML = '⚙️ Configured';
+        }
+    }
+
+    if (!localStorage.getItem('auth_token')) {
+        return; // Hentikan inisialisasi lain jika belum login
     }
 
     // 2. Cek apakah ada sesi aktif yang tersimpan sebelumnya

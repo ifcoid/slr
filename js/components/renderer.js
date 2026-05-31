@@ -1515,8 +1515,10 @@ export function renderApprovalContent(area, session, handleApproval) {
                             <tr style="border-bottom: 1px solid rgba(255,255,255,0.1); transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">
                                 <td style="padding: 12px; color: #94A3B8;">${i+1}</td>
                                 <td style="padding: 12px;">
-                                    <span style="background: ${getBadgeColor(p.publisher)}; color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; margin-bottom: 4px; display: inline-block;">${p.publisher}</span><br/>
-                                    <span style="color: #E2E8F0; font-weight: 500;">${p.title}</span>
+                                    <span style="background: ${getBadgeColor(p.publisher)}; color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; margin-bottom: 4px; display: inline-block;">${p.publisher}</span>
+                                    <span style="background: #475569; color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; margin-bottom: 4px; display: inline-block;">${p.article_type || 'Article'}</span><br/>
+                                    <span style="color: #E2E8F0; font-weight: 500;">${p.title}</span><br/>
+                                    <span style="color: #94A3B8; font-size: 12px;"><i class="fa fa-book"></i> ${p.journal || '-'}</span>
                                 </td>
                                 <td style="padding: 12px;">
                                     ${p.doi !== '' ? `<a href="${p.doi}" target="_blank" style="color: #38BDF8; text-decoration: none; display: flex; align-items: center; gap: 4px;"><i class="fa fa-external-link"></i> Buka Link</a>` : '<span style="color:#64748B">-</span>'}
@@ -1542,7 +1544,7 @@ export function renderApprovalContent(area, session, handleApproval) {
                                         <thead>
                                             <tr style="border-bottom: 2px solid #334155; color: #94A3B8;">
                                                 <th style="padding: 12px; width: 50px;">No</th>
-                                                <th style="padding: 12px;">Judul & Penerbit</th>
+                                                <th style="padding: 12px;">Judul, Tipe & Jurnal/Conf</th>
                                                 <th style="padding: 12px; width: 120px;">Link Asli</th>
                                                 <th style="padding: 12px; width: 150px;">Aksi / Lokasi</th>
                                             </tr>

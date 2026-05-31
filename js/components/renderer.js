@@ -1438,6 +1438,7 @@ export function renderApprovalContent(area, session, handleApproval) {
                         btnExport.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Menyiapkan Unduhan...';
                         
                         const token = localStorage.getItem('auth_token');
+                        const apiBase = localStorage.getItem('apiBaseURL') || '';
                         const req = await fetch(`${apiBase}/sessions/${session.id}/m6/export-links`, {
                             headers: {
                                 'Authorization': `Bearer ${token}`

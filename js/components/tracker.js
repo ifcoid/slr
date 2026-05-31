@@ -139,7 +139,7 @@ async function fetchSessionStatus() {
         lastRenderedStatus = session.status;
 
         // Logic for animation and interaction based on status
-        if (session.status && session.status.includes('WAITING')) {
+        if (session.status && (session.status.includes('WAITING') || session.status.includes('DONE'))) {
             toggleHidden('status-spinner', false); // Hide spinner
             renderApprovalUI(session);
         } else if (session.status === 'COMPLETED') {
@@ -189,7 +189,11 @@ function renderApprovalUI(session) {
     area.innerHTML = '';
     
     const header = document.createElement('h3');
-    header.textContent = 'Menunggu Persetujuan Anda';
+    if (session.status && session.status.includes('DONE')) {
+        header.textContent = 'Tahap Selesai';
+    } else {
+        header.textContent = 'Menunggu Persetujuan Anda';
+    }
     area.appendChild(header);
 
     // M2_STEP1: Topik Sugesti

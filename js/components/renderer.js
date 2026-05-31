@@ -1389,6 +1389,7 @@ export function renderApprovalContent(area, session, handleApproval) {
                 contentHtml += `
                 <div class="action-buttons" style="display: flex; gap: 10px; margin-bottom: 20px;">
                     <button id="btn-m6-export-csv" class="btn" style="background: #14b8a6; color: white;">⬇️ Unduh CSV Tautan PDF</button>
+                    <button id="btn-m6-web-viewer" class="btn" style="background: #3b82f6; color: white;">🖥️ Buka Web Viewer</button>
                     <button id="btn-m6-sync" class="btn" style="background: #8b5cf6; color: white;">🔄 Sinkronisasi dengan Qdrant DB</button>
                 </div>
             `;
@@ -1461,6 +1462,110 @@ export function renderApprovalContent(area, session, handleApproval) {
                     } finally {
                         btnExport.disabled = false;
                         btnExport.innerHTML = '⬇️ Unduh CSV Tautan PDF';
+                    }
+                });
+            }
+            
+            const btnWebViewer = document.getElementById('btn-m6-web-viewer');
+            if (btnWebViewer) {
+                btnWebViewer.addEventListener('click', async () => {
+                    const token = localStorage.getItem('auth_token');
+                    const apiBase = localStorage.getItem('apiBaseURL') || '';
+                    
+                    try {
+                        btnWebViewer.disabled = true;
+                        btnWebViewer.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Memuat...';
+                        
+                        const req = await fetch(`${apiBase}/sessions/${session.id}/m6/papers`, {
+                            headers: { 'Authorization': `Bearer ${token}` }
+                        });
+                        
+                        if (!req.ok) throw new Error('Gagal fetch papers');
+                        const data = await req.json();
+                        
+                        // Buat Modal
+                        const modal = document.createElement('div');
+                        modal.style.position = 'fixed';
+                        modal.style.top = '0';
+                        modal.style.left = '0';
+                        modal.style.width = '100vw';
+                        modal.style.height = '100vh';
+                        modal.style.background = 'rgba(15, 23, 42, 0.9)';
+                        modal.style.backdropFilter = 'blur(10px)';
+                        modal.style.zIndex = '9999';
+                        modal.style.display = 'flex';
+                        modal.style.justifyContent = 'center';
+                        modal.style.alignItems = 'center';
+                        modal.style.padding = '20px';
+                        
+                        const getBadgeColor = (pub) => {
+                            const colors = {
+                                'IEEE': '#00629B',
+                                'Elsevier': '#FF8000',
+                                'Springer': '#008CBA',
+                                'ACM': '#000000',
+                                'IET': '#014990',
+                                'Nature': '#E00000',
+                                'arXiv': '#B31B1B'
+                            };
+                            return colors[pub] || '#64748B';
+                        };
+                        
+                        let rows = data.papers.map((p, i) => `
+                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.1); transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">
+                                <td style="padding: 12px; color: #94A3B8;">${i+1}</td>
+                                <td style="padding: 12px;">
+                                    <span style="background: ${getBadgeColor(p.publisher)}; color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; margin-bottom: 4px; display: inline-block;">${p.publisher}</span><br/>
+                                    <span style="color: #E2E8F0; font-weight: 500;">${p.title}</span>
+                                </td>
+                                <td style="padding: 12px;">
+                                    ${p.doi !== '' ? `<a href="${p.doi}" target="_blank" style="color: #38BDF8; text-decoration: none; display: flex; align-items: center; gap: 4px;"><i class="fa fa-external-link"></i> Buka Link</a>` : '<span style="color:#64748B">-</span>'}
+                                </td>
+                                <td style="padding: 12px;">
+                                    ${p.location === 'arxiv' ? 
+                                        `<a href="${p.download_url}" target="_blank" style="color: #10B981; text-decoration: none; display: flex; align-items: center; gap: 4px;"><i class="fa fa-download"></i> Unduh Otomatis</a>` 
+                                        : 
+                                        `<span style="color: #F59E0B;"><i class="fa fa-user"></i> HITL Download</span>`
+                                    }
+                                </td>
+                            </tr>
+                        `).join('');
+                        
+                        modal.innerHTML = `
+                            <div style="background: #1E293B; border: 1px solid #334155; border-radius: 12px; width: 90%; max-width: 1200px; height: 90vh; display: flex; flex-direction: column; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
+                                <div style="padding: 20px; border-bottom: 1px solid #334155; display: flex; justify-content: space-between; align-items: center;">
+                                    <h2 style="color: white; margin: 0; font-size: 1.25rem;">🖥️ Modul 6 Web Viewer (${data.total} Dokumen)</h2>
+                                    <button id="btn-close-modal" style="background: transparent; border: none; color: #94A3B8; font-size: 1.5rem; cursor: pointer;">&times;</button>
+                                </div>
+                                <div style="flex: 1; overflow-y: auto; padding: 20px;">
+                                    <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                                        <thead>
+                                            <tr style="border-bottom: 2px solid #334155; color: #94A3B8;">
+                                                <th style="padding: 12px; width: 50px;">No</th>
+                                                <th style="padding: 12px;">Judul & Penerbit</th>
+                                                <th style="padding: 12px; width: 120px;">Link Asli</th>
+                                                <th style="padding: 12px; width: 150px;">Aksi / Lokasi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            ${rows}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        `;
+                        
+                        document.body.appendChild(modal);
+                        document.getElementById('btn-close-modal').addEventListener('click', () => {
+                            modal.remove();
+                        });
+                        
+                    } catch (err) {
+                        console.error(err);
+                        alert('Gagal memuat data Web Viewer');
+                    } finally {
+                        btnWebViewer.disabled = false;
+                        btnWebViewer.innerHTML = '🖥️ Buka Web Viewer';
                     }
                 });
             }

@@ -1158,6 +1158,10 @@ export function renderApprovalContent(area, session, handleApproval) {
             extraBtn += ` <button id="btn-reimport" class="btn btn-warning">Ulangi Import CSV</button>`;
         }
         
+        if (status === 'M5_STEP4_WAITING_APPROVAL') {
+            extraBtn = `<button id="btn-m5-retry-step4" class="btn btn-warning" style="margin-right: 0.5rem;">Ulangi Pembuatan Rangkuman (Retry LLM)</button>`;
+        }
+        
         if (status === 'M5_STEP3_WAITING_RESOLUTION') {
             isDanger = true;
             isHalted = true;
@@ -1230,6 +1234,23 @@ export function renderApprovalContent(area, session, handleApproval) {
                 });
             }
 
+            const btnM5RetryStep4 = document.getElementById('btn-m5-retry-step4');
+            if (btnM5RetryStep4) {
+                btnM5RetryStep4.addEventListener('click', async () => {
+                    if (confirm("Yakin ingin mengulangi proses pembuatan Laporan (termasuk audit LLM)?")) {
+                        try {
+                            btnM5RetryStep4.disabled = true;
+                            btnM5RetryStep4.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Memproses...';
+                            await API.reviseStep(session.id, "Retry Step 4 LLM Generation", "M5_STEP4_REVIEW_HASIL");
+                            window.location.reload();
+                        } catch (err) {
+                            alert("Gagal retry Step 4: " + err.message);
+                            btnM5RetryStep4.disabled = false;
+                            btnM5RetryStep4.textContent = 'Ulangi Pembuatan Rangkuman (Retry LLM)';
+                        }
+                    }
+                });
+            }
 
             const btnM5Retry = document.getElementById('btn-m5-retry-batch');
             if (btnM5Retry) {

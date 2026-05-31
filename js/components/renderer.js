@@ -1122,20 +1122,18 @@ export function renderApprovalContent(area, session, handleApproval) {
         }, 0);
 
     } else if (status === 'M5_STEP4_WAITING_APPROVAL' || status === 'M5_DONE') {
-        const ex = session.exclusion_table || {};
+        let summaryMd = 'Menunggu data...';
+        if (session.modul5_summary && session.modul5_summary.markdown) {
+            summaryMd = session.modul5_summary.markdown;
+        }
+        
         html = wrapCard('Screening Selesai (Modul 5 Summary)', `
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                <div>
-                    <h5 style="color: #a78bfa; margin-top: 0;">Flow Numbers</h5>
-                    <pre style="background: rgba(0,0,0,0.2); padding: 10px; font-size: 0.85em; border-radius: 4px;">${ex.flow_numbers || ''}</pre>
-                </div>
-                <div>
-                    <h5 style="color: #a78bfa; margin-top: 0;">Kappa Report</h5>
-                    <pre style="background: rgba(0,0,0,0.2); padding: 10px; font-size: 0.85em; border-radius: 4px;">${ex.kappa_report || ''}</pre>
-                </div>
+            <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 6px; font-size: 0.9em; max-height: 400px; overflow-y: auto;">
+                ${formatMarkdown(summaryMd)}
             </div>
-            <h5 style="color: #a78bfa; margin-top: 15px;">PICO Audit (10% Sample)</h5>
-            <pre style="background: rgba(0,0,0,0.2); padding: 10px; font-size: 0.85em; border-radius: 4px;">${ex.pico_audit || ''}</pre>
+            <p style="margin-top: 15px; font-size: 0.9em; color: #4ade80;">
+                <em>Semua paper telah diproses melalui kriteria Inklusi/Eksklusi. Tahap Modul 5 selesai. Silakan lanjut ke Modul 6 untuk mencari Full-Text PDF.</em>
+            </p>
         `);
     }
 

@@ -1387,9 +1387,6 @@ export function renderApprovalContent(area, session, handleApproval) {
                     <a href="/api/sessions/${session.id}/m6/export-links" target="_blank" class="btn" style="background: #14b8a6; color: white; text-decoration: none;">⬇️ Unduh CSV Tautan PDF</a>
                     <button id="btn-m6-sync" class="btn" style="background: #8b5cf6; color: white;">🔄 Sinkronisasi dengan Qdrant DB</button>
                 </div>
-                <div class="action-buttons" style="display: flex; gap: 10px;">
-                    <button id="btn-m6-approve" class="btn btn-success" disabled>Setuju & Lanjut ke Modul 7</button>
-                </div>
             `;
         }
         
@@ -1421,16 +1418,6 @@ export function renderApprovalContent(area, session, handleApproval) {
                         btnSync.disabled = false;
                         btnSync.innerHTML = '🔄 Sinkronisasi dengan Qdrant DB';
                     }
-                });
-            }
-            
-            const btnApprove = document.getElementById('btn-m6-approve');
-            if (btnApprove && session.acquisition_log && session.acquisition_log.vectorized_count > 0) {
-                btnApprove.disabled = false;
-                btnApprove.addEventListener('click', async () => {
-                    // Logic go to Modul 7 here
-                    // await API.approveStep(session.id);
-                    alert("Melangkah ke Modul 7 belum diimplementasikan.");
                 });
             }
         }, 0);

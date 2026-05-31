@@ -1388,7 +1388,7 @@ export function renderApprovalContent(area, session, handleApproval) {
                 
                 contentHtml += `
                 <div class="action-buttons" style="display: flex; gap: 10px; margin-bottom: 20px;">
-                    <a href="${apiBase}/sessions/${session.id}/m6/export-links" target="_blank" class="btn" style="background: #14b8a6; color: white; text-decoration: none;">⬇️ Unduh CSV Tautan PDF</a>
+                    <button id="btn-m6-export-csv" class="btn" style="background: #14b8a6; color: white;">⬇️ Unduh CSV Tautan PDF</button>
                     <button id="btn-m6-sync" class="btn" style="background: #8b5cf6; color: white;">🔄 Sinkronisasi dengan Qdrant DB</button>
                 </div>
             `;
@@ -1412,7 +1412,12 @@ export function renderApprovalContent(area, session, handleApproval) {
                     try {
                         btnSync.disabled = true;
                         btnSync.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Sinkronisasi...';
-                        const req = await fetch('/api/sessions/' + session.id + '/m6/sync-qdrant', { method: 'POST' });
+                        const req = await fetch('/api/sessions/' + session.id + '/m6/sync-qdrant', { 
+                            method: 'POST',
+                            headers: {
+                                'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                            }
+                        });
                         if (!req.ok) throw new Error("Sinkronisasi gagal");
                         const res = await req.json();
                         alert("Sinkronisasi Qdrant berhasil! Tersinkron: " + res.synced_count);
@@ -1421,6 +1426,40 @@ export function renderApprovalContent(area, session, handleApproval) {
                         alert(e.message);
                         btnSync.disabled = false;
                         btnSync.innerHTML = '🔄 Sinkronisasi dengan Qdrant DB';
+                    }
+                });
+            }
+            
+            const btnExport = document.getElementById('btn-m6-export-csv');
+            if (btnExport) {
+                btnExport.addEventListener('click', async () => {
+                    try {
+                        btnExport.disabled = true;
+                        btnExport.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Menyiapkan Unduhan...';
+                        
+                        const token = localStorage.getItem('auth_token');
+                        const req = await fetch(`${apiBase}/sessions/${session.id}/m6/export-links`, {
+                            headers: {
+                                'Authorization': `Bearer ${token}`
+                            }
+                        });
+                        if (!req.ok) throw new Error("Gagal mengunduh CSV");
+                        
+                        const blob = await req.blob();
+                        const url = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `m6_acquisition_links_${session.id}.csv`;
+                        document.body.appendChild(a);
+                        a.click();
+                        a.remove();
+                        window.URL.revokeObjectURL(url);
+                        
+                    } catch(e) {
+                        alert(e.message);
+                    } finally {
+                        btnExport.disabled = false;
+                        btnExport.innerHTML = '⬇️ Unduh CSV Tautan PDF';
                     }
                 });
             }

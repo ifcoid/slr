@@ -1329,6 +1329,112 @@ export function renderApprovalContent(area, session, handleApproval) {
             }
         }, 0);
         return true;
+    } else if (status.startsWith('M6_')) {
+        let title = 'Modul 6: Full-Text Acquisition';
+        let contentHtml = '';
+        
+        if (status === 'M6_STEP1_WAITING_SYNC') {
+            title += ' (Menunggu Sinkronisasi Qdrant)';
+            
+            // Render Acquisition Log Progress
+            let acqHtml = '';
+            if (session.acquisition_log) {
+                const log = session.acquisition_log;
+                const highPct = ((log.high_retrieved / log.total_include) * 100).toFixed(1);
+                const medPct = ((log.medium_retrieved / log.total_include) * 100).toFixed(1);
+                const vecPct = ((log.vectorized_count / log.total_include) * 100).toFixed(1);
+                const inaccPct = log.inaccessible_pct.toFixed(1);
+                
+                let inaccColor = '#22c55e'; // Green
+                if (log.inaccessible_pct >= 15) inaccColor = '#ef4444'; // Red
+                else if (log.inaccessible_pct >= 5) inaccColor = '#eab308'; // Yellow
+
+                acqHtml = `
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px;">
+                    <div style="background: var(--bg-secondary); padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); text-align: center;">
+                        <h4 style="margin: 0; color: var(--text-secondary); font-size: 0.85rem;">Total Teks Lolos (INCLUDE)</h4>
+                        <div style="font-size: 1.5rem; font-weight: bold; margin-top: 5px; color: var(--text-primary);">${log.total_include}</div>
+                    </div>
+                    <div style="background: var(--bg-secondary); padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); text-align: center;">
+                        <h4 style="margin: 0; color: var(--text-secondary); font-size: 0.85rem;">HIGH Retrieved (OA/ArXiv)</h4>
+                        <div style="font-size: 1.5rem; font-weight: bold; margin-top: 5px; color: #3b82f6;">${log.high_retrieved} <span style="font-size: 0.9rem">(${highPct}%)</span></div>
+                    </div>
+                    <div style="background: var(--bg-secondary); padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); text-align: center;">
+                        <h4 style="margin: 0; color: var(--text-secondary); font-size: 0.85rem;">Vectorized (Qdrant)</h4>
+                        <div style="font-size: 1.5rem; font-weight: bold; margin-top: 5px; color: #8b5cf6;">${log.vectorized_count} <span style="font-size: 0.9rem">(${vecPct}%)</span></div>
+                    </div>
+                    <div style="background: var(--bg-secondary); padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); text-align: center;">
+                        <h4 style="margin: 0; color: var(--text-secondary); font-size: 0.85rem;">Inaccessible</h4>
+                        <div style="font-size: 1.5rem; font-weight: bold; margin-top: 5px; color: ${inaccColor};">${log.inaccessible_count} <span style="font-size: 0.9rem">(${inaccPct}%)</span></div>
+                    </div>
+                </div>
+                `;
+            }
+
+            contentHtml = `
+                ${acqHtml}
+                <div style="background: rgba(59, 130, 246, 0.1); border-left: 4px solid #3b82f6; padding: 15px; border-radius: 4px; margin-bottom: 20px;">
+                    <p style="margin:0 0 10px 0; color: var(--text-primary);">Sistem telah menyelesaikan pencarian Open Access via <strong>Unpaywall & ArXiv API</strong>.</p>
+                    <ol style="margin:0; padding-left: 20px; color: var(--text-secondary); line-height: 1.5;">
+                        <li>Unduh file CSV berisi daftar paper dan URL PDF di bawah ini.</li>
+                        <li>Unduh paper yang tersedia (URL tersedia), kemudian unggak seluruh PDF ke Google Drive Anda.</li>
+                        <li>Buka dan jalankan Jupyter Notebook <strong>PEDE</strong> di Google Colab untuk mengubah PDF menjadi Vektor.</li>
+                        <li>Setelah Colab selesai memasukkan vektor ke <strong>Qdrant</strong>, tekan tombol Sinkronisasi.</li>
+                    </ol>
+                </div>
+                
+                <div class="action-buttons" style="display: flex; gap: 10px; margin-bottom: 20px;">
+                    <a href="/api/sessions/${session.id}/m6/export-links" target="_blank" class="btn" style="background: #14b8a6; color: white; text-decoration: none;">⬇️ Unduh CSV Tautan PDF</a>
+                    <button id="btn-m6-sync" class="btn" style="background: #8b5cf6; color: white;">🔄 Sinkronisasi dengan Qdrant DB</button>
+                </div>
+                <div class="action-buttons" style="display: flex; gap: 10px;">
+                    <button id="btn-m6-approve" class="btn btn-success" disabled>Setuju & Lanjut ke Modul 7</button>
+                </div>
+            `;
+        }
+        
+        let html = `
+            <div class="approval-card">
+                <h3>${title}</h3>
+                <div class="approval-content">
+                    ${contentHtml}
+                </div>
+            </div>
+        `;
+        
+        area.innerHTML = html;
+        
+        setTimeout(() => {
+            const btnSync = document.getElementById('btn-m6-sync');
+            if (btnSync) {
+                btnSync.addEventListener('click', async () => {
+                    try {
+                        btnSync.disabled = true;
+                        btnSync.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Sinkronisasi...';
+                        const req = await fetch('/api/sessions/' + session.id + '/m6/sync-qdrant', { method: 'POST' });
+                        if (!req.ok) throw new Error("Sinkronisasi gagal");
+                        const res = await req.json();
+                        alert("Sinkronisasi Qdrant berhasil! Tersinkron: " + res.synced_count);
+                        window.location.reload();
+                    } catch(e) {
+                        alert(e.message);
+                        btnSync.disabled = false;
+                        btnSync.innerHTML = '🔄 Sinkronisasi dengan Qdrant DB';
+                    }
+                });
+            }
+            
+            const btnApprove = document.getElementById('btn-m6-approve');
+            if (btnApprove && session.acquisition_log && session.acquisition_log.vectorized_count > 0) {
+                btnApprove.disabled = false;
+                btnApprove.addEventListener('click', async () => {
+                    // Logic go to Modul 7 here
+                    // await API.approveStep(session.id);
+                    alert("Melangkah ke Modul 7 belum diimplementasikan.");
+                });
+            }
+        }, 0);
+        return true;
     }
 
     return false;

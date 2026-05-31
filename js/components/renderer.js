@@ -1388,7 +1388,7 @@ export function renderApprovalContent(area, session, handleApproval) {
                 
                 contentHtml += `
                 <div class="action-buttons" style="display: flex; gap: 10px; margin-bottom: 20px;">
-                    <a href="${apiBase}/api/sessions/${session.id}/m6/export-links" target="_blank" class="btn" style="background: #14b8a6; color: white; text-decoration: none;">⬇️ Unduh CSV Tautan PDF</a>
+                    <a href="${apiBase}/sessions/${session.id}/m6/export-links" target="_blank" class="btn" style="background: #14b8a6; color: white; text-decoration: none;">⬇️ Unduh CSV Tautan PDF</a>
                     <button id="btn-m6-sync" class="btn" style="background: #8b5cf6; color: white;">🔄 Sinkronisasi dengan Qdrant DB</button>
                 </div>
             `;

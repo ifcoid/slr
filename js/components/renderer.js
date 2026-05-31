@@ -1163,7 +1163,10 @@ export function renderApprovalContent(area, session, handleApproval) {
         if (status === 'M5_STEP3_WAITING_RESOLUTION') {
             isDanger = true;
             isHalted = true;
-            extraBtn = `<button id="btn-m5-approve" class="btn btn-success">Simpan Keputusan & Lanjutkan</button>
+            const bLog = session.screening_results_log ? session.screening_results_log[session.screening_results_log.length-1] : null;
+            const hasDisagreements = bLog && bLog.disagreement_cases > 0;
+            const btnText = hasDisagreements ? 'Simpan Keputusan & Lanjutkan' : 'Lanjut Batch Berikutnya / Selesai';
+            extraBtn = `<button id="btn-m5-approve" class="btn btn-success">${btnText}</button>
                         <button id="btn-m5-retry-batch" class="btn btn-danger">⚠️ Ulangi Batch Ini (Hapus & Eksekusi Ulang)</button>`;
         }
         

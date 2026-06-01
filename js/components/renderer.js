@@ -1451,26 +1451,28 @@ export function renderApprovalContent(area, session, handleApproval) {
                     btnDetails.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Memuat...';
                     try {
                         const apiBase = localStorage.getItem('apiBaseURL') || '';
-                        const req = await fetch(`${apiBase}/sessions/${session.id}/papers`, {
+                        const req = await fetch(`${apiBase}/sessions/${session.id}/m6/papers`, {
                             headers: {
                                 'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
                             }
                         });
-                        const papers = await req.json();
+                        if (!req.ok) throw new Error('Gagal memuat data');
+                        const data = await req.json();
+                        const papers = data.papers || [];
                         
-                        // Filter for INCLUDE papers
-                        const includePapers = papers.filter(p => p.Final_Decision === 'INCLUDE' || (p.Final_Decision === '' && p.Screener_1_Decision === 'INCLUDE'));
+                        // Modul 6 papers are already filtered by INCLUDE in the backend
+                        const includePapers = papers;
                         
                         let rows = '';
                         includePapers.forEach((p, idx) => {
-                            const doi = p.DOI || p.doi || '-';
-                            const loc = p.full_text_location || 'Belum Dicari';
-                            const vectorized = p.full_text_retrieved ? '<span style="color:#22c55e">✅ Ya</span>' : '<span style="color:#ef4444">❌ Belum</span>';
+                            const doi = p.doi || '-';
+                            const loc = p.location || 'Belum Dicari';
+                            const vectorized = p.retrieved ? '<span style="color:#22c55e">✅ Ya</span>' : '<span style="color:#ef4444">❌ Belum</span>';
                             
                             rows += `
                                 <tr style="border-bottom: 1px solid #334155;">
                                     <td style="padding: 12px; color: var(--text-secondary);">${idx + 1}</td>
-                                    <td style="padding: 12px; color: var(--text-primary); font-size: 0.9rem;">${p.Title || '-'}</td>
+                                    <td style="padding: 12px; color: var(--text-primary); font-size: 0.9rem;">${p.title || '-'}</td>
                                     <td style="padding: 12px; color: #3b82f6; font-size: 0.85rem;">${doi}</td>
                                     <td style="padding: 12px; color: var(--text-secondary); font-size: 0.85rem; text-transform: uppercase;">${loc}</td>
                                     <td style="padding: 12px; font-size: 0.85rem; text-align: center;">${vectorized}</td>

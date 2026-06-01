@@ -1391,6 +1391,7 @@ export function renderApprovalContent(area, session, handleApproval) {
                     <button id="btn-m6-export-csv" class="btn" style="background: #14b8a6; color: white;">⬇️ Unduh CSV Tautan PDF</button>
                     <button id="btn-m6-web-viewer" class="btn" style="background: #3b82f6; color: white;">🖥️ Buka Web Viewer</button>
                     <button id="btn-m6-sync" class="btn" style="background: #8b5cf6; color: white;">🔄 Sinkronisasi dengan Qdrant DB</button>
+                    <button id="btn-m6-details" class="btn" style="background: #64748b; color: white;">📋 Lihat Status PDF & Vektor</button>
                 </div>
             `;
         }
@@ -1439,6 +1440,84 @@ export function renderApprovalContent(area, session, handleApproval) {
                         alert(e.message);
                         btnSync.disabled = false;
                         btnSync.innerHTML = '🔄 Sinkronisasi dengan Qdrant DB';
+                    }
+                });
+            }
+
+            const btnDetails = document.getElementById('btn-m6-details');
+            if (btnDetails) {
+                btnDetails.addEventListener('click', async () => {
+                    btnDetails.disabled = true;
+                    btnDetails.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Memuat...';
+                    try {
+                        const apiBase = localStorage.getItem('apiBaseURL') || '';
+                        const req = await fetch(`${apiBase}/sessions/${session.id}/papers`, {
+                            headers: {
+                                'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                            }
+                        });
+                        const papers = await req.json();
+                        
+                        // Filter for INCLUDE papers
+                        const includePapers = papers.filter(p => p.Final_Decision === 'INCLUDE' || (p.Final_Decision === '' && p.Screener_1_Decision === 'INCLUDE'));
+                        
+                        let rows = '';
+                        includePapers.forEach((p, idx) => {
+                            const doi = p.DOI || p.doi || '-';
+                            const loc = p.full_text_location || 'Belum Dicari';
+                            const vectorized = p.full_text_retrieved ? '<span style="color:#22c55e">✅ Ya</span>' : '<span style="color:#ef4444">❌ Belum</span>';
+                            
+                            rows += `
+                                <tr style="border-bottom: 1px solid #334155;">
+                                    <td style="padding: 12px; color: var(--text-secondary);">${idx + 1}</td>
+                                    <td style="padding: 12px; color: var(--text-primary); font-size: 0.9rem;">${p.Title || '-'}</td>
+                                    <td style="padding: 12px; color: #3b82f6; font-size: 0.85rem;">${doi}</td>
+                                    <td style="padding: 12px; color: var(--text-secondary); font-size: 0.85rem; text-transform: uppercase;">${loc}</td>
+                                    <td style="padding: 12px; font-size: 0.85rem; text-align: center;">${vectorized}</td>
+                                </tr>
+                            `;
+                        });
+                        
+                        const modalHtml = `
+                            <div id="m6-details-modal" style="position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.7); display: flex; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(4px);">
+                                <div style="background: var(--bg-primary); width: 90%; max-width: 1000px; max-height: 85vh; border-radius: 12px; display: flex; flex-direction: column; border: 1px solid #334155; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
+                                    <div style="padding: 20px; border-bottom: 1px solid #334155; display: flex; justify-content: space-between; align-items: center;">
+                                        <h3 style="margin: 0; color: var(--text-primary);">Status Akuisisi Teks Penuh (PDF & Vektor)</h3>
+                                        <button id="btn-close-m6-modal" style="background: transparent; border: none; color: #94A3B8; font-size: 1.5rem; cursor: pointer;">&times;</button>
+                                    </div>
+                                    <div style="flex: 1; overflow-y: auto; padding: 20px;">
+                                        <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                                            <thead>
+                                                <tr style="border-bottom: 2px solid #334155; color: #94A3B8;">
+                                                    <th style="padding: 12px; width: 50px;">No</th>
+                                                    <th style="padding: 12px;">Judul Paper</th>
+                                                    <th style="padding: 12px; width: 150px;">DOI</th>
+                                                    <th style="padding: 12px; width: 120px;">Sumber PDF</th>
+                                                    <th style="padding: 12px; width: 100px; text-align: center;">Tervektorisasi</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                ${rows}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        
+                        const modalContainer = document.createElement('div');
+                        modalContainer.innerHTML = modalHtml;
+                        document.body.appendChild(modalContainer);
+                        
+                        document.getElementById('btn-close-m6-modal').addEventListener('click', () => {
+                            document.body.removeChild(modalContainer);
+                        });
+                        
+                    } catch(e) {
+                        alert("Gagal memuat data: " + e.message);
+                    } finally {
+                        btnDetails.disabled = false;
+                        btnDetails.innerHTML = '📋 Lihat Status PDF & Vektor';
                     }
                 });
             }

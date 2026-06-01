@@ -1413,13 +1413,21 @@ export function renderApprovalContent(area, session, handleApproval) {
                     try {
                         btnSync.disabled = true;
                         btnSync.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Sinkronisasi...';
-                        const req = await fetch('/api/sessions/' + session.id + '/m6/sync-qdrant', { 
+                        const apiBase = localStorage.getItem('apiBaseURL') || '';
+                        const req = await fetch(`${apiBase}/sessions/${session.id}/m6/sync-qdrant`, { 
                             method: 'POST',
                             headers: {
                                 'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
                             }
                         });
-                        if (!req.ok) throw new Error("Sinkronisasi gagal");
+                        if (!req.ok) {
+                            let errMsg = "Sinkronisasi gagal";
+                            try {
+                                const errData = await req.json();
+                                if (errData.error) errMsg = errData.error;
+                            } catch(e) {}
+                            throw new Error(errMsg);
+                        }
                         const res = await req.json();
                         alert("Sinkronisasi Qdrant berhasil! Tersinkron: " + res.synced_count);
                         window.location.reload();

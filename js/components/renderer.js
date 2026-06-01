@@ -1602,7 +1602,18 @@ export function renderApprovalContent(area, session, handleApproval) {
                             return colors[pub] || '#64748B';
                         };
                         
-                        let rows = data.papers.map((p, i) => `
+                        let rows = data.papers.map((p, i) => {
+                            let actionHtml = '';
+                            if (p.retrieved) {
+                                actionHtml = `<span style="color: #10B981; font-weight: bold;"><i class="fa fa-check-circle"></i> Vectorized</span>`;
+                            } else {
+                                actionHtml = p.location === 'arxiv' ? 
+                                    `<a href="${p.download_url}" target="_blank" style="color: #38BDF8; text-decoration: none; display: flex; align-items: center; gap: 4px;"><i class="fa fa-download"></i> Unduh Otomatis</a>` 
+                                    : 
+                                    `<span style="color: #F59E0B;"><i class="fa fa-user"></i> HITL Download</span>`;
+                            }
+
+                            return `
                             <tr style="border-bottom: 1px solid rgba(255,255,255,0.1); transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">
                                 <td style="padding: 12px; color: #94A3B8;">${i+1}</td>
                                 <td style="padding: 12px;">
@@ -1615,14 +1626,11 @@ export function renderApprovalContent(area, session, handleApproval) {
                                     ${p.doi !== '' ? `<a href="${p.doi}" target="_blank" style="color: #38BDF8; text-decoration: none; display: flex; align-items: center; gap: 4px;"><i class="fa fa-external-link"></i> Buka Link</a>` : '<span style="color:#64748B">-</span>'}
                                 </td>
                                 <td style="padding: 12px;">
-                                    ${p.location === 'arxiv' ? 
-                                        `<a href="${p.download_url}" target="_blank" style="color: #10B981; text-decoration: none; display: flex; align-items: center; gap: 4px;"><i class="fa fa-download"></i> Unduh Otomatis</a>` 
-                                        : 
-                                        `<span style="color: #F59E0B;"><i class="fa fa-user"></i> HITL Download</span>`
-                                    }
+                                    ${actionHtml}
                                 </td>
                             </tr>
-                        `).join('');
+                        `;
+                        }).join('');
                         
                         modal.innerHTML = `
                             <div style="background: #1E293B; border: 1px solid #334155; border-radius: 12px; width: 90%; max-width: 1200px; height: 90vh; display: flex; flex-direction: column; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">

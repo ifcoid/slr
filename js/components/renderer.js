@@ -1429,7 +1429,11 @@ export function renderApprovalContent(area, session, handleApproval) {
                             throw new Error(errMsg);
                         }
                         const res = await req.json();
-                        alert("Sinkronisasi Qdrant berhasil! Tersinkron: " + res.synced_count);
+                        let msg = "Sinkronisasi Qdrant berhasil! Tersinkron: " + res.synced_count;
+                        if (res.version) {
+                            msg += `\n(Debug - Versi API: ${res.version}, DOIs di Qdrant: ${res.debug_qdrant_unique})`;
+                        }
+                        alert(msg);
                         window.location.reload();
                     } catch(e) {
                         alert(e.message);

@@ -1431,7 +1431,7 @@ export function renderApprovalContent(area, session, handleApproval) {
                         const res = await req.json();
                         let msg = "Sinkronisasi Qdrant berhasil! Tersinkron: " + res.synced_count;
                         if (res.version) {
-                            msg += `\n(Debug - Versi API: ${res.version}, DOIs di Qdrant: ${res.debug_qdrant_unique})`;
+                            msg += `\n(Debug - API: ${res.version}, Qdrant DOIs: ${res.debug_qdrant_unique}, Mongo Papers: ${res.debug_mongo_papers})`;
                         }
                         alert(msg);
                         window.location.reload();

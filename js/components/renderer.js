@@ -1350,7 +1350,7 @@ export function renderApprovalContent(area, session, handleApproval) {
                 else if (log.inaccessible_pct >= 5) inaccColor = '#eab308'; // Yellow
 
                 acqHtml = `
-                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px;">
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
                     <div style="background: var(--bg-secondary); padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); text-align: center;">
                         <h4 style="margin: 0; color: var(--text-secondary); font-size: 0.85rem;">Total Teks Lolos (INCLUDE)</h4>
                         <div style="font-size: 1.5rem; font-weight: bold; margin-top: 5px; color: var(--text-primary);">${log.total_include}</div>
@@ -1369,6 +1369,26 @@ export function renderApprovalContent(area, session, handleApproval) {
                     </div>
                 </div>
                 `;
+
+                let inaccProtocolHtml = '';
+                if (log.inaccessible_pct < 5) {
+                    inaccProtocolHtml = `<div style="background: rgba(34, 197, 94, 0.1); border-left: 4px solid #22c55e; padding: 12px; border-radius: 4px; margin-top: 15px; margin-bottom: 20px; font-size: 0.9rem;">
+                        <strong>=== INACCESSIBLE PROTOCOL ===</strong><br/>
+                        <span style="color: #22c55e;">(&lt; 5%)</span> Dokumentasi standar, low impact terhadap SLR.
+                    </div>`;
+                } else if (log.inaccessible_pct <= 15) {
+                    inaccProtocolHtml = `<div style="background: rgba(234, 179, 8, 0.1); border-left: 4px solid #eab308; padding: 12px; border-radius: 4px; margin-top: 15px; margin-bottom: 20px; font-size: 0.9rem;">
+                        <strong>=== INACCESSIBLE PROTOCOL ===</strong><br/>
+                        <span style="color: #eab308;">(5 - 15%)</span> Perlu dokumentasi detail + analisis bias (apakah paper yang tidak bisa diakses skewed/mengumpul ke region atau tahun tertentu?).
+                    </div>`;
+                } else {
+                    inaccProtocolHtml = `<div style="background: rgba(239, 68, 68, 0.1); border-left: 4px solid #ef4444; padding: 12px; border-radius: 4px; margin-top: 15px; margin-bottom: 20px; font-size: 0.9rem;">
+                        <strong>=== INACCESSIBLE PROTOCOL ===</strong><br/>
+                        <span style="color: #ef4444;">(&gt; 15%)</span> <strong>REVISI STRATEGI!</strong> Tambah channel pencarian institusi, pinjam akses kolega, atau segera konsultasi dengan supervisor. Missing data terlalu tinggi!
+                    </div>`;
+                }
+                
+                acqHtml += inaccProtocolHtml;
             }
 
             contentHtml = `

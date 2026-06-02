@@ -1644,7 +1644,13 @@ export function renderApprovalContent(area, session, handleApproval) {
                         
                         let rows = '';
                         papers.forEach((p, idx) => {
-                            const doi = p.doi || '-';
+                            let doiFull = p.doi || '-';
+                            let doiDisplay = doiFull;
+                            if (doiFull.startsWith('https://doi.org/')) doiDisplay = doiFull.replace('https://doi.org/', '');
+                            else if (doiFull.startsWith('http://doi.org/')) doiDisplay = doiFull.replace('http://doi.org/', '');
+                            
+                            const doiHtml = doiFull !== '-' ? `<a href="${doiFull.startsWith('http') ? doiFull : 'https://doi.org/' + doiFull}" target="_blank" style="color: #3b82f6; text-decoration: none;">${doiDisplay}</a>` : '-';
+                            
                             const vectorized = p.retrieved ? '<span style="color:#22c55e">✅ Ya</span>' : '<span style="color:#ef4444">❌ Belum</span>';
                             
                             let locHtml = '';
@@ -1656,7 +1662,7 @@ export function renderApprovalContent(area, session, handleApproval) {
                                         <a href="${p.download_url}" target="_blank" style="color: #38BDF8; text-decoration: none; display: flex; align-items: center; gap: 4px;"><i class="fa fa-download"></i> Unduh Otomatis</a>
                                     ` : 
                                     `<div style="display: flex; flex-direction: column; gap: 5px;">
-                                        <a href="${doi !== '-' ? doi : '#'}" target="_blank" style="color: #F59E0B; text-decoration: none; display: flex; align-items: center; gap: 4px;"><i class="fa fa-user"></i> HITL Download</a>
+                                        <a href="${doiFull !== '-' ? (doiFull.startsWith('http') ? doiFull : 'https://doi.org/' + doiFull) : '#'}" target="_blank" style="color: #F59E0B; text-decoration: none; display: flex; align-items: center; gap: 4px;"><i class="fa fa-user"></i> HITL Download</a>
                                     `;
                                 
                                 if (p.inaccessible) {
@@ -1673,7 +1679,7 @@ export function renderApprovalContent(area, session, handleApproval) {
                                         <span style="background: #475569; color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; margin-bottom: 4px; display: inline-block;">${p.publisher || 'Unknown'}</span><br/>
                                         ${p.title || '-'}
                                     </td>
-                                    <td style="padding: 12px; color: #3b82f6; font-size: 0.85rem;">${doi}</td>
+                                    <td style="padding: 12px; font-size: 0.85rem;">${doiHtml}</td>
                                     <td style="padding: 12px; font-size: 0.85rem;" class="td-action" data-id="${p.id}">${locHtml}</td>
                                     <td style="padding: 12px; font-size: 0.85rem; text-align: center;">${vectorized}</td>
                                 </tr>

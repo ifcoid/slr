@@ -1488,9 +1488,18 @@ export function renderApprovalContent(area, session, handleApproval) {
                                 locHtml = '<span style="color: #10B981; font-weight: bold;"><i class="fa fa-check-circle"></i> Selesai</span>';
                             } else {
                                 locHtml = p.location === 'arxiv' ? 
-                                    `<a href="${p.download_url}" target="_blank" style="color: #38BDF8; text-decoration: none; display: flex; align-items: center; gap: 4px;"><i class="fa fa-download"></i> Unduh Otomatis</a>` 
-                                    : 
-                                    `<a href="${doi !== '-' ? doi : '#'}" target="_blank" style="color: #F59E0B; text-decoration: none; display: flex; align-items: center; gap: 4px;"><i class="fa fa-user"></i> HITL Download</a>`;
+                                    `<div style="display: flex; flex-direction: column; gap: 5px;">
+                                        <a href="${p.download_url}" target="_blank" style="color: #38BDF8; text-decoration: none; display: flex; align-items: center; gap: 4px;"><i class="fa fa-download"></i> Unduh Otomatis</a>
+                                    ` : 
+                                    `<div style="display: flex; flex-direction: column; gap: 5px;">
+                                        <a href="${doi !== '-' ? doi : '#'}" target="_blank" style="color: #F59E0B; text-decoration: none; display: flex; align-items: center; gap: 4px;"><i class="fa fa-user"></i> HITL Download</a>
+                                    `;
+                                
+                                if (p.inaccessible) {
+                                    locHtml += `<span style="color: #ef4444; font-size: 0.8rem;"><i class="fa fa-ban"></i> Inaccessible</span></div>`;
+                                } else {
+                                    locHtml += `<button class="btn-mark-inacc" data-id="${p.id}" style="background: transparent; border: 1px solid #ef4444; color: #ef4444; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; cursor: pointer; text-align: center; width: fit-content;">Tandai Inaccessible</button></div>`;
+                                }
                             }
 
                             rows += `
@@ -1571,8 +1580,41 @@ export function renderApprovalContent(area, session, handleApproval) {
                                 alert(err.message);
                             } finally {
                                 btnExport.disabled = false;
+                                btnExport.disabled = false;
                                 btnExport.innerHTML = '⬇️ Unduh CSV';
                             }
+                        });
+
+                        // Bind Inaccessible buttons
+                        const inaccBtns = modalContainer.querySelectorAll('.btn-mark-inacc');
+                        inaccBtns.forEach(btn => {
+                            btn.addEventListener('click', async (e) => {
+                                const paperId = e.target.getAttribute('data-id');
+                                const reason = prompt("Alasan paper tidak bisa diakses (misal: paywall $30, author tidak membalas email, dsb):");
+                                if (!reason) return;
+                                
+                                try {
+                                    btn.innerHTML = '...';
+                                    btn.disabled = true;
+                                    const token = localStorage.getItem('auth_token');
+                                    const res = await fetch(`${apiBase}/sessions/${session.id}/m6/mark-inaccessible`, {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                            'Authorization': `Bearer ${token}`
+                                        },
+                                        body: JSON.stringify({ paper_id: paperId, documentation: reason })
+                                    });
+                                    if (!res.ok) throw new Error("Gagal menandai inaccessible");
+                                    alert("Paper berhasil ditandai Inaccessible!");
+                                    document.body.removeChild(modalContainer);
+                                    window.location.reload();
+                                } catch (err) {
+                                    alert(err.message);
+                                    btn.innerHTML = 'Tandai Inaccessible';
+                                    btn.disabled = false;
+                                }
+                            });
                         });
                         
                     } catch(e) {

@@ -1361,7 +1361,7 @@ export function renderApprovalContent(area, session, handleApproval) {
                         <div style="font-size: 1.5rem; font-weight: bold; margin-top: 5px; color: var(--text-primary);">${log.total_include}</div>
                     </div>
                     <div style="background: var(--bg-secondary); padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); text-align: center;">
-                        <h4 style="margin: 0; color: var(--text-secondary); font-size: 0.85rem;">HIGH Retrieved (OA/ArXiv)</h4>
+                        <h4 style="margin: 0; color: var(--text-secondary); font-size: 0.85rem;">Otomatis (Open Access)</h4>
                         <div style="font-size: 1.5rem; font-weight: bold; margin-top: 5px; color: #3b82f6;">${log.high_retrieved} <span style="font-size: 0.9rem">(${highPct}%)</span></div>
                     </div>
                     <div style="background: var(--bg-secondary); padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); text-align: center;">
@@ -1523,7 +1523,7 @@ export function renderApprovalContent(area, session, handleApproval) {
                                         ${p.title || '-'}
                                     </td>
                                     <td style="padding: 12px; color: #3b82f6; font-size: 0.85rem;">${doi}</td>
-                                    <td style="padding: 12px; font-size: 0.85rem;">${locHtml}</td>
+                                    <td style="padding: 12px; font-size: 0.85rem;" class="td-action" data-id="${p.id}">${locHtml}</td>
                                     <td style="padding: 12px; font-size: 0.85rem; text-align: center;">${vectorized}</td>
                                 </tr>
                             `;
@@ -1546,11 +1546,11 @@ export function renderApprovalContent(area, session, handleApproval) {
                                                     <th style="padding: 12px; width: 50px;">No</th>
                                                     <th style="padding: 12px;">Judul Paper & Publisher</th>
                                                     <th style="padding: 12px; width: 150px;">DOI</th>
-                                                    <th style="padding: 12px; width: 140px;">Aksi / Sumber</th>
+                                                    <th style="padding: 12px; width: 160px;">Aksi / Sumber</th>
                                                     <th style="padding: 12px; width: 100px; text-align: center;">Tervektorisasi</th>
                                                 </tr>
                                             </thead>
-                                            <tbody>
+                                            <tbody id="m6-tbody">
                                                 ${rows}
                                             </tbody>
                                         </table>
@@ -1598,17 +1598,44 @@ export function renderApprovalContent(area, session, handleApproval) {
                             }
                         });
 
-                        // Bind Inaccessible buttons
-                        const inaccBtns = modalContainer.querySelectorAll('.btn-mark-inacc');
-                        inaccBtns.forEach(btn => {
-                            btn.addEventListener('click', async (e) => {
+                        // Bind Inaccessible events using event delegation
+                        const tbody = modalContainer.querySelector('#m6-tbody');
+                        tbody.addEventListener('click', async (e) => {
+                            if (e.target.classList.contains('btn-mark-inacc')) {
                                 const paperId = e.target.getAttribute('data-id');
-                                const reason = prompt("Alasan paper tidak bisa diakses (misal: paywall $30, author tidak membalas email, dsb):");
-                                if (!reason) return;
+                                const parentDiv = e.target.parentElement;
+                                parentDiv.innerHTML = `
+                                    <div style="display: flex; flex-direction: column; gap: 4px; margin-top: 5px;">
+                                        <input type="text" id="reason-${paperId}" placeholder="Alasan (contoh: berbayar)" style="font-size: 0.75rem; padding: 4px; border-radius: 4px; border: 1px solid #475569; background: #334155; color: white;" autocomplete="off">
+                                        <div style="display: flex; gap: 4px;">
+                                            <button class="btn-save-inacc" data-id="${paperId}" style="background: #ef4444; color: white; border: none; padding: 3px 6px; border-radius: 4px; font-size: 0.75rem; cursor: pointer;">Simpan</button>
+                                            <button class="btn-cancel-inacc" data-id="${paperId}" style="background: transparent; color: #94A3B8; border: 1px solid #475569; padding: 3px 6px; border-radius: 4px; font-size: 0.75rem; cursor: pointer;">Batal</button>
+                                        </div>
+                                    </div>
+                                `;
+                                setTimeout(() => {
+                                    const input = document.getElementById(`reason-${paperId}`);
+                                    if(input) input.focus();
+                                }, 50);
+                            } else if (e.target.classList.contains('btn-cancel-inacc')) {
+                                const paperId = e.target.getAttribute('data-id');
+                                const parentDiv = e.target.closest('.td-action').querySelector('div');
+                                parentDiv.innerHTML = `<button class="btn-mark-inacc" data-id="${paperId}" style="background: transparent; border: 1px solid #ef4444; color: #ef4444; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; cursor: pointer; text-align: center; width: fit-content;">Tandai Inaccessible</button>`;
+                            } else if (e.target.classList.contains('btn-save-inacc')) {
+                                const paperId = e.target.getAttribute('data-id');
+                                const reasonInput = document.getElementById(`reason-${paperId}`);
+                                const reason = reasonInput ? reasonInput.value.trim() : '';
+                                
+                                if (!reason) {
+                                    reasonInput.style.border = '1px solid #ef4444';
+                                    return;
+                                }
+                                
+                                const btn = e.target;
+                                btn.innerHTML = '...';
+                                btn.disabled = true;
                                 
                                 try {
-                                    btn.innerHTML = '...';
-                                    btn.disabled = true;
                                     const token = localStorage.getItem('auth_token');
                                     const res = await fetch(`${apiBase}/sessions/${session.id}/m6/mark-inaccessible`, {
                                         method: 'POST',
@@ -1619,15 +1646,18 @@ export function renderApprovalContent(area, session, handleApproval) {
                                         body: JSON.stringify({ paper_id: paperId, documentation: reason })
                                     });
                                     if (!res.ok) throw new Error("Gagal menandai inaccessible");
-                                    alert("Paper berhasil ditandai Inaccessible!");
-                                    document.body.removeChild(modalContainer);
-                                    window.location.reload();
+                                    
+                                    const parentDiv = e.target.closest('.td-action');
+                                    parentDiv.innerHTML = `<div style="display: flex; flex-direction: column; gap: 5px;">
+                                        <a href="#" style="color: #F59E0B; text-decoration: none; display: flex; align-items: center; gap: 4px;"><i class="fa fa-user"></i> HITL Download</a>
+                                        <span style="color: #ef4444; font-size: 0.8rem;"><i class="fa fa-ban"></i> Inaccessible</span>
+                                    </div>`;
                                 } catch (err) {
                                     alert(err.message);
-                                    btn.innerHTML = 'Tandai Inaccessible';
+                                    btn.innerHTML = 'Simpan';
                                     btn.disabled = false;
                                 }
-                            });
+                            }
                         });
                         
                     } catch(e) {

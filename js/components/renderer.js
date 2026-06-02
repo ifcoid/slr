@@ -1388,10 +1388,8 @@ export function renderApprovalContent(area, session, handleApproval) {
                 
                 contentHtml += `
                 <div class="action-buttons" style="display: flex; gap: 10px; margin-bottom: 20px;">
-                    <button id="btn-m6-export-csv" class="btn" style="background: #14b8a6; color: white;">⬇️ Unduh CSV Tautan PDF</button>
-                    <button id="btn-m6-web-viewer" class="btn" style="background: #3b82f6; color: white;">🖥️ Buka Web Viewer</button>
                     <button id="btn-m6-sync" class="btn" style="background: #8b5cf6; color: white;">🔄 Sinkronisasi dengan Qdrant DB</button>
-                    <button id="btn-m6-details" class="btn" style="background: #64748b; color: white;">📋 Lihat Status PDF & Vektor</button>
+                    <button id="btn-m6-details" class="btn" style="background: #64748b; color: white;">📋 Status PDF & Vektor</button>
                 </div>
             `;
         }
@@ -1460,41 +1458,53 @@ export function renderApprovalContent(area, session, handleApproval) {
                         const data = await req.json();
                         const papers = data.papers || [];
                         
-                        // Modul 6 papers are already filtered by INCLUDE in the backend
-                        const includePapers = papers;
-                        
                         let rows = '';
-                        includePapers.forEach((p, idx) => {
+                        papers.forEach((p, idx) => {
                             const doi = p.doi || '-';
-                            const loc = p.location || 'Belum Dicari';
                             const vectorized = p.retrieved ? '<span style="color:#22c55e">✅ Ya</span>' : '<span style="color:#ef4444">❌ Belum</span>';
                             
+                            let locHtml = '';
+                            if (p.retrieved) {
+                                locHtml = '<span style="color: #10B981; font-weight: bold;"><i class="fa fa-check-circle"></i> Selesai</span>';
+                            } else {
+                                locHtml = p.location === 'arxiv' ? 
+                                    `<a href="${p.download_url}" target="_blank" style="color: #38BDF8; text-decoration: none; display: flex; align-items: center; gap: 4px;"><i class="fa fa-download"></i> Unduh Otomatis</a>` 
+                                    : 
+                                    `<a href="${doi !== '-' ? doi : '#'}" target="_blank" style="color: #F59E0B; text-decoration: none; display: flex; align-items: center; gap: 4px;"><i class="fa fa-user"></i> HITL Download</a>`;
+                            }
+
                             rows += `
-                                <tr style="border-bottom: 1px solid #334155;">
+                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05); transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">
                                     <td style="padding: 12px; color: var(--text-secondary);">${idx + 1}</td>
-                                    <td style="padding: 12px; color: var(--text-primary); font-size: 0.9rem;">${p.title || '-'}</td>
+                                    <td style="padding: 12px; color: var(--text-primary); font-size: 0.9rem;">
+                                        <span style="background: #475569; color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; margin-bottom: 4px; display: inline-block;">${p.publisher || 'Unknown'}</span><br/>
+                                        ${p.title || '-'}
+                                    </td>
                                     <td style="padding: 12px; color: #3b82f6; font-size: 0.85rem;">${doi}</td>
-                                    <td style="padding: 12px; color: var(--text-secondary); font-size: 0.85rem; text-transform: uppercase;">${loc}</td>
+                                    <td style="padding: 12px; font-size: 0.85rem;">${locHtml}</td>
                                     <td style="padding: 12px; font-size: 0.85rem; text-align: center;">${vectorized}</td>
                                 </tr>
                             `;
                         });
                         
                         const modalHtml = `
-                            <div id="m6-details-modal" style="position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.7); display: flex; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(4px);">
-                                <div style="background: var(--bg-primary); width: 90%; max-width: 1000px; max-height: 85vh; border-radius: 12px; display: flex; flex-direction: column; border: 1px solid #334155; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
+                            <div id="m6-details-modal" style="position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(15, 23, 42, 0.9); display: flex; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(8px);">
+                                <div style="background: #1E293B; width: 90%; max-width: 1200px; max-height: 90vh; border-radius: 12px; display: flex; flex-direction: column; border: 1px solid #334155; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
                                     <div style="padding: 20px; border-bottom: 1px solid #334155; display: flex; justify-content: space-between; align-items: center;">
-                                        <h3 style="margin: 0; color: var(--text-primary);">Status Akuisisi Teks Penuh (PDF & Vektor)</h3>
-                                        <button id="btn-close-m6-modal" style="background: transparent; border: none; color: #94A3B8; font-size: 1.5rem; cursor: pointer;">&times;</button>
+                                        <h2 style="margin: 0; color: white; font-size: 1.25rem;">📋 Status Akuisisi Teks Penuh (${data.total} Dokumen)</h2>
+                                        <div style="display: flex; gap: 15px; align-items: center;">
+                                            <button id="btn-modal-export-csv" class="btn" style="background: #14b8a6; color: white; padding: 8px 16px; font-size: 0.9rem;">⬇️ Unduh CSV</button>
+                                            <button id="btn-close-m6-modal" style="background: transparent; border: none; color: #94A3B8; font-size: 1.5rem; cursor: pointer;">&times;</button>
+                                        </div>
                                     </div>
                                     <div style="flex: 1; overflow-y: auto; padding: 20px;">
                                         <table style="width: 100%; border-collapse: collapse; text-align: left;">
                                             <thead>
                                                 <tr style="border-bottom: 2px solid #334155; color: #94A3B8;">
                                                     <th style="padding: 12px; width: 50px;">No</th>
-                                                    <th style="padding: 12px;">Judul Paper</th>
+                                                    <th style="padding: 12px;">Judul Paper & Publisher</th>
                                                     <th style="padding: 12px; width: 150px;">DOI</th>
-                                                    <th style="padding: 12px; width: 120px;">Sumber PDF</th>
+                                                    <th style="padding: 12px; width: 140px;">Aksi / Sumber</th>
                                                     <th style="padding: 12px; width: 100px; text-align: center;">Tervektorisasi</th>
                                                 </tr>
                                             </thead>
@@ -1515,160 +1525,41 @@ export function renderApprovalContent(area, session, handleApproval) {
                             document.body.removeChild(modalContainer);
                         });
                         
+                        // CSV Export Logic within the Modal
+                        document.getElementById('btn-modal-export-csv').addEventListener('click', async (e) => {
+                            const btnExport = e.currentTarget;
+                            try {
+                                btnExport.disabled = true;
+                                btnExport.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Menyiapkan...';
+                                
+                                const token = localStorage.getItem('auth_token');
+                                const req = await fetch(`${apiBase}/sessions/${session.id}/m6/export-links`, {
+                                    headers: { 'Authorization': `Bearer ${token}` }
+                                });
+                                if (!req.ok) throw new Error("Gagal mengunduh CSV");
+                                
+                                const blob = await req.blob();
+                                const url = window.URL.createObjectURL(blob);
+                                const a = document.createElement('a');
+                                a.href = url;
+                                a.download = `m6_acquisition_links_${session.id}.csv`;
+                                document.body.appendChild(a);
+                                a.click();
+                                a.remove();
+                                window.URL.revokeObjectURL(url);
+                            } catch(err) {
+                                alert(err.message);
+                            } finally {
+                                btnExport.disabled = false;
+                                btnExport.innerHTML = '⬇️ Unduh CSV';
+                            }
+                        });
+                        
                     } catch(e) {
                         alert("Gagal memuat data: " + e.message);
                     } finally {
                         btnDetails.disabled = false;
-                        btnDetails.innerHTML = '📋 Lihat Status PDF & Vektor';
-                    }
-                });
-            }
-            
-            const btnExport = document.getElementById('btn-m6-export-csv');
-            if (btnExport) {
-                btnExport.addEventListener('click', async () => {
-                    try {
-                        btnExport.disabled = true;
-                        btnExport.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Menyiapkan Unduhan...';
-                        
-                        const token = localStorage.getItem('auth_token');
-                        const apiBase = localStorage.getItem('apiBaseURL') || '';
-                        const req = await fetch(`${apiBase}/sessions/${session.id}/m6/export-links`, {
-                            headers: {
-                                'Authorization': `Bearer ${token}`
-                            }
-                        });
-                        if (!req.ok) throw new Error("Gagal mengunduh CSV");
-                        
-                        const blob = await req.blob();
-                        const url = window.URL.createObjectURL(blob);
-                        const a = document.createElement('a');
-                        a.href = url;
-                        a.download = `m6_acquisition_links_${session.id}.csv`;
-                        document.body.appendChild(a);
-                        a.click();
-                        a.remove();
-                        window.URL.revokeObjectURL(url);
-                        
-                    } catch(e) {
-                        alert(e.message);
-                    } finally {
-                        btnExport.disabled = false;
-                        btnExport.innerHTML = '⬇️ Unduh CSV Tautan PDF';
-                    }
-                });
-            }
-            
-            const btnWebViewer = document.getElementById('btn-m6-web-viewer');
-            if (btnWebViewer) {
-                btnWebViewer.addEventListener('click', async () => {
-                    const token = localStorage.getItem('auth_token');
-                    const apiBase = localStorage.getItem('apiBaseURL') || '';
-                    
-                    try {
-                        btnWebViewer.disabled = true;
-                        btnWebViewer.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Memuat...';
-                        
-                        const req = await fetch(`${apiBase}/sessions/${session.id}/m6/papers`, {
-                            headers: { 'Authorization': `Bearer ${token}` }
-                        });
-                        
-                        if (!req.ok) throw new Error('Gagal fetch papers');
-                        const data = await req.json();
-                        
-                        // Buat Modal
-                        const modal = document.createElement('div');
-                        modal.style.position = 'fixed';
-                        modal.style.top = '0';
-                        modal.style.left = '0';
-                        modal.style.width = '100vw';
-                        modal.style.height = '100vh';
-                        modal.style.background = 'rgba(15, 23, 42, 0.9)';
-                        modal.style.backdropFilter = 'blur(10px)';
-                        modal.style.zIndex = '9999';
-                        modal.style.display = 'flex';
-                        modal.style.justifyContent = 'center';
-                        modal.style.alignItems = 'center';
-                        modal.style.padding = '20px';
-                        
-                        const getBadgeColor = (pub) => {
-                            const colors = {
-                                'IEEE': '#00629B',
-                                'Elsevier': '#FF8000',
-                                'Springer': '#008CBA',
-                                'ACM': '#000000',
-                                'IET': '#014990',
-                                'Nature': '#E00000',
-                                'arXiv': '#B31B1B'
-                            };
-                            return colors[pub] || '#64748B';
-                        };
-                        
-                        let rows = data.papers.map((p, i) => {
-                            let actionHtml = '';
-                            if (p.retrieved) {
-                                actionHtml = `<span style="color: #10B981; font-weight: bold;"><i class="fa fa-check-circle"></i> Vectorized</span>`;
-                            } else {
-                                actionHtml = p.location === 'arxiv' ? 
-                                    `<a href="${p.download_url}" target="_blank" style="color: #38BDF8; text-decoration: none; display: flex; align-items: center; gap: 4px;"><i class="fa fa-download"></i> Unduh Otomatis</a>` 
-                                    : 
-                                    `<span style="color: #F59E0B;"><i class="fa fa-user"></i> HITL Download</span>`;
-                            }
-
-                            return `
-                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.1); transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">
-                                <td style="padding: 12px; color: #94A3B8;">${i+1}</td>
-                                <td style="padding: 12px;">
-                                    <span style="background: ${getBadgeColor(p.publisher)}; color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; margin-bottom: 4px; display: inline-block;">${p.publisher}</span>
-                                    <span style="background: #475569; color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; margin-bottom: 4px; display: inline-block;">${p.article_type || 'Article'}</span><br/>
-                                    <span style="color: #E2E8F0; font-weight: 500;">${p.title}</span><br/>
-                                    <span style="color: #94A3B8; font-size: 12px;"><i class="fa fa-book"></i> ${p.journal || '-'}</span>
-                                </td>
-                                <td style="padding: 12px;">
-                                    ${p.doi !== '' ? `<a href="${p.doi}" target="_blank" style="color: #38BDF8; text-decoration: none; display: flex; align-items: center; gap: 4px;"><i class="fa fa-external-link"></i> Buka Link</a>` : '<span style="color:#64748B">-</span>'}
-                                </td>
-                                <td style="padding: 12px;">
-                                    ${actionHtml}
-                                </td>
-                            </tr>
-                        `;
-                        }).join('');
-                        
-                        modal.innerHTML = `
-                            <div style="background: #1E293B; border: 1px solid #334155; border-radius: 12px; width: 90%; max-width: 1200px; height: 90vh; display: flex; flex-direction: column; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
-                                <div style="padding: 20px; border-bottom: 1px solid #334155; display: flex; justify-content: space-between; align-items: center;">
-                                    <h2 style="color: white; margin: 0; font-size: 1.25rem;">🖥️ Modul 6 Web Viewer (${data.total} Dokumen)</h2>
-                                    <button id="btn-close-modal" style="background: transparent; border: none; color: #94A3B8; font-size: 1.5rem; cursor: pointer;">&times;</button>
-                                </div>
-                                <div style="flex: 1; overflow-y: auto; padding: 20px;">
-                                    <table style="width: 100%; border-collapse: collapse; text-align: left;">
-                                        <thead>
-                                            <tr style="border-bottom: 2px solid #334155; color: #94A3B8;">
-                                                <th style="padding: 12px; width: 50px;">No</th>
-                                                <th style="padding: 12px;">Judul, Tipe & Jurnal/Conf</th>
-                                                <th style="padding: 12px; width: 120px;">Link Asli</th>
-                                                <th style="padding: 12px; width: 150px;">Aksi / Lokasi</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            ${rows}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        `;
-                        
-                        document.body.appendChild(modal);
-                        document.getElementById('btn-close-modal').addEventListener('click', () => {
-                            modal.remove();
-                        });
-                        
-                    } catch (err) {
-                        console.error(err);
-                        alert('Gagal memuat data Web Viewer');
-                    } finally {
-                        btnWebViewer.disabled = false;
-                        btnWebViewer.innerHTML = '🖥️ Buka Web Viewer';
+                        btnDetails.innerHTML = '📋 Status PDF & Vektor';
                     }
                 });
             }

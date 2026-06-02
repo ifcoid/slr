@@ -1406,14 +1406,165 @@ export function renderApprovalContent(area, session, handleApproval) {
 
             contentHtml = `
                 ${acqHtml}
-                <div style="background: rgba(59, 130, 246, 0.1); border-left: 4px solid #3b82f6; padding: 15px; border-radius: 4px; margin-bottom: 20px;">
-                    <p style="margin:0 0 10px 0; color: var(--text-primary);">Sistem telah menyelesaikan pencarian Open Access via <strong>Unpaywall & ArXiv API</strong>.</p>
-                    <ol style="margin:0; padding-left: 20px; color: var(--text-secondary); line-height: 1.5;">
-                        <li>Unduh file CSV berisi daftar paper dan URL PDF di bawah ini.</li>
-                        <li>Unduh paper yang tersedia (URL tersedia), kemudian unggak seluruh PDF ke Google Drive Anda.</li>
-                        <li>Buka dan jalankan Jupyter Notebook <strong>PEDE</strong> di Google Colab untuk mengubah PDF menjadi Vektor.</li>
-                        <li>Setelah Colab selesai memasukkan vektor ke <strong>Qdrant</strong>, tekan tombol Sinkronisasi.</li>
-                    </ol>
+                <style>
+                .stepper-container {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 16px;
+                    background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
+                    border: 1px solid rgba(56, 189, 248, 0.2);
+                    border-radius: 16px;
+                    padding: 24px;
+                    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+                    margin-bottom: 24px;
+                    position: relative;
+                    overflow: hidden;
+                }
+                .stepper-container::before {
+                    content: '';
+                    position: absolute;
+                    top: -50%;
+                    left: -50%;
+                    width: 200%;
+                    height: 200%;
+                    background: radial-gradient(circle, rgba(56,189,248,0.05) 0%, transparent 60%);
+                    animation: rotate 20s linear infinite;
+                    pointer-events: none;
+                }
+                @keyframes rotate {
+                    100% { transform: rotate(360deg); }
+                }
+                .stepper-header {
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    margin-bottom: 8px;
+                    border-bottom: 1px solid rgba(255,255,255,0.05);
+                    padding-bottom: 16px;
+                }
+                .stepper-header-icon {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 40px;
+                    height: 40px;
+                    border-radius: 12px;
+                    background: rgba(16, 185, 129, 0.1);
+                    color: #10B981;
+                    font-size: 1.2rem;
+                    box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
+                }
+                .stepper-header-title {
+                    margin: 0;
+                    color: #f8fafc;
+                    font-size: 1.1rem;
+                    font-weight: 600;
+                }
+                .stepper-header-subtitle {
+                    margin: 4px 0 0 0;
+                    color: #94a3b8;
+                    font-size: 0.85rem;
+                }
+                .step-item {
+                    display: flex;
+                    gap: 16px;
+                    position: relative;
+                    padding-bottom: 16px;
+                }
+                .step-item:last-child {
+                    padding-bottom: 0;
+                }
+                .step-item:not(:last-child)::after {
+                    content: '';
+                    position: absolute;
+                    left: 17px;
+                    top: 40px;
+                    bottom: 0;
+                    width: 2px;
+                    background: linear-gradient(to bottom, #3b82f6, transparent);
+                    opacity: 0.3;
+                }
+                .step-number {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 36px;
+                    height: 36px;
+                    border-radius: 50%;
+                    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+                    color: white;
+                    font-weight: bold;
+                    font-size: 0.9rem;
+                    box-shadow: 0 4px 10px rgba(59, 130, 246, 0.4);
+                    flex-shrink: 0;
+                    z-index: 1;
+                }
+                .step-content {
+                    background: rgba(255,255,255,0.03);
+                    border: 1px solid rgba(255,255,255,0.05);
+                    border-radius: 12px;
+                    padding: 16px;
+                    flex-grow: 1;
+                    transition: all 0.3s ease;
+                }
+                .step-content:hover {
+                    background: rgba(255,255,255,0.06);
+                    border-color: rgba(56,189,248,0.3);
+                    transform: translateX(4px);
+                }
+                .step-title {
+                    margin: 0 0 4px 0;
+                    color: #e2e8f0;
+                    font-size: 0.95rem;
+                    font-weight: 600;
+                }
+                .step-desc {
+                    margin: 0;
+                    color: #94a3b8;
+                    font-size: 0.85rem;
+                    line-height: 1.5;
+                }
+                .step-highlight {
+                    color: #38bdf8;
+                    font-weight: 600;
+                }
+                </style>
+                <div class="stepper-container">
+                    <div class="stepper-header">
+                        <div class="stepper-header-icon"><i class="fa fa-check-circle"></i></div>
+                        <div>
+                            <h3 class="stepper-header-title">Pencarian Otomatis Selesai</h3>
+                            <p class="stepper-header-subtitle">Sistem telah memindai Open Access via Unpaywall & ArXiv API. Ikuti langkah berikut untuk memproses dokumen:</p>
+                        </div>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <h4 class="step-title">Unduh Daftar Referensi</h4>
+                            <p class="step-desc">Klik tombol <span class="step-highlight">⬇️ Unduh CSV</span> di tabel di bawah untuk mendapatkan daftar tautan PDF dari paper yang terbuka (Open Access).</p>
+                        </div>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <h4 class="step-title">Kumpulkan PDF</h4>
+                            <p class="step-desc">Gunakan tautan dari file CSV tersebut untuk mengunduh PDF. Lalu, unggah seluruh file PDF ke dalam satu folder <span class="step-highlight">Google Drive</span> Anda.</p>
+                        </div>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <h4 class="step-title">Jalankan Ekstraksi AI</h4>
+                            <p class="step-desc">Buka Jupyter Notebook <span class="step-highlight">PEDE</span> di Google Colab. Sambungkan dengan Google Drive dan jalankan proses pengubahan PDF menjadi <em>Vector Embeddings</em>.</p>
+                        </div>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-number">4</div>
+                        <div class="step-content">
+                            <h4 class="step-title">Sinkronisasi Akhir</h4>
+                            <p class="step-desc">Setelah Colab sukses memompa vektor ke <span class="step-highlight">Qdrant</span>, tekan tombol <span class="step-highlight">🔄 Sinkronkan dengan Qdrant</span> di tabel bawah untuk memperbarui status ini.</p>
+                        </div>
+                    </div>
                 </div>
             `;
                 

@@ -1375,21 +1375,29 @@ export function renderApprovalContent(area, session, handleApproval) {
                 </div>
                 `;
 
+                const max5Pct = Math.floor(log.total_include * 0.05);
+                const max15Pct = Math.floor(log.total_include * 0.15);
+
                 let inaccProtocolHtml = '';
                 if (effectiveInaccPct < 5) {
                     inaccProtocolHtml = `<div style="background: rgba(34, 197, 94, 0.1); border-left: 4px solid #22c55e; padding: 12px; border-radius: 4px; margin-top: 15px; margin-bottom: 20px; font-size: 0.9rem;">
                         <strong>=== INACCESSIBLE PROTOCOL ===</strong><br/>
-                        <span style="color: #22c55e;">(&lt; 5%)</span> Dokumentasi standar, low impact terhadap SLR.
+                        <span style="color: #22c55e;">(&lt; 5%)</span> Dokumentasi standar, low impact terhadap SLR.<br/>
+                        <span style="color: #94a3b8; font-size: 0.85rem; display: inline-block; margin-top: 5px;">Batas aman &lt;5%: <strong>Maks ${max5Pct} paper</strong>. Saat ini Anda berada di area aman.</span>
                     </div>`;
                 } else if (effectiveInaccPct <= 15) {
+                    const toFind = effectiveInacc - max5Pct;
                     inaccProtocolHtml = `<div style="background: rgba(234, 179, 8, 0.1); border-left: 4px solid #eab308; padding: 12px; border-radius: 4px; margin-top: 15px; margin-bottom: 20px; font-size: 0.9rem;">
                         <strong>=== INACCESSIBLE PROTOCOL ===</strong><br/>
-                        <span style="color: #eab308;">(5 - 15%)</span> Perlu dokumentasi detail + analisis bias (apakah paper yang tidak bisa diakses skewed/mengumpul ke region atau tahun tertentu?).
+                        <span style="color: #eab308;">(5 - 15%)</span> Perlu dokumentasi detail + analisis bias (apakah paper yang tidak bisa diakses skewed/mengumpul ke region atau tahun tertentu?).<br/>
+                        <span style="color: #94a3b8; font-size: 0.85rem; display: inline-block; margin-top: 5px;">Batas 5-15%: <strong>${max5Pct+1} - ${max15Pct} paper</strong>. Temukan <strong>${toFind} paper lagi</strong> jika ingin turun ke area hijau (&lt;5%).</span>
                     </div>`;
                 } else {
+                    const toFind15 = effectiveInacc - max15Pct;
                     inaccProtocolHtml = `<div style="background: rgba(239, 68, 68, 0.1); border-left: 4px solid #ef4444; padding: 12px; border-radius: 4px; margin-top: 15px; margin-bottom: 20px; font-size: 0.9rem;">
                         <strong>=== INACCESSIBLE PROTOCOL ===</strong><br/>
-                        <span style="color: #ef4444;">(&gt; 15%)</span> <strong>REVISI STRATEGI!</strong> Tambah channel pencarian institusi, pinjam akses kolega, atau segera konsultasi dengan supervisor. Missing data terlalu tinggi!
+                        <span style="color: #ef4444;">(&gt; 15%)</span> <strong>REVISI STRATEGI!</strong> Tambah channel pencarian institusi, pinjam akses kolega, atau segera konsultasi dengan supervisor. Missing data terlalu tinggi!<br/>
+                        <span style="color: #94a3b8; font-size: 0.85rem; display: inline-block; margin-top: 5px;">Batas &gt;15%: <strong>&gt;${max15Pct} paper</strong>. Anda WAJIB menemukan <strong>${toFind15} paper lagi</strong> agar bisa keluar dari zona merah (turun ke 15%).</span>
                     </div>`;
                 }
                 

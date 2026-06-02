@@ -1343,11 +1343,16 @@ export function renderApprovalContent(area, session, handleApproval) {
                 const highPct = ((log.high_retrieved / log.total_include) * 100).toFixed(1);
                 const medPct = ((log.medium_retrieved / log.total_include) * 100).toFixed(1);
                 const vecPct = ((log.vectorized_count / log.total_include) * 100).toFixed(1);
-                const inaccPct = log.inaccessible_pct.toFixed(1);
+                
+                // Perhitungan Inaccessible Sementara (Missing)
+                const missingCount = log.total_include - log.vectorized_count;
+                const effectiveInacc = Math.max(log.inaccessible_count, missingCount);
+                const effectiveInaccPct = (effectiveInacc / log.total_include) * 100;
+                const effectiveInaccPctStr = effectiveInaccPct.toFixed(1);
                 
                 let inaccColor = '#22c55e'; // Green
-                if (log.inaccessible_pct >= 15) inaccColor = '#ef4444'; // Red
-                else if (log.inaccessible_pct >= 5) inaccColor = '#eab308'; // Yellow
+                if (effectiveInaccPct >= 15) inaccColor = '#ef4444'; // Red
+                else if (effectiveInaccPct >= 5) inaccColor = '#eab308'; // Yellow
 
                 acqHtml = `
                 <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
@@ -1364,19 +1369,19 @@ export function renderApprovalContent(area, session, handleApproval) {
                         <div style="font-size: 1.5rem; font-weight: bold; margin-top: 5px; color: #8b5cf6;">${log.vectorized_count} <span style="font-size: 0.9rem">(${vecPct}%)</span></div>
                     </div>
                     <div style="background: var(--bg-secondary); padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); text-align: center;">
-                        <h4 style="margin: 0; color: var(--text-secondary); font-size: 0.85rem;">Inaccessible</h4>
-                        <div style="font-size: 1.5rem; font-weight: bold; margin-top: 5px; color: ${inaccColor};">${log.inaccessible_count} <span style="font-size: 0.9rem">(${inaccPct}%)</span></div>
+                        <h4 style="margin: 0; color: var(--text-secondary); font-size: 0.85rem;">Missing / Inaccessible</h4>
+                        <div style="font-size: 1.5rem; font-weight: bold; margin-top: 5px; color: ${inaccColor};">${effectiveInacc} <span style="font-size: 0.9rem">(${effectiveInaccPctStr}%)</span></div>
                     </div>
                 </div>
                 `;
 
                 let inaccProtocolHtml = '';
-                if (log.inaccessible_pct < 5) {
+                if (effectiveInaccPct < 5) {
                     inaccProtocolHtml = `<div style="background: rgba(34, 197, 94, 0.1); border-left: 4px solid #22c55e; padding: 12px; border-radius: 4px; margin-top: 15px; margin-bottom: 20px; font-size: 0.9rem;">
                         <strong>=== INACCESSIBLE PROTOCOL ===</strong><br/>
                         <span style="color: #22c55e;">(&lt; 5%)</span> Dokumentasi standar, low impact terhadap SLR.
                     </div>`;
-                } else if (log.inaccessible_pct <= 15) {
+                } else if (effectiveInaccPct <= 15) {
                     inaccProtocolHtml = `<div style="background: rgba(234, 179, 8, 0.1); border-left: 4px solid #eab308; padding: 12px; border-radius: 4px; margin-top: 15px; margin-bottom: 20px; font-size: 0.9rem;">
                         <strong>=== INACCESSIBLE PROTOCOL ===</strong><br/>
                         <span style="color: #eab308;">(5 - 15%)</span> Perlu dokumentasi detail + analisis bias (apakah paper yang tidak bisa diakses skewed/mengumpul ke region atau tahun tertentu?).

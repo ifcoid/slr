@@ -1230,6 +1230,61 @@ export function renderApprovalContent(area, session, handleApproval) {
             ${inacc ? `<details style="margin-top:8px;"><summary style="cursor:pointer;color:#fca5a5;font-weight:bold;">Inaccessible Impact</summary><div style="font-size:0.88em;margin-top:8px;">${formatMarkdown(inacc)}</div></details>` : ''}
             <p style="margin-top: 12px; font-size: 0.9em; color:#4ade80;"><em>Setujui untuk menutup Modul 6 dan lanjut ke Modul 7 (Data Extraction).</em></p>
         `);
+
+    } else if (status === 'M7_STEP1_WAITING_APPROVAL' && session.framework_selection) {
+        const fw = session.framework_selection;
+        let rows = '';
+        (fw.columns || []).forEach((c) => {
+            rows += `<tr><td style="padding:6px;border-bottom:1px solid rgba(255,255,255,0.05);"><strong>${c.key}</strong></td><td style="padding:6px;border-bottom:1px solid rgba(255,255,255,0.05);color:#93c5fd;">${c.category || ''}</td><td style="padding:6px;border-bottom:1px solid rgba(255,255,255,0.05);color:#cbd5e1;">${c.desc || ''}</td></tr>`;
+        });
+        html = wrapCard('Modul 7 L1 — Framework & Template Ekstraksi', `
+            <p><strong>Framework:</strong> <span style="color:#6ee7b7;">${fw.framework}</span></p>
+            <p style="font-size:0.9em;color:#cbd5e1;">${fw.justification || ''}</p>
+            <table style="width:100%;border-collapse:collapse;font-size:0.85em;margin-top:8px;">
+                <tr><th style="text-align:left;padding:6px;color:#9ca3af;">Kolom</th><th style="text-align:left;padding:6px;color:#9ca3af;">Kat.</th><th style="text-align:left;padding:6px;color:#9ca3af;">Deskripsi</th></tr>
+                ${rows}
+            </table>
+        `);
+
+    } else if (status === 'M7_STEP2_WAITING_APPROVAL') {
+        const l = session.extraction_log || {};
+        const rate = (l.disagreement_rate || 0).toFixed(1);
+        const rateColor = (l.disagreement_rate || 0) > 15 ? '#ef4444' : ((l.disagreement_rate || 0) >= 5 ? '#eab308' : '#4ade80');
+        html = wrapCard('Modul 7 L2 — Hasil Ekstraksi (RAG)', `
+            <p><strong>Total diekstrak:</strong> ${l.total_extracted || 0} paper (collection <code>slr_extraction</code>)</p>
+            <p><strong>Spot-verification (20%):</strong> ${l.verified_sample || 0} dicek | disagreement <span style="color:${rateColor};font-weight:bold;">${rate}%</span></p>
+            <p><strong>Field ambiguous:</strong> ${l.ambiguous_count || 0}</p>
+            <p style="font-size:0.85em;color:#94a3b8;">${l.nr_note || ''}</p>
+            <p style="font-size:0.85em;color:#94a3b8;"><em>Periksa data per paper di collection <code>slr_extraction</code> (MongoDB).</em></p>
+        `);
+
+    } else if (status === 'M7_STEP3_WAITING_APPROVAL' && session.qa_threshold_justification) {
+        const q = session.qa_threshold_justification;
+        const sens = (session.sensitivity_analysis && session.sensitivity_analysis.markdown) || '';
+        html = wrapCard('Modul 7 L3 — Quality Appraisal & Sensitivity', `
+            <p><strong>Tool:</strong> ${q.tool} | <strong>Threshold:</strong> ${q.threshold}% | <strong>Dual-rater κ:</strong> <span style="color:${q.kappa >= 0.6 ? '#4ade80' : '#fca5a5'};font-weight:bold;">${(q.kappa || 0).toFixed(3)}</span></p>
+            <p style="font-size:0.88em;color:#cbd5e1;">${q.tool_justification || ''}</p>
+            <p style="font-size:0.85em;color:#94a3b8;"><strong>Kategorisasi:</strong> ${q.categorization || ''}</p>
+            <details style="margin-top:8px;"><summary style="cursor:pointer;color:#93c5fd;">Justifikasi threshold 3-lapis</summary>
+                <div style="font-size:0.85em;margin-top:6px;color:#cbd5e1;">
+                    <p><strong>Literatur:</strong> ${q.layer_literature || '-'}</p>
+                    <p><strong>Developer tool:</strong> ${q.layer_developer || '-'}</p>
+                    <p><strong>Feasibility:</strong> ${q.layer_feasibility || '-'}</p>
+                </div>
+            </details>
+            ${sens ? `<div style="margin-top:10px;font-size:0.88em;">${formatMarkdown(sens)}</div>` : ''}
+        `);
+
+    } else if (status === 'M7_STEP4_WAITING_APPROVAL') {
+        const sumMd = (session.modul7_summary && session.modul7_summary.markdown) || 'Menunggu data...';
+        const sp = session.synthesis_prep || {};
+        html = wrapCard('Modul 7 L4 — Synthesis Prep & Summary', `
+            <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 6px; font-size: 0.9em; max-height: 340px; overflow-y: auto;">
+                ${formatMarkdown(sumMd)}
+            </div>
+            <p style="margin-top:10px;font-size:0.9em;"><strong>Heterogeneity:</strong> ${sp.heterogeneity_verdict || '-'} | <strong>Meta-analysis:</strong> <span style="color:#6ee7b7;">${sp.meta_feasibility || '-'}</span></p>
+            <p style="margin-top: 8px; font-size: 0.9em; color:#4ade80;"><em>Setujui untuk menutup Modul 7 dan lanjut ke Modul 8 (Synthesis).</em></p>
+        `);
     }
 
     if (html !== '') {

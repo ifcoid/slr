@@ -121,6 +121,11 @@ export const API = {
         body: JSON.stringify(roles)
     }),
 
+    submitVOSviewer: (id, data) => apiFetch(`/sessions/${id}/m8b/vosviewer`, {
+        method: 'POST',
+        body: JSON.stringify({ data })
+    }),
+
     getGitHubConfig: () => apiFetch('/github/config'),
 
     updateGitHubConfig: (cfg) => apiFetch('/github/config', {

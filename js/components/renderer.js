@@ -1326,7 +1326,67 @@ export function renderApprovalContent(area, session, handleApproval) {
                 ${formatMarkdown(sumMd)}
             </div>
             ${ip ? `<details style="margin-top:10px;"><summary style="cursor:pointer;color:#6ee7b7;font-weight:bold;">Interpretation Package (untuk Modul 9)</summary><div style="font-size:0.88em;margin-top:8px;max-height:300px;overflow-y:auto;">${formatMarkdown(ip)}</div></details>` : ''}
-            <p style="margin-top: 10px; font-size: 0.9em; color:#4ade80;"><em>Setujui untuk menutup Modul 8 dan lanjut ke Modul 9 (Manuscript).</em></p>
+            <p style="margin-top: 10px; font-size: 0.9em; color:#4ade80;"><em>Setujui untuk menutup Modul 8 dan lanjut ke Modul 9 (Manuscript), atau jalankan Bibliometric SLNA (opsional) dulu.</em></p>
+            <button id="btn-run-slna" class="btn" style="margin-top:8px;background:#8b5cf6;color:#fff;">🔗 Jalankan Bibliometric SLNA (opsional)</button>
+        `);
+        setTimeout(() => {
+            const b = document.getElementById('btn-run-slna');
+            if (b) b.addEventListener('click', async () => {
+                if (!confirm('Jalankan modul Bibliometric/SLNA (opsional) sebelum Manuscript?')) return;
+                try {
+                    b.disabled = true; b.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Memulai...';
+                    await API.reviseStep(session.id, 'Run Bibliometric SLNA', 'M8B_INIT');
+                    window.location.reload();
+                } catch (err) { alert('Gagal: ' + err.message); b.disabled = false; b.textContent = '🔗 Jalankan Bibliometric SLNA (opsional)'; }
+            });
+        }, 0);
+
+    } else if (status === 'M8B_STEP1_WAITING_APPROVAL' && session.bibliometric_data) {
+        const b = session.bibliometric_data;
+        html = wrapCard('Modul 8b L1 — Data Prep + Thesaurus', `
+            <div style="font-size:0.9em;">${formatMarkdown(b.log_markdown || '')}</div>
+            <details style="margin-top:8px;"><summary style="cursor:pointer;color:#6ee7b7;font-weight:bold;">Thesaurus Keywords (format VOSviewer)</summary>
+                <pre style="white-space:pre-wrap;font-size:0.8em;background:#0b1220;padding:10px;border-radius:6px;max-height:260px;overflow:auto;">${(b.thesaurus_keywords || '').replace(/</g, '&lt;')}</pre></details>
+        `);
+
+    } else if (status === 'M8B_STEP2_WAITING_VOSVIEWER' && session.vosviewer_parameters) {
+        const v = session.vosviewer_parameters;
+        html = wrapCard('Modul 8b L2 — VOSviewer (9-Parameter) + Input Hasil', `
+            <p style="font-size:0.85em;color:#94a3b8;">Jalankan VOSviewer manual: Map based on bibliographic data → terapkan thesaurus → set 9 parameter (tabel) → generate Network/Overlay/Density → export SVG/PNG. Lalu paste ringkasan hasilnya di bawah.</p>
+            <div style="font-size:0.88em;overflow-x:auto;">${formatMarkdown(v.table_markdown || '')}</div>
+            <hr style="border-color:rgba(255,255,255,0.1);">
+            <label style="font-size:0.85em;">Paste hasil VOSviewer (nodes, edges, total clusters, top-3 clusters+label, bridge nodes, temporal trend):</label>
+            <textarea id="vos-input" rows="6" style="width:100%;margin-top:6px;background:#222;color:#fff;border:1px solid #555;border-radius:4px;padding:8px;" placeholder="Total nodes: ...&#10;Total edges: ...&#10;Clusters: ...&#10;Top-3 clusters: ...&#10;Bridge nodes: ...&#10;Temporal: ..."></textarea>
+            <button id="btn-vos-submit" class="btn btn-success" style="margin-top:8px;">Submit Hasil VOSviewer → Interpretasi</button>
+        `);
+        setTimeout(() => {
+            const btn = document.getElementById('btn-vos-submit');
+            if (btn) btn.addEventListener('click', async () => {
+                const data = (document.getElementById('vos-input').value || '').trim();
+                if (!data) { alert('Paste hasil VOSviewer dulu!'); return; }
+                try {
+                    btn.disabled = true; btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Memproses...';
+                    await API.submitVOSviewer(session.id, data);
+                    window.location.reload();
+                } catch (err) { alert('Gagal: ' + err.message); btn.disabled = false; btn.textContent = 'Submit Hasil VOSviewer → Interpretasi'; }
+            });
+        }, 0);
+
+    } else if (status === 'M8B_STEP3_WAITING_APPROVAL' && session.cluster_interpretation) {
+        const c = session.cluster_interpretation;
+        html = wrapCard('Modul 8b L3 — Cluster Interpretation (Tier 1-4)', `
+            <div style="font-size:0.88em;overflow-x:auto;">${formatMarkdown(c.table_markdown || '')}</div>
+            <details style="margin-top:8px;"><summary style="cursor:pointer;color:#6ee7b7;">Interpretasi naratif + bridge + structural holes</summary>
+                <div style="font-size:0.88em;margin-top:6px;">${formatMarkdown(c.markdown || '')}</div></details>
+        `);
+
+    } else if (status === 'M8B_STEP4_WAITING_APPROVAL') {
+        const sumMd = (session.modul_bibliometric_summary && session.modul_bibliometric_summary.markdown) || 'Menunggu data...';
+        const ig = session.slna_integration || {};
+        html = wrapCard('Modul 8b L4 — SLNA Integration & Summary', `
+            <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 6px; font-size: 0.9em; max-height: 320px; overflow-y: auto;">${formatMarkdown(sumMd)}</div>
+            ${ig.convergent_gaps ? `<details style="margin-top:10px;"><summary style="cursor:pointer;color:#fbbf24;font-weight:bold;">Convergent Gaps (Future Research)</summary><div style="font-size:0.88em;margin-top:8px;">${formatMarkdown(ig.convergent_gaps)}</div></details>` : ''}
+            <p style="margin-top: 10px; font-size: 0.9em; color:#4ade80;"><em>Setujui untuk menutup Modul 8b dan lanjut ke Modul 9.</em></p>
         `);
     }
 

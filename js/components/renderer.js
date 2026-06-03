@@ -26,7 +26,23 @@ export function renderApprovalContent(area, session, handleApproval) {
                  .replace(/\n/g, '<br>');
     };
 
-    if (status === 'M2_STEP2_WAITING_APPROVAL' && session.prior_reviews_matrix) {
+    if (status === 'M1_WAITING_APPROVAL' && session.foundation) {
+        const f = session.foundation;
+        const fSection = (title, md, color) => `
+            <div style="margin-bottom: 18px;">
+                <h5 style="color: ${color}; margin: 0 0 8px;">${title}</h5>
+                <div style="background: rgba(0,0,0,0.2); padding: 12px 15px; border-radius: 6px; font-size: 0.92em; line-height: 1.6; max-height: 320px; overflow-y: auto;">
+                    ${formatMarkdown(md) || '<em style="color:#9ca3af;">(kosong)</em>'}
+                </div>
+            </div>`;
+        html = wrapCard('Modul 1 — Fondasi Teori & Aturan Global (Briefing)', `
+            <p style="margin-top:0; color:#9ca3af; font-size:0.88em;">Topik: <strong style="color:#d1d5db;">${f.topic_context || session.topic || '-'}</strong></p>
+            ${fSection('📚 Fondasi Teori SLR (disesuaikan topik · AI)', f.theory_markdown, '#93c5fd')}
+            ${fSection('🤖 Etika & Kapabilitas AI (kanonik)', f.ai_practice_markdown, '#c4b5fd')}
+            ${fSection('📐 Aturan Global SLR + CoWork (kanonik)', f.global_rules_markdown, '#6ee7b7')}
+        `);
+
+    } else if (status === 'M2_STEP2_WAITING_APPROVAL' && session.prior_reviews_matrix) {
         let cards = '';
         if (session.prior_reviews_matrix.reviews) {
             session.prior_reviews_matrix.reviews.forEach((r, idx) => {

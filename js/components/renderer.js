@@ -1288,7 +1288,7 @@ export function renderApprovalContent(area, session, handleApproval) {
 
     } else if (status === 'M8_STEP1_WAITING_APPROVAL' && session.descriptive_analysis) {
         const d = session.descriptive_analysis;
-        const figs = (d.figures || []).map(f => `<div style="background:#fff;border-radius:6px;margin:8px 0;overflow:hidden;">${f.svg || ''}</div>`).join('');
+        const figs = (d.figures || []).map(f => `<div style="background:#fff;border-radius:6px;margin:8px 0;overflow:hidden;">${f.svg || ''}</div>${f.url ? `<div style="font-size:0.8em;margin:-4px 0 8px;"><a href="${f.url}" target="_blank" style="color:#60a5fa;">${f.name} ↗ (GitHub Pages)</a></div>` : ''}`).join('');
         html = wrapCard('Modul 8 L1 — Descriptive Analysis + Heterogeneity', `
             <div style="font-size:0.9em;">${formatMarkdown(d.markdown || '')}</div>
             <p style="margin-top:8px;"><strong>Heterogeneity:</strong> <span style="color:#93c5fd;">${d.heterogeneity_verdict || '-'}</span></p>

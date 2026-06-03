@@ -119,5 +119,12 @@ export const API = {
     updateRoles: (roles) => apiFetch('/llm/roles', {
         method: 'PUT',
         body: JSON.stringify(roles)
+    }),
+
+    getGitHubConfig: () => apiFetch('/github/config'),
+
+    updateGitHubConfig: (cfg) => apiFetch('/github/config', {
+        method: 'PUT',
+        body: JSON.stringify(cfg)
     })
 };

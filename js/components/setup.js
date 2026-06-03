@@ -74,10 +74,50 @@ export function initSetup() {
         });
     }
 
+    // ===== GitHub Pages config (publikasi figur Modul 8) =====
+    const loadGitHubConfig = async () => {
+        try {
+            const res = await API.getGitHubConfig();
+            const c = res.config || {};
+            const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v || ''; };
+            document.getElementById('gh-enabled').checked = !!c.enabled;
+            set('gh-owner', c.owner); set('gh-repo', c.repo);
+            set('gh-branch', c.branch); set('gh-basepath', c.base_path); set('gh-pages', c.pages_url);
+            const tok = document.getElementById('gh-token');
+            if (tok) tok.placeholder = res.token_set ? '(token tersimpan — kosongkan = tetap)' : '(belum ada token)';
+        } catch (e) { console.warn('Gagal memuat GitHub config:', e.message); }
+    };
+
+    const formGitHub = document.getElementById('form-github-config');
+    if (formGitHub) {
+        formGitHub.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const val = (id) => (document.getElementById(id) || {}).value || '';
+            const payload = {
+                enabled: document.getElementById('gh-enabled').checked,
+                token: val('gh-token'),
+                owner: val('gh-owner'), repo: val('gh-repo'),
+                branch: val('gh-branch'), base_path: val('gh-basepath'), pages_url: val('gh-pages'),
+            };
+            const btn = e.target.querySelector('button[type="submit"]');
+            setButtonLoading(btn, true);
+            try {
+                await API.updateGitHubConfig(payload);
+                showToast('GitHub config berhasil disimpan!');
+                document.getElementById('gh-token').value = '';
+            } catch (error) {
+                showToast(error.message, 'error');
+            } finally {
+                setButtonLoading(btn, false, 'Simpan GitHub Config');
+            }
+        });
+    }
+
     if (btnSettings) {
         btnSettings.addEventListener('click', () => {
             openModal('modal-settings');
             loadRolesIntoForm();
+            loadGitHubConfig();
         });
     }
 

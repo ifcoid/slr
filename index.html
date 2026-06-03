@@ -172,6 +172,21 @@
                     <div class="form-group"><label>Brain Fallback</label><select id="role-brain_fallback"></select></div>
                     <button type="submit" class="btn btn-primary">Simpan Model Routing</button>
                 </form>
+
+                <hr>
+
+                <h3>GitHub Pages (Publikasi Figur Modul 8)</h3>
+                <small>Opsional. Jika aktif, figur SVG Modul 8 otomatis di-push ke repo & URL Pages disimpan untuk manuskrip.</small>
+                <form id="form-github-config" style="margin-top: 10px;">
+                    <div class="form-group"><label><input type="checkbox" id="gh-enabled"> Aktifkan publikasi figur</label></div>
+                    <div class="form-group"><label>GitHub Token (PAT — izin contents:write)</label><input type="password" id="gh-token" placeholder="(kosongkan = token lama dipertahankan)"></div>
+                    <div class="form-group"><label>Owner (user/org)</label><input type="text" id="gh-owner" placeholder="mis. ifcoid"></div>
+                    <div class="form-group"><label>Repo</label><input type="text" id="gh-repo" placeholder="mis. slr-figures"></div>
+                    <div class="form-group"><label>Branch</label><input type="text" id="gh-branch" placeholder="main"></div>
+                    <div class="form-group"><label>Base Path</label><input type="text" id="gh-basepath" placeholder="figures"></div>
+                    <div class="form-group"><label>GitHub Pages URL</label><input type="text" id="gh-pages" placeholder="https://user.github.io/repo"></div>
+                    <button type="submit" class="btn btn-primary">Simpan GitHub Config</button>
+                </form>
             </div>
         </div>
     </div>

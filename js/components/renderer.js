@@ -1388,6 +1388,46 @@ export function renderApprovalContent(area, session, handleApproval) {
             ${ig.convergent_gaps ? `<details style="margin-top:10px;"><summary style="cursor:pointer;color:#fbbf24;font-weight:bold;">Convergent Gaps (Future Research)</summary><div style="font-size:0.88em;margin-top:8px;">${formatMarkdown(ig.convergent_gaps)}</div></details>` : ''}
             <p style="margin-top: 10px; font-size: 0.9em; color:#4ade80;"><em>Setujui untuk menutup Modul 8b dan lanjut ke Modul 9.</em></p>
         `);
+
+    } else if (status === 'M9_GROUPA_WAITING_APPROVAL' && session.manuscript) {
+        const ms = session.manuscript;
+        const sec = (t, c) => `<details style="margin-top:8px;"><summary style="cursor:pointer;color:#93c5fd;font-weight:bold;">${t} (${(c || '').length} char)</summary><div style="font-size:0.88em;margin-top:6px;max-height:340px;overflow:auto;">${formatMarkdown(c || '(kosong)')}</div></details>`;
+        html = wrapCard('Modul 9 — Draft Grup A (Methods · Results · Discussion · Future Research)', `
+            ${sec('Methods', ms.methods)}${sec('Results', ms.results)}${sec('Discussion', ms.discussion)}${sec('Future Research', ms.future_research)}
+            <p style="margin-top:10px;font-size:0.9em;color:#4ade80;"><em>Approve untuk lanjut menulis Introduction/Conclusions/Abstract/Title; atau revisi untuk tulis ulang grup ini.</em></p>
+        `);
+
+    } else if (status === 'M9_GROUPB_WAITING_APPROVAL' && session.manuscript) {
+        const ms = session.manuscript;
+        const sec = (t, c) => `<details style="margin-top:8px;"><summary style="cursor:pointer;color:#93c5fd;font-weight:bold;">${t} (${(c || '').length} char)</summary><div style="font-size:0.88em;margin-top:6px;max-height:340px;overflow:auto;">${formatMarkdown(c || '(kosong)')}</div></details>`;
+        html = wrapCard('Modul 9 — Draft Grup B (Introduction · Conclusions · Abstract · Title)', `
+            ${sec('Introduction', ms.introduction)}${sec('Conclusions', ms.conclusions)}${sec('Abstract', ms.abstract)}${sec('Title (alternatif)', ms.title)}
+            <p style="margin-top:10px;font-size:0.9em;color:#4ade80;"><em>Approve untuk compile akhir (references Crossref + audit + PRISMA + .tex).</em></p>
+        `);
+
+    } else if (status === 'M9_COMPILE_WAITING_APPROVAL' && session.manuscript) {
+        const ms = session.manuscript;
+        html = wrapCard('Modul 9 — Compile Final (manuscript_final + .tex + .bib)', `
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+                <button id="dl-final" class="btn" style="background:#10b981;color:#fff;">⬇️ manuscript_final.md</button>
+                <button id="dl-tex" class="btn" style="background:#3b82f6;color:#fff;">⬇️ .tex</button>
+                <button id="dl-bib" class="btn" style="background:#8b5cf6;color:#fff;">⬇️ reference.bib</button>
+            </div>
+            <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 6px; font-size: 0.88em; max-height: 360px; overflow-y: auto;">${formatMarkdown(ms.final || 'Menunggu data...')}</div>
+            <details style="margin-top:8px;"><summary style="cursor:pointer;color:#6ee7b7;font-weight:bold;">Coherence Audit</summary><div style="font-size:0.85em;margin-top:6px;max-height:300px;overflow:auto;">${formatMarkdown(ms.coherence_audit || '')}</div></details>
+            <details style="margin-top:6px;"><summary style="cursor:pointer;color:#6ee7b7;font-weight:bold;">PRISMA 2020 Checklist</summary><div style="font-size:0.85em;margin-top:6px;max-height:300px;overflow:auto;">${formatMarkdown(ms.prisma_checklist || '')}</div></details>
+            <p style="margin-top:10px;font-size:0.9em;color:#4ade80;"><em>Approve untuk menutup pipeline (COMPLETED).</em></p>
+        `);
+        setTimeout(() => {
+            const dl = (name, content) => {
+                const b = new Blob([content || ''], { type: 'text/plain;charset=utf-8' });
+                const u = URL.createObjectURL(b);
+                const a = document.createElement('a'); a.href = u; a.download = name; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(u);
+            };
+            const bf = document.getElementById('dl-final'); if (bf) bf.addEventListener('click', () => dl('manuscript_final.md', ms.final));
+            const bt = document.getElementById('dl-tex'); if (bt) bt.addEventListener('click', () => dl('manuscript_final.tex', ms.latex));
+            const bb = document.getElementById('dl-bib'); if (bb) bb.addEventListener('click', () => dl('reference.bib', ms.bibtex));
+        }, 0);
     }
 
     if (html !== '') {

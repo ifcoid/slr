@@ -1640,7 +1640,20 @@ export function renderApprovalContent(area, session, handleApproval) {
                         });
                         if (!req.ok) throw new Error('Gagal memuat data');
                         const data = await req.json();
-                        const papers = data.papers || [];
+                        let papers = data.papers || [];
+                        
+                        // Sort papers: 
+                        // 1. Not retrieved and not inaccessible (Action needed) -> TOP
+                        // 2. Retrieved (Done) -> MIDDLE
+                        // 3. Inaccessible (Can't do anything) -> BOTTOM
+                        papers.sort((a, b) => {
+                            const getScore = (p) => {
+                                if (!p.retrieved && !p.inaccessible) return 1;
+                                if (p.retrieved) return 2;
+                                return 3; // inaccessible
+                            };
+                            return getScore(a) - getScore(b);
+                        });
                         
                         let rows = '';
                         papers.forEach((p, idx) => {

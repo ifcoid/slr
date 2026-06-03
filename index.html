@@ -156,6 +156,20 @@
                     
                     <button type="submit" class="btn btn-primary">Simpan LLM Config</button>
                 </form>
+
+                <hr>
+
+                <h3>Model Routing (Peran → Provider)</h3>
+                <small>Tentukan provider untuk tiap peran agen + fallback-nya. Tanpa edit kode. Provider harus sudah dikonfigurasi API Key-nya di atas.</small>
+                <form id="form-llm-roles" style="margin-top: 10px;">
+                    <div class="form-group"><label>Reviewer 1 (R1)</label><select id="role-reviewer1"></select></div>
+                    <div class="form-group"><label>R1 Fallback</label><select id="role-reviewer1_fallback"></select></div>
+                    <div class="form-group"><label>Reviewer 2 (R2)</label><select id="role-reviewer2"></select></div>
+                    <div class="form-group"><label>R2 Fallback</label><select id="role-reviewer2_fallback"></select></div>
+                    <div class="form-group"><label>Supervisor (Arbiter)</label><select id="role-supervisor"></select></div>
+                    <div class="form-group"><label>Supervisor Fallback</label><select id="role-supervisor_fallback"></select></div>
+                    <button type="submit" class="btn btn-primary">Simpan Model Routing</button>
+                </form>
             </div>
         </div>
     </div>

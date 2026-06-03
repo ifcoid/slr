@@ -112,5 +112,12 @@ export const API = {
     fetchModels: (provider, apiKey, baseUrl) => apiFetch(`/llm/providers/${provider}/models`, {
         method: 'POST',
         body: JSON.stringify({ api_key: apiKey, base_url: baseUrl })
+    }),
+
+    getRoles: () => apiFetch('/llm/roles'),
+
+    updateRoles: (roles) => apiFetch('/llm/roles', {
+        method: 'PUT',
+        body: JSON.stringify(roles)
     })
 };

@@ -24,8 +24,61 @@ export function initSetup() {
         });
     }
 
+    // ===== Model Routing (peran -> provider) =====
+    const ROLE_IDS = ['reviewer1', 'reviewer1_fallback', 'reviewer2', 'reviewer2_fallback', 'supervisor', 'supervisor_fallback'];
+    const PROVIDERS = ['gemini', 'groq', 'zhipu', 'claude', 'openrouter', 'cohere', 'xiaomi', 'rprompt'];
+    let roleSelectsPopulated = false;
+
+    const populateRoleSelects = () => {
+        if (roleSelectsPopulated) return;
+        ROLE_IDS.forEach((id) => {
+            const sel = document.getElementById('role-' + id);
+            if (!sel) return;
+            sel.innerHTML = PROVIDERS.map((p) => `<option value="${p}">${p}</option>`).join('');
+        });
+        roleSelectsPopulated = true;
+    };
+
+    const loadRolesIntoForm = async () => {
+        populateRoleSelects();
+        try {
+            const r = await API.getRoles();
+            ROLE_IDS.forEach((id) => {
+                const sel = document.getElementById('role-' + id);
+                if (sel && r[id]) sel.value = r[id];
+            });
+        } catch (e) {
+            console.warn('Gagal memuat roles:', e.message);
+        }
+    };
+
+    const formRoles = document.getElementById('form-llm-roles');
+    if (formRoles) {
+        formRoles.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const payload = {};
+            ROLE_IDS.forEach((id) => {
+                const sel = document.getElementById('role-' + id);
+                if (sel) payload[id] = sel.value;
+            });
+            const btn = e.target.querySelector('button[type="submit"]');
+            setButtonLoading(btn, true);
+            try {
+                await API.updateRoles(payload);
+                showToast('Model Routing berhasil disimpan!');
+            } catch (error) {
+                showToast(error.message, 'error');
+            } finally {
+                setButtonLoading(btn, false, 'Simpan Model Routing');
+            }
+        });
+    }
+
     if (btnSettings) {
-        btnSettings.addEventListener('click', () => openModal('modal-settings'));
+        btnSettings.addEventListener('click', () => {
+            openModal('modal-settings');
+            loadRolesIntoForm();
+        });
     }
 
     if (btnCloseSettings) {

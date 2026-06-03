@@ -1646,10 +1646,21 @@ export function renderApprovalContent(area, session, handleApproval) {
                         papers.forEach((p, idx) => {
                             let doiFull = p.doi || '-';
                             let doiDisplay = doiFull;
-                            if (doiFull.startsWith('https://doi.org/')) doiDisplay = doiFull.replace('https://doi.org/', '');
-                            else if (doiFull.startsWith('http://doi.org/')) doiDisplay = doiFull.replace('http://doi.org/', '');
+                            let doiHtml = '-';
                             
-                            const doiHtml = doiFull !== '-' ? `<a href="${doiFull.startsWith('http') ? doiFull : 'https://doi.org/' + doiFull}" target="_blank" style="color: #3b82f6; text-decoration: none;">${doiDisplay}</a>` : '-';
+                            if (doiFull !== '-') {
+                                if (doiFull.startsWith('2-s2.0-')) {
+                                    // This is a Scopus EID, not a DOI
+                                    doiHtml = `<a href="https://www.scopus.com/record/display.uri?eid=${doiFull}&origin=resultslist" target="_blank" style="color: #F59E0B; text-decoration: none;" title="Buka di Scopus (EID)"><i class="fa fa-external-link-square"></i> EID: ${doiDisplay}</a>`;
+                                } else {
+                                    // Regular DOI
+                                    if (doiFull.startsWith('https://doi.org/')) doiDisplay = doiFull.replace('https://doi.org/', '');
+                                    else if (doiFull.startsWith('http://doi.org/')) doiDisplay = doiFull.replace('http://doi.org/', '');
+                                    
+                                    const linkHref = doiFull.startsWith('http') ? doiFull : 'https://doi.org/' + doiFull;
+                                    doiHtml = `<a href="${linkHref}" target="_blank" style="color: #3b82f6; text-decoration: none;">${doiDisplay}</a>`;
+                                }
+                            }
                             
                             const vectorized = p.retrieved ? '<span style="color:#22c55e">✅ Ya</span>' : '<span style="color:#ef4444">❌ Belum</span>';
                             

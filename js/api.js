@@ -92,7 +92,7 @@ export const API = {
         body: formData
     }),
 
-    getDisagreements: (id) => apiFetch(`/sessions/${id}/disagreements`),
+    getDisagreements: (id, stage) => apiFetch(`/sessions/${id}/disagreements${stage ? `?stage=${stage}` : ''}`),
 
     resolveConflicts: (id, payload) => apiFetch(`/sessions/${id}/resolve-conflicts`, {
         method: 'POST',

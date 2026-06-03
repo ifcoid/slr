@@ -1151,6 +1151,85 @@ export function renderApprovalContent(area, session, handleApproval) {
                 <em>Semua paper telah diproses melalui kriteria Inklusi/Eksklusi. Tahap Modul 5 selesai. Silakan lanjut ke Modul 6 untuk mencari Full-Text PDF.</em>
             </p>
         `);
+
+    } else if (status === 'M6_STEP2_WAITING_RESOLUTION') {
+        const lastLog = session.fulltext_screening_log ? session.fulltext_screening_log[session.fulltext_screening_log.length - 1] : null;
+        const kappaInfo = lastLog
+            ? `Batch ${lastLog.batch_number} | Kappa: <strong style="color:${lastLog.current_kappa >= 0.6 ? '#4ade80' : '#fca5a5'}">${(lastLog.current_kappa || 0).toFixed(3)}</strong> | Disagreements: ${lastLog.disagreement_cases}`
+            : 'Memuat ringkasan batch...';
+        html = wrapCard('Full-Text Screening — Resolusi Konflik (Modul 6 L2)', `
+            <p style="font-size:0.9em;color:#cbd5e1;margin-top:0;">${kappaInfo}</p>
+            <p style="font-size:0.85em;color:#94a3b8;">Putuskan kasus DISAGREE / UNCERTAIN / pending-RAG di bawah lalu klik <strong>Simpan Resolusi</strong>. Atau klik <strong>Setuju & Lanjut</strong> untuk memproses batch berikutnya / menyelesaikan tahap.</p>
+            <div id="ft-disagreements" style="background: rgba(239,68,68,0.05); padding: 12px; border-radius:6px; border-left:3px solid #ef4444; margin-top:10px;">
+                <em><i class="fa fa-spinner fa-spin"></i> Memuat kasus konflik full-text...</em>
+            </div>
+            <button id="btn-ft-resolve" class="btn btn-success" style="margin-top:12px; display:none;">💾 Simpan Resolusi Full-text</button>
+        `);
+        setTimeout(async () => {
+            const cont = document.getElementById('ft-disagreements');
+            if (!cont) return;
+            try {
+                const data = await API.getDisagreements(session.id, 'fulltext');
+                const cases = data.disagreements || [];
+                if (cases.length === 0) {
+                    cont.innerHTML = '<span style="color:#4ade80;">✅ Tidak ada konflik tersisa. Klik "Setuju & Lanjut".</span>';
+                    return;
+                }
+                let formHtml = `<h5 style="color:#fca5a5;margin:0 0 10px;">${cases.length} kasus butuh keputusan akhir</h5>`;
+                cases.forEach((p) => {
+                    const pid = (p._id && p._id.$oid) ? p._id.$oid : (p._id || p.id);
+                    const title = p.Title || p.title || '(tanpa judul)';
+                    const cr = p.Conflict_Resolution_Full || '';
+                    const r1 = p.Screener_1_Decision_Full || '-';
+                    const r2 = p.Screener_2_Decision_Full || '-';
+                    const rc = p.Screener_1_Reason_Code_Full || '-';
+                    formHtml += `
+                    <div class="ft-res-form" data-pid="${pid}" style="background:rgba(0,0,0,0.2);padding:10px;border-radius:6px;margin-bottom:10px;">
+                        <div style="font-size:0.9em;margin-bottom:6px;"><strong>${title}</strong></div>
+                        <div style="font-size:0.8em;color:#94a3b8;margin-bottom:6px;">R1: ${r1} | R2: ${r2} | Reason: ${rc}${cr ? `<br>AI: ${cr}` : ''}</div>
+                        <label style="margin-right:12px;"><input type="radio" name="ftfd_${pid}" value="INCLUDE"> INCLUDE</label>
+                        <label><input type="radio" name="ftfd_${pid}" value="EXCLUDE"> EXCLUDE</label>
+                        <textarea class="ft-notes" rows="1" placeholder="Catatan resolusi..." style="width:100%;margin-top:6px;background:#222;color:#fff;border:1px solid #555;border-radius:4px;padding:6px;"></textarea>
+                    </div>`;
+                });
+                cont.innerHTML = formHtml;
+                const btn = document.getElementById('btn-ft-resolve');
+                if (btn) {
+                    btn.style.display = 'inline-block';
+                    btn.addEventListener('click', async () => {
+                        const forms = document.querySelectorAll('.ft-res-form');
+                        const resolutions = [];
+                        for (const f of forms) {
+                            const pid = f.getAttribute('data-pid');
+                            const rb = f.querySelector(`input[name="ftfd_${pid}"]:checked`);
+                            const ta = f.querySelector('.ft-notes');
+                            if (!rb) { alert('Pilih INCLUDE/EXCLUDE untuk semua kasus!'); return; }
+                            resolutions.push({ paper_id: pid, final_decision: rb.value, conflict_resolution: (ta.value || '').trim() });
+                        }
+                        try {
+                            btn.disabled = true; btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Menyimpan...';
+                            await API.resolveConflicts(session.id, { stage: 'fulltext', resolutions });
+                            window.location.reload();
+                        } catch (err) { alert('Gagal: ' + err.message); btn.disabled = false; btn.innerHTML = '💾 Simpan Resolusi Full-text'; }
+                    });
+                }
+            } catch (e) {
+                cont.innerHTML = '<span style="color:#ef4444;">Gagal memuat: ' + e.message + '</span>';
+            }
+        }, 0);
+
+    } else if (status === 'M6_STEP3_WAITING_APPROVAL') {
+        const summaryMd = (session.modul6_summary && session.modul6_summary.markdown) || 'Menunggu data...';
+        const inacc = (session.inaccessible_impact && session.inaccessible_impact.markdown) || '';
+        const ready = (session.extraction_readiness && session.extraction_readiness.markdown) || '';
+        html = wrapCard('Modul 6 Selesai — Full-Text Screening Summary', `
+            <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 6px; font-size: 0.9em; max-height: 360px; overflow-y: auto;">
+                ${formatMarkdown(summaryMd)}
+            </div>
+            ${ready ? `<details style="margin-top:12px;"><summary style="cursor:pointer;color:#6ee7b7;font-weight:bold;">Extraction Readiness Checklist</summary><div style="font-size:0.88em;margin-top:8px;">${formatMarkdown(ready)}</div></details>` : ''}
+            ${inacc ? `<details style="margin-top:8px;"><summary style="cursor:pointer;color:#fca5a5;font-weight:bold;">Inaccessible Impact</summary><div style="font-size:0.88em;margin-top:8px;">${formatMarkdown(inacc)}</div></details>` : ''}
+            <p style="margin-top: 12px; font-size: 0.9em; color:#4ade80;"><em>Setujui untuk menutup Modul 6 dan lanjut ke Modul 7 (Data Extraction).</em></p>
+        `);
     }
 
     if (html !== '') {

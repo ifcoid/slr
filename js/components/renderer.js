@@ -1285,6 +1285,49 @@ export function renderApprovalContent(area, session, handleApproval) {
             <p style="margin-top:10px;font-size:0.9em;"><strong>Heterogeneity:</strong> ${sp.heterogeneity_verdict || '-'} | <strong>Meta-analysis:</strong> <span style="color:#6ee7b7;">${sp.meta_feasibility || '-'}</span></p>
             <p style="margin-top: 8px; font-size: 0.9em; color:#4ade80;"><em>Setujui untuk menutup Modul 7 dan lanjut ke Modul 8 (Synthesis).</em></p>
         `);
+
+    } else if (status === 'M8_STEP1_WAITING_APPROVAL' && session.descriptive_analysis) {
+        const d = session.descriptive_analysis;
+        const figs = (d.figures || []).map(f => `<div style="background:#fff;border-radius:6px;margin:8px 0;overflow:hidden;">${f.svg || ''}</div>`).join('');
+        html = wrapCard('Modul 8 L1 — Descriptive Analysis + Heterogeneity', `
+            <div style="font-size:0.9em;">${formatMarkdown(d.markdown || '')}</div>
+            <p style="margin-top:8px;"><strong>Heterogeneity:</strong> <span style="color:#93c5fd;">${d.heterogeneity_verdict || '-'}</span></p>
+            <p style="font-size:0.88em;color:#cbd5e1;">${d.heterogeneity_narrative || ''}</p>
+            <details style="margin-top:8px;"><summary style="cursor:pointer;color:#6ee7b7;font-weight:bold;">Lihat ${(d.figures||[]).length} figur (SVG)</summary>${figs}</details>
+        `);
+
+    } else if (status === 'M8_STEP2_WAITING_APPROVAL' && session.synthesis_results) {
+        const dec = session.synthesis_path_decision || {};
+        const sr = session.synthesis_results || {};
+        const fps = sr.forest_plot_script ? `<details style="margin-top:8px;"><summary style="cursor:pointer;color:#fbbf24;font-weight:bold;">Skrip Forest Plot (R/metafor)</summary><pre style="white-space:pre-wrap;font-size:0.78em;background:#0b1220;padding:10px;border-radius:6px;overflow-x:auto;">${(sr.forest_plot_script||'').replace(/</g,'&lt;')}</pre></details>` : '';
+        html = wrapCard('Modul 8 L2 — Synthesis Path + Results', `
+            <p><strong>Path:</strong> <span style="color:#6ee7b7;font-weight:bold;">${dec.verdict || sr.path || '-'}</span></p>
+            <p style="font-size:0.85em;color:#94a3b8;"><strong>Kriteria:</strong> ${dec.criteria_check || '-'}</p>
+            <p style="font-size:0.88em;color:#cbd5e1;"><strong>Rationale:</strong> ${dec.rationale || ''}</p>
+            <hr style="border-color:rgba(255,255,255,0.1);">
+            <div style="font-size:0.9em;max-height:340px;overflow-y:auto;">${formatMarkdown(sr.markdown || '')}</div>
+            ${fps}
+        `);
+
+    } else if (status === 'M8_STEP3_WAITING_APPROVAL' && session.grade_evidence_table) {
+        const g = session.grade_evidence_table;
+        html = wrapCard('Modul 8 L3 — GRADE Evidence + Robustness', `
+            <div style="font-size:0.88em;overflow-x:auto;">${formatMarkdown(g.table_markdown || '')}</div>
+            <p style="margin-top:8px;"><strong>Robustness:</strong> <span style="color:#93c5fd;">${g.robustness_verdict || '-'}</span></p>
+            <p style="font-size:0.88em;color:#cbd5e1;">${g.robustness_summary || ''}</p>
+            <details style="margin-top:8px;"><summary style="cursor:pointer;color:#6ee7b7;">Confidence statements</summary><div style="font-size:0.88em;margin-top:6px;">${formatMarkdown(g.confidence_statements || '')}</div></details>
+        `);
+
+    } else if (status === 'M8_STEP4_WAITING_APPROVAL') {
+        const sumMd = (session.modul8_summary && session.modul8_summary.markdown) || 'Menunggu data...';
+        const ip = (session.interpretation_package && session.interpretation_package.markdown) || '';
+        html = wrapCard('Modul 8 L4 — Interpretation Package & Summary', `
+            <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 6px; font-size: 0.9em; max-height: 320px; overflow-y: auto;">
+                ${formatMarkdown(sumMd)}
+            </div>
+            ${ip ? `<details style="margin-top:10px;"><summary style="cursor:pointer;color:#6ee7b7;font-weight:bold;">Interpretation Package (untuk Modul 9)</summary><div style="font-size:0.88em;margin-top:8px;max-height:300px;overflow-y:auto;">${formatMarkdown(ip)}</div></details>` : ''}
+            <p style="margin-top: 10px; font-size: 0.9em; color:#4ade80;"><em>Setujui untuk menutup Modul 8 dan lanjut ke Modul 9 (Manuscript).</em></p>
+        `);
     }
 
     if (html !== '') {

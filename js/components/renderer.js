@@ -1182,14 +1182,43 @@ export function renderApprovalContent(area, session, handleApproval) {
                     const cr = p.Conflict_Resolution_Full || '';
                     const r1 = p.Screener_1_Decision_Full || '-';
                     const r2 = p.Screener_2_Decision_Full || '-';
-                    const rc = p.Screener_1_Reason_Code_Full || '-';
+                    const rc1 = p.Screener_1_Reason_Code_Full || '-';
+                    const rc2 = p.Screener_2_Reason_Code_Full || '-';
+                    const n1 = p.Screener_1_Notes_Full || '(tidak ada catatan)';
+                    const n2 = p.Screener_2_Notes_Full || '(tidak ada catatan)';
+                    
+                    let crHtml = '';
+                    if (cr) {
+                        crHtml = `
+                        <div style="margin-top: 10px; background: rgba(167, 139, 250, 0.1); padding: 10px; border-radius: 4px; border-left: 3px solid #a78bfa;">
+                            <strong style="color: #c4b5fd;">AI Supervisor:</strong><br>
+                            <div style="margin-top: 5px; color: #e5e7eb; white-space: pre-wrap; font-size: 0.9em;">${cr}</div>
+                        </div>`;
+                    }
+
                     formHtml += `
-                    <div class="ft-res-form" data-pid="${pid}" style="background:rgba(0,0,0,0.2);padding:10px;border-radius:6px;margin-bottom:10px;">
-                        <div style="font-size:0.9em;margin-bottom:6px;"><strong>${title}</strong></div>
-                        <div style="font-size:0.8em;color:#94a3b8;margin-bottom:6px;">R1: ${r1} | R2: ${r2} | Reason: ${rc}${cr ? `<br>AI: ${cr}` : ''}</div>
-                        <label style="margin-right:12px;"><input type="radio" name="ftfd_${pid}" value="INCLUDE"> INCLUDE</label>
-                        <label><input type="radio" name="ftfd_${pid}" value="EXCLUDE"> EXCLUDE</label>
-                        <textarea class="ft-notes" rows="1" placeholder="Catatan resolusi..." style="width:100%;margin-top:6px;background:#222;color:#fff;border:1px solid #555;border-radius:4px;padding:6px;"></textarea>
+                    <div class="ft-res-form" data-pid="${pid}" style="background:rgba(0,0,0,0.2);padding:15px;border-radius:6px;margin-bottom:15px; border: 1px solid rgba(255,255,255,0.05);">
+                        <div style="font-size:0.95em;margin-bottom:10px;color:#fcd34d;"><strong>${title}</strong></div>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 0.85em;">
+                            <div style="background: rgba(59, 130, 246, 0.1); padding: 10px; border-radius: 4px; border-left: 3px solid #3b82f6;">
+                                <strong style="color: #93c5fd;">R1 Decision:</strong> ${r1} <span style="color:#94a3b8">(Reason: ${rc1})</span><br>
+                                <div style="margin-top: 5px; color: #d1d5db; white-space: pre-wrap;">${n1}</div>
+                            </div>
+                            <div style="background: rgba(16, 185, 129, 0.1); padding: 10px; border-radius: 4px; border-left: 3px solid #10b981;">
+                                <strong style="color: #6ee7b7;">R2 Decision:</strong> ${r2} <span style="color:#94a3b8">(Reason: ${rc2})</span><br>
+                                <div style="margin-top: 5px; color: #d1d5db; white-space: pre-wrap;">${n2}</div>
+                            </div>
+                        </div>
+                        
+                        ${crHtml}
+
+                        <div style="margin-top: 15px; padding-top: 10px; border-top: 1px dashed rgba(255,255,255,0.1);">
+                            <strong style="font-size:0.85em; color:#94a3b8;">Keputusan Anda (HitL):</strong><br>
+                            <label style="margin-right:15px; cursor:pointer;"><input type="radio" name="ftfd_${pid}" value="INCLUDE"> <span style="color:#4ade80;font-weight:bold;">INCLUDE</span></label>
+                            <label style="cursor:pointer;"><input type="radio" name="ftfd_${pid}" value="EXCLUDE"> <span style="color:#fca5a5;font-weight:bold;">EXCLUDE</span></label>
+                            <textarea class="ft-notes" rows="2" placeholder="Catatan resolusi..." style="width:100%;margin-top:8px;background:#222;color:#fff;border:1px solid #555;border-radius:4px;padding:8px;font-family:inherit;"></textarea>
+                        </div>
                     </div>`;
                 });
                 cont.innerHTML = formHtml;

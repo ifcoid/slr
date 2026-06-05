@@ -1908,7 +1908,13 @@ export function renderApprovalContent(area, session, handleApproval) {
                         <div class="step-number">3</div>
                         <div class="step-content">
                             <h4 class="step-title">Jalankan Ekstraksi AI</h4>
-                            <p class="step-desc">Buka Jupyter Notebook <span class="step-highlight">PEDE</span> di Google Colab. Sambungkan dengan Google Drive dan jalankan proses pengubahan PDF menjadi <em>Vector Embeddings</em>.</p>
+                            <p class="step-desc">Buka Notebook <span class="step-highlight">PEDE</span> di Google Colab, sambungkan ke Google Drive (folder PDF), lalu <strong>Run all</strong> untuk mengubah PDF → <em>Vector Embeddings</em> → Qdrant.</p>
+                            <a href="https://colab.research.google.com/github/ifcoid/pede/blob/main/notebooks/pede_colab.ipynb" target="_blank" rel="noopener"
+                               style="display:inline-block;margin-top:6px;background:#f9ab00;color:#1a1a1a;font-weight:bold;padding:7px 13px;border-radius:6px;text-decoration:none;font-size:0.85rem;">
+                                ▶ Buka Notebook PEDE di Google Colab
+                            </a>
+                            <a href="https://raw.githubusercontent.com/ifcoid/pede/main/notebooks/pede_colab.ipynb" target="_blank" rel="noopener"
+                               style="margin-left:10px;color:#94a3b8;font-size:0.8rem;">unduh .ipynb</a>
                         </div>
                     </div>
                     <div class="step-item">

@@ -3,6 +3,7 @@ import { initSetup } from './components/setup.js';
 import { initAuth } from './components/auth.js';
 import { initSession } from './components/session.js';
 import { startTracking } from './components/tracker.js';
+import { initHealthDashboard } from './components/health.js';
 import { toggleHidden, openModal } from './ui.js';
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -11,6 +12,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 1. Initialize API Base URL and LLM Config Setup logic
     initSetup();
+    
+    // Initialize Health Dashboard
+    initHealthDashboard();
 
     const btnSettings = document.getElementById('btn-settings');
     if (!localStorage.getItem('apiBaseURL')) {

@@ -131,5 +131,12 @@ export const API = {
     updateGitHubConfig: (cfg) => apiFetch('/github/config', {
         method: 'PUT',
         body: JSON.stringify(cfg)
+    }),
+
+    getEmbedConfig: () => apiFetch('/embed/config'),
+
+    updateEmbedConfig: (cfg) => apiFetch('/embed/config', {
+        method: 'PUT',
+        body: JSON.stringify(cfg)
     })
 };

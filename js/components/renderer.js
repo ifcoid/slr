@@ -1218,6 +1218,29 @@ export function renderApprovalContent(area, session, handleApproval) {
             }
         }, 0);
 
+    } else if (status === 'M6_STEP2_WAITING_EMBED') {
+        const reason = session.embed_error || 'Endpoint embedding (BGE-M3) tidak aktif.';
+        html = wrapCard('⏸️ Screening Dijeda — Endpoint Embedding Mati (Modul 6 L2)', `
+            <div style="background: rgba(239,68,68,0.08); padding: 14px; border-radius:6px; border-left:3px solid #ef4444;">
+                <p style="margin:0 0 6px;color:#fca5a5;"><strong>Penyebab:</strong> ${reason}</p>
+                <p style="margin:0;font-size:0.88em;color:#cbd5e1;">Screening <strong>tidak</strong> dilanjutkan tanpa embedding (top-k semantik) agar kualitas tetap terjaga — bukan diam-diam degrade.</p>
+            </div>
+            <ol style="font-size:0.88em;color:#cbd5e1;margin-top:12px;padding-left:18px;">
+                <li>Buka & <strong>Run all</strong> notebook Colab <code>embed_server_colab.ipynb</code> (Runtime GPU).</li>
+                <li>Salin <code>EMBED_ENDPOINT</code>, <code>EMBED_API_KEY</code> dari output sel terakhir.</li>
+                <li>Tempel di bawah → <strong>Simpan Endpoint & Lanjut</strong>.</li>
+            </ol>
+            <div style="display:grid;gap:8px;margin-top:8px;max-width:560px;">
+                <input id="embed-endpoint" class="input" placeholder="EMBED_ENDPOINT (mis. https://xxxx.trycloudflare.com/v1)" style="padding:8px;border-radius:6px;width:100%;" />
+                <input id="embed-key" class="input" placeholder="EMBED_API_KEY (kosongkan = pertahankan yang lama)" style="padding:8px;border-radius:6px;width:100%;" />
+                <input id="embed-model" class="input" placeholder="EMBED_MODEL (default BAAI/bge-m3)" style="padding:8px;border-radius:6px;width:100%;" />
+                <span id="embed-msg" style="font-size:0.82em;color:#94a3b8;"></span>
+            </div>
+            <p style="font-size:0.8em;color:#94a3b8;margin-top:10px;">
+                <em>Catatan Colab: endpoint dipakai sebentar saja di <strong>awal tiap batch</strong>. Sesi Colab gratis putus ~90 menit idle / maks ~12 jam — jaga tetap hidup saat screening, atau restart lalu masukkan endpoint baru saat dijeda lagi.</em>
+            </p>
+        `);
+
     } else if (status === 'M6_STEP3_WAITING_APPROVAL') {
         const summaryMd = (session.modul6_summary && session.modul6_summary.markdown) || 'Menunggu data...';
         const inacc = (session.inaccessible_impact && session.inaccessible_impact.markdown) || '';
@@ -1454,6 +1477,12 @@ export function renderApprovalContent(area, session, handleApproval) {
         if (status === 'M5_STEP4_WAITING_APPROVAL') {
             extraBtn = `<button id="btn-m5-retry-step4" class="btn btn-warning" style="margin-right: 0.5rem;">Ulangi Pembuatan Rangkuman (Retry LLM)</button>`;
         }
+
+        if (status === 'M6_STEP2_WAITING_EMBED') {
+            isDanger = true;
+            isHalted = true; // sembunyikan "Setuju & Lanjut" generik; pakai tombol simpan-endpoint
+            extraBtn = `<button id="btn-embed-save" class="btn btn-success">💾 Simpan Endpoint & Lanjut</button>`;
+        }
         
         if (status === 'M5_STEP3_WAITING_RESOLUTION') {
             isDanger = true;
@@ -1484,6 +1513,29 @@ export function renderApprovalContent(area, session, handleApproval) {
             const btnApprove = document.getElementById('btn-generic-approve');
             if (btnApprove) {
                 btnApprove.addEventListener('click', () => handleApproval({}));
+            }
+
+            const btnEmbedSave = document.getElementById('btn-embed-save');
+            if (btnEmbedSave) {
+                btnEmbedSave.addEventListener('click', async () => {
+                    const endpoint = (document.getElementById('embed-endpoint')?.value || '').trim();
+                    const apiKey = (document.getElementById('embed-key')?.value || '').trim();
+                    const model = (document.getElementById('embed-model')?.value || '').trim();
+                    const msg = document.getElementById('embed-msg');
+                    if (!endpoint) {
+                        if (msg) { msg.style.color = '#fca5a5'; msg.textContent = 'EMBED_ENDPOINT wajib diisi.'; }
+                        return;
+                    }
+                    btnEmbedSave.disabled = true;
+                    if (msg) { msg.style.color = '#94a3b8'; msg.textContent = 'Menyimpan endpoint & melanjutkan screening...'; }
+                    try {
+                        await API.updateEmbedConfig({ endpoint, api_key: apiKey, model });
+                        await handleApproval({}); // resume: WAITING_EMBED -> FULLTEXT_SCREENING + jalankan
+                    } catch (e) {
+                        btnEmbedSave.disabled = false;
+                        if (msg) { msg.style.color = '#ef4444'; msg.textContent = 'Gagal: ' + e.message; }
+                    }
+                });
             }
             
             const btnM5Approve = document.getElementById('btn-m5-approve');

@@ -138,5 +138,7 @@ export const API = {
     updateEmbedConfig: (cfg) => apiFetch('/embed/config', {
         method: 'PUT',
         body: JSON.stringify(cfg)
-    })
+    }),
+
+    checkLLMHealth: () => apiFetch('/llm/health')
 };

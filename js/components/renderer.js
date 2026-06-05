@@ -1225,8 +1225,16 @@ export function renderApprovalContent(area, session, handleApproval) {
                 <p style="margin:0 0 6px;color:#fca5a5;"><strong>Penyebab:</strong> ${reason}</p>
                 <p style="margin:0;font-size:0.88em;color:#cbd5e1;">Screening <strong>tidak</strong> dilanjutkan tanpa embedding (top-k semantik) agar kualitas tetap terjaga — bukan diam-diam degrade.</p>
             </div>
+            <div style="margin-top:12px;">
+                <a href="https://colab.research.google.com/github/ifcoid/pede/blob/main/notebooks/embed_server_colab.ipynb" target="_blank" rel="noopener"
+                   style="display:inline-block;background:#f9ab00;color:#1a1a1a;font-weight:bold;padding:8px 14px;border-radius:6px;text-decoration:none;">
+                    ▶ Buka Notebook di Google Colab
+                </a>
+                <a href="https://raw.githubusercontent.com/ifcoid/pede/main/notebooks/embed_server_colab.ipynb" target="_blank" rel="noopener"
+                   style="margin-left:10px;color:#94a3b8;font-size:0.85em;">unduh .ipynb</a>
+            </div>
             <ol style="font-size:0.88em;color:#cbd5e1;margin-top:12px;padding-left:18px;">
-                <li>Buka & <strong>Run all</strong> notebook Colab <code>embed_server_colab.ipynb</code> (Runtime GPU).</li>
+                <li>Klik tombol di atas (bisa di <strong>Chrome Android</strong> juga) → Runtime GPU → <strong>Run all</strong>.</li>
                 <li>Salin <code>EMBED_ENDPOINT</code>, <code>EMBED_API_KEY</code> dari output sel terakhir.</li>
                 <li>Tempel di bawah → <strong>Simpan Endpoint & Lanjut</strong>.</li>
             </ol>

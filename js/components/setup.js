@@ -24,6 +24,38 @@ export function initSetup() {
         });
     }
 
+    // Provider-specific base URL defaults
+    const PROVIDER_BASE_URLS = {
+        'rprompt':    'https://rprompt.ll.my.id/v1',
+        'openrouter': 'https://openrouter.ai/api/v1',
+        'xiaomi':     'https://token-plan-sgp.xiaomimimo.com/v1',
+    };
+    // Provider yang field base URL-nya wajib/berguna ditampilkan
+    const PROVIDERS_WITH_BASE_URL = new Set(Object.keys(PROVIDER_BASE_URLS));
+
+    const selectProviderEl = document.getElementById('select-provider');
+    const groupBaseUrl = document.getElementById('group-base-url');
+    const llmBaseUrlInput = document.getElementById('llm-base-url');
+
+    const updateBaseUrlVisibility = () => {
+        const prov = selectProviderEl ? selectProviderEl.value : '';
+        if (!groupBaseUrl) return;
+        if (PROVIDERS_WITH_BASE_URL.has(prov)) {
+            groupBaseUrl.classList.remove('hidden');
+            if (llmBaseUrlInput && !llmBaseUrlInput.value) {
+                llmBaseUrlInput.value = PROVIDER_BASE_URLS[prov] || '';
+            }
+        } else {
+            groupBaseUrl.classList.add('hidden');
+            if (llmBaseUrlInput) llmBaseUrlInput.value = '';
+        }
+    };
+
+    if (selectProviderEl) {
+        selectProviderEl.addEventListener('change', updateBaseUrlVisibility);
+        updateBaseUrlVisibility(); // set initial state
+    }
+
     // ===== Model Routing (peran -> provider) =====
     const ROLE_IDS = ['reviewer1', 'reviewer1_fallback', 'reviewer2', 'reviewer2_fallback', 'supervisor', 'supervisor_fallback', 'brain', 'brain_fallback'];
     const PROVIDERS = ['gemini', 'groq', 'zhipu', 'claude', 'openrouter', 'cohere', 'xiaomi', 'rprompt'];
@@ -129,7 +161,6 @@ export function initSetup() {
         btnFetchModels.addEventListener('click', async () => {
             const provider = document.getElementById('select-provider').value;
             const apiKey = document.getElementById('input-api-key').value;
-            const llmBaseUrlInput = document.getElementById('llm-base-url');
             const baseUrl = llmBaseUrlInput ? llmBaseUrlInput.value : '';
 
             if (!apiKey && provider !== 'claude') {

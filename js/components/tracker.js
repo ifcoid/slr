@@ -173,7 +173,7 @@ async function fetchSessionStatus() {
   }
 }</div>
                     <strong style="font-size: 0.85em; color: #cbd5e1;">2. Setelah di-Save, gunakan Prompt berikut di chat:</strong>
-                    <div style="background: #0f172a; padding: 8px; border-radius: 4px; font-family: monospace; font-size: 0.8em; color: #fde047; white-space: pre-wrap;">"Gunakan MCP tool dari nsa-supervisor. Ambil session_id disertasi saya dari URL saat ini, panggil 'get_screener_briefing', lalu panggil 'get_pending_disagreements'. Berikan tabel perbandingannya, dan jika setuju, panggil 'submit_supervisor_resolution'."</div>
+                    <div style="background: #0f172a; padding: 8px; border-radius: 4px; font-family: monospace; font-size: 0.8em; color: #fde047; white-space: pre-wrap;">"Tolong cek daftar MCP tools yang kamu miliki sekarang, seharusnya ada tool berawalan 'mcp_nsa_supervisor'. Jika ada, gunakan tool tersebut. Panggil 'get_screener_briefing' dengan session_id '${session.id || currentSessionId}', lalu panggil 'get_pending_disagreements' dengan session_id yang sama. Berikan tabel perbandingannya, dan tunggu persetujuan saya sebelum memanggil 'submit_supervisor_resolution'."</div>
                 </div>
             `;
             toggleHidden('interactive-area', true);

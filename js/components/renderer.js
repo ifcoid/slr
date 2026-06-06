@@ -1377,6 +1377,20 @@ export function renderApprovalContent(area, session, handleApproval) {
                     <div><strong style="color:#fff;">Feasibility:</strong> ${q.layer_feasibility || '-'}</div>
                 </div>
             </details>
+
+            ${q.kappa_details ? `
+            <details style="margin-bottom:15px; background: rgba(255,255,255,0.02); padding: 8px 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.05);">
+                <summary style="cursor:pointer; color:#fca5a5; font-weight: 500;">xAI: Transparansi Dual-Rater Kappa</summary>
+                <div style="font-size:0.85em; margin-top:10px; color:#cbd5e1; display:flex; flex-direction:column; gap:8px;">
+                    <div><strong style="color:#fff;">Total Pasangan Dinilai (Valid):</strong> ${q.kappa_details.total_rated} paper <span style="color:#94a3b8;">(Jika 0, rater ke-2 gagal merespons atau belum aktif)</span></div>
+                    <div><strong style="color:#fff;">Keduanya Sepakat Lolos (HIGH/MODERATE):</strong> ${q.kappa_details.both_pass} paper</div>
+                    <div><strong style="color:#fff;">Keduanya Sepakat Gagal (LOW):</strong> ${q.kappa_details.both_fail} paper</div>
+                    <div><strong style="color:#fff;">Hanya Rater 1 yang Meloloskan:</strong> ${q.kappa_details.r1_pass_r2_fail} paper</div>
+                    <div><strong style="color:#fff;">Hanya Rater 2 yang Meloloskan:</strong> ${q.kappa_details.r1_fail_r2_pass} paper</div>
+                    ${q.kappa_details.total_rated > 0 && q.kappa === 0 ? `<div style="margin-top: 8px; font-style: italic; color: #fbbf24;">* ⚠️ Jika Kappa bernilai 0.000 padahal Total Valid > 0, itu terjadi karena fenomena matematis "Cohen's Kappa Paradox" di mana probabilitas kesepakatan homogen sama persis dengan probabilitas tebakan acak. Kesepakatan aktual tetap berlaku.</div>` : ''}
+                </div>
+            </details>
+            ` : ''}
             
             ${sens ? `<div class="sensitivity-table-wrapper" style="margin-top:15px; font-size:0.88em; background: rgba(0,0,0,0.2); padding: 12px; border-radius: 8px;">${formatMarkdown(sens).replace(/Verdict:\s*(SENSITIVE|ROBUST)/i, (m, v) => {
                 const color = v.toUpperCase() === 'SENSITIVE' ? '#fbbf24' : '#4ade80';

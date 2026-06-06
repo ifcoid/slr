@@ -4,7 +4,8 @@ import { initAuth } from './components/auth.js';
 import { initSession } from './components/session.js';
 import { startTracking } from './components/tracker.js';
 import { initHealthDashboard } from './components/health.js';
-import { toggleHidden, openModal } from './ui.js';
+import { toggleHidden, openModal, showToast } from './ui.js';
+import { API } from './api.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     // 0. Init Auth
@@ -74,7 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
 window.showExtractionModal = async function() {
     const sessionId = localStorage.getItem('activeSessionId');
     if (!sessionId) {
-        window.showToast('Error: No active session', 'error');
+        showToast('Error: No active session', 'error');
         return;
     }
 
@@ -84,7 +85,7 @@ window.showExtractionModal = async function() {
     modal.style.display = 'block';
 
     try {
-        const res = await window.API.getExtractions(sessionId);
+        const res = await API.getExtractions(sessionId);
         if (!res.extractions || res.extractions.length === 0) {
             container.innerHTML = '<p style="text-align:center; padding:20px;">Belum ada data ekstraksi.</p>';
             return;

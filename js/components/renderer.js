@@ -1310,12 +1310,14 @@ export function renderApprovalContent(area, session, handleApproval) {
         const l = session.extraction_log || {};
         const rate = (l.disagreement_rate || 0).toFixed(1);
         const rateColor = (l.disagreement_rate || 0) > 15 ? '#ef4444' : ((l.disagreement_rate || 0) >= 5 ? '#eab308' : '#4ade80');
-        html = wrapCard('Modul 7 L2 — Hasil Ekstraksi (RAG)', `
-            <p><strong>Total diekstrak:</strong> ${l.total_extracted || 0} paper (collection <code>slr_extraction</code>)</p>
-            <p><strong>Spot-verification (20%):</strong> ${l.verified_sample || 0} dicek | disagreement <span style="color:${rateColor};font-weight:bold;">${rate}%</span></p>
-            <p><strong>Field ambiguous:</strong> ${l.ambiguous_count || 0}</p>
+        html = wrapCard('Modul 7 L2 — Hasil Ekstraksi Data (Full-Text)', `
+            <p><strong>Total paper diekstrak:</strong> ${l.total_extracted || 0}</p>
+            <p><strong>Spot-verification:</strong> ${l.verified_sample || 0} dicek (mencakup sampel acak 20% + seluruh paper ambigu) | Disagreement: <span style="color:${rateColor};font-weight:bold;">${rate}%</span></p>
+            <p><strong>Kolom Ambigu:</strong> Ditemukan ${l.ambiguous_count || 0} kolom data yang ambigu lintas paper.</p>
             <p style="font-size:0.85em;color:#94a3b8;">${l.nr_note || ''}</p>
-            <p style="font-size:0.85em;color:#94a3b8;"><em>Periksa data per paper di collection <code>slr_extraction</code> (MongoDB).</em></p>
+            <div style="margin-top: 15px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 6px; text-align: center;">
+                <p style="margin: 0; font-size: 0.85em; color:#cbd5e1;"><em>(Fitur Tabel Viewer sedang dikembangkan. Sementara ini, mohon tinjau raw data di <code>slr_extraction</code> sebelum menyetujui)</em></p>
+            </div>
         `);
 
     } else if (status === 'M7_STEP3_WAITING_APPROVAL' && session.qa_threshold_justification) {

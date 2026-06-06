@@ -32,7 +32,6 @@ export function initSetup() {
         'rprompt3':   'https://rprompt.ll.my.id/v1',
         'openrouter': 'https://openrouter.ai/api/v1',
         'xiaomi':     'https://token-plan-sgp.xiaomimimo.com/v1',
-        'kiro':       'https://rprompt.ll.my.id/v1',
     };
     // Provider yang field base URL-nya wajib/berguna ditampilkan
     const PROVIDERS_WITH_BASE_URL = new Set(Object.keys(PROVIDER_BASE_URLS));
@@ -62,7 +61,7 @@ export function initSetup() {
 
     // ===== Model Routing (peran -> provider) =====
     const ROLE_IDS = ['reviewer1', 'reviewer1_fallback', 'reviewer2', 'reviewer2_fallback', 'supervisor', 'supervisor_fallback', 'brain', 'brain_fallback'];
-    const PROVIDERS = ['gemini', 'groq', 'zhipu', 'claude', 'openrouter', 'cohere', 'xiaomi', 'rprompt1', 'rprompt2', 'rprompt3', 'kiro'];
+    const PROVIDERS = ['gemini', 'groq', 'zhipu', 'claude', 'openrouter', 'cohere', 'xiaomi', 'rprompt1', 'rprompt2', 'rprompt3'];
     let roleSelectsPopulated = false;
 
     const populateRoleSelects = () => {

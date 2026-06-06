@@ -1523,6 +1523,10 @@ export function renderApprovalContent(area, session, handleApproval) {
             isHalted = true; // sembunyikan "Setuju & Lanjut" generik; pakai tombol simpan-endpoint
             extraBtn = `<button id="btn-embed-save" class="btn btn-success">💾 Simpan Endpoint & Lanjut</button>`;
         }
+
+        if (status === 'M7_STEP2_WAITING_APPROVAL') {
+            extraBtn = `<button id="btn-m7-revise" class="btn btn-warning" style="margin-right: 0.5rem;">⚠️ Refine Protocol & Ekstrak Ulang (Revisi)</button>`;
+        }
         
         if (status === 'M5_STEP3_WAITING_RESOLUTION') {
             isDanger = true;
@@ -1615,6 +1619,25 @@ export function renderApprovalContent(area, session, handleApproval) {
                     } else {
                         // Jika tidak ada form (semua sudah disepakati)
                         handleApproval({});
+                    }
+                });
+            }
+
+            const btnM7Revise = document.getElementById('btn-m7-revise');
+            if (btnM7Revise) {
+                btnM7Revise.addEventListener('click', async () => {
+                    const reason = prompt("Masukkan detail keluhan instruksi Anda agar AI bisa merevisi Protokol Ekstraksi secara lebih akurat:", "Banyak data yang salah tangkap. Mohon perjelas protokol ekstraksi dan ulangi proses.");
+                    if (reason !== null) {
+                        try {
+                            btnM7Revise.disabled = true;
+                            btnM7Revise.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Memproses...';
+                            await API.reviseStep(session.id, reason, "M7_STEP1_NEEDS_REVISION");
+                            window.location.reload();
+                        } catch (err) {
+                            alert("Gagal revisi: " + err.message);
+                            btnM7Revise.disabled = false;
+                            btnM7Revise.textContent = '⚠️ Refine Protocol & Ekstrak Ulang (Revisi)';
+                        }
                     }
                 });
             }

@@ -163,8 +163,8 @@ async function fetchSessionStatus() {
 
                 <div style="margin-top: 20px; padding: 15px; background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 8px;">
                     <h5 style="margin-top: 0; color: #60a5fa; margin-bottom: 10px;">💡 Alternatif: Selesaikan via MCP (AI Agent Eksternal)</h5>
-                    <p style="font-size: 0.85em; margin-bottom: 10px; color: #cbd5e1;">Jika API terus error/penuh, Anda bisa menggunakan AI Agent eksternal (Cursor/Claude Desktop/dll) untuk menyelesaikan konflik ini secara pasif. <br/>URL Server MCP: <code>https://apk.fly.dev/api/mcp/sse</code></p>
-                    <div style="background: #0f172a; padding: 8px; border-radius: 4px; font-family: monospace; font-size: 0.8em; color: #fde047; white-space: pre-wrap;">"Tolong koneksikan dirimu ke MCP Server di atas. Ambil session_id disertasi saya dari URL saat ini, panggil 'get_screener_briefing', lalu panggil 'get_pending_disagreements'. Berikan saya tabel perbandingannya, dan jika setuju, panggil 'submit_supervisor_resolution' untuk menyelesaikan errornya."</div>
+                    <p style="font-size: 0.85em; margin-bottom: 10px; color: #cbd5e1;">Jika API terus error/penuh, Anda bisa menggunakan AI Agent eksternal (yang mendukung Model Context Protocol) untuk menyelesaikan konflik ini secara pasif.</p>
+                    <div style="background: #0f172a; padding: 8px; border-radius: 4px; font-family: monospace; font-size: 0.8em; color: #fde047; white-space: pre-wrap;">"Tolong koneksikan dirimu ke MCP Server di URL: https://apk.fly.dev/api/mcp/sse. Ambil session_id disertasi saya dari URL saat ini, panggil 'get_screener_briefing', lalu panggil 'get_pending_disagreements'. Berikan saya tabel perbandingannya, dan jika setuju, panggil 'submit_supervisor_resolution' untuk menyelesaikan errornya."</div>
                 </div>
             `;
             toggleHidden('interactive-area', true);

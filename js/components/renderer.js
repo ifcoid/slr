@@ -1345,17 +1345,44 @@ export function renderApprovalContent(area, session, handleApproval) {
         const q = session.qa_threshold_justification;
         const sens = (session.sensitivity_analysis && session.sensitivity_analysis.markdown) || '';
         html = wrapCard('Modul 7 L3 — Quality Appraisal & Sensitivity', `
-            <p><strong>Tool:</strong> ${q.tool} | <strong>Threshold:</strong> ${q.threshold}% | <strong>Dual-rater κ:</strong> <span style="color:${q.kappa >= 0.6 ? '#4ade80' : '#fca5a5'};font-weight:bold;">${(q.kappa || 0).toFixed(3)}</span></p>
-            <p style="font-size:0.88em;color:#cbd5e1;">${q.tool_justification || ''}</p>
-            <p style="font-size:0.85em;color:#94a3b8;"><strong>Kategorisasi:</strong> ${q.categorization || ''}</p>
-            <details style="margin-top:8px;"><summary style="cursor:pointer;color:#93c5fd;">Justifikasi threshold 3-lapis</summary>
-                <div style="font-size:0.85em;margin-top:6px;color:#cbd5e1;">
-                    <p><strong>Literatur:</strong> ${q.layer_literature || '-'}</p>
-                    <p><strong>Developer tool:</strong> ${q.layer_developer || '-'}</p>
-                    <p><strong>Feasibility:</strong> ${q.layer_feasibility || '-'}</p>
+            <div style="display:flex; gap:12px; margin-bottom:15px; flex-wrap:wrap;">
+                <div style="background: rgba(255,255,255,0.05); padding: 8px 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1);">
+                    <div style="font-size: 0.75em; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em;">Appraisal Tool</div>
+                    <div style="font-size: 1.1em; font-weight: bold; color: #fff;">${q.tool}</div>
+                </div>
+                <div style="background: rgba(255,255,255,0.05); padding: 8px 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1);">
+                    <div style="font-size: 0.75em; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em;">Threshold</div>
+                    <div style="font-size: 1.1em; font-weight: bold; color: #38bdf8;">${q.threshold}%</div>
+                </div>
+                <div style="background: rgba(255,255,255,0.05); padding: 8px 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1);" title="Jika 0.000, kemungkinan belum cukup sampel untuk cross-check, atau rater kedua belum selesai.">
+                    <div style="font-size: 0.75em; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 4px;">Dual-rater κ <span style="cursor:help; font-size: 1.2em;">ℹ️</span></div>
+                    <div style="font-size: 1.1em; font-weight: bold; color: ${q.kappa >= 0.6 ? '#4ade80' : '#fca5a5'};">${(q.kappa || 0).toFixed(3)}</div>
+                </div>
+            </div>
+
+            <div style="font-size:0.88em; color:#cbd5e1; line-height: 1.6; background: rgba(0,0,0,0.15); padding: 12px; border-left: 3px solid #38bdf8; border-radius: 4px; margin-bottom: 12px;">
+                ${(q.tool_justification || '').replace(/\n/g, '<br>')}
+            </div>
+
+            <div style="font-size:0.85em; color:#94a3b8; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                <strong>Kategorisasi:</strong>
+                <span style="background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 12px; color: #cbd5e1;">${q.categorization || ''}</span>
+            </div>
+
+            <details style="margin-bottom:15px; background: rgba(255,255,255,0.02); padding: 8px 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.05);">
+                <summary style="cursor:pointer; color:#93c5fd; font-weight: 500;">Justifikasi threshold 3-lapis</summary>
+                <div style="font-size:0.85em; margin-top:10px; color:#cbd5e1; display:flex; flex-direction:column; gap:8px;">
+                    <div><strong style="color:#fff;">Literatur:</strong> ${q.layer_literature || '-'}</div>
+                    <div><strong style="color:#fff;">Developer tool:</strong> ${q.layer_developer || '-'}</div>
+                    <div><strong style="color:#fff;">Feasibility:</strong> ${q.layer_feasibility || '-'}</div>
                 </div>
             </details>
-            ${sens ? `<div style="margin-top:10px;font-size:0.88em;">${formatMarkdown(sens)}</div>` : ''}
+            
+            ${sens ? `<div class="sensitivity-table-wrapper" style="margin-top:15px; font-size:0.88em; background: rgba(0,0,0,0.2); padding: 12px; border-radius: 8px;">${formatMarkdown(sens).replace(/Verdict:\s*(SENSITIVE|ROBUST)/i, (m, v) => {
+                const color = v.toUpperCase() === 'SENSITIVE' ? '#fbbf24' : '#4ade80';
+                const bg = v.toUpperCase() === 'SENSITIVE' ? 'rgba(251,191,36,0.1)' : 'rgba(74,222,128,0.1)';
+                return `Verdict: <span style="background:${bg}; color:${color}; padding: 4px 10px; border-radius: 12px; font-weight: bold; margin-left: 6px; display: inline-block;">${v.toUpperCase()}</span>`;
+            })}</div>` : ''}
         `);
 
     } else if (status === 'M7_STEP4_WAITING_APPROVAL') {

@@ -1310,7 +1310,27 @@ export function renderApprovalContent(area, session, handleApproval) {
         const l = session.extraction_log || {};
         const rate = (l.disagreement_rate || 0).toFixed(1);
         const rateColor = (l.disagreement_rate || 0) > 15 ? '#ef4444' : ((l.disagreement_rate || 0) >= 5 ? '#eab308' : '#4ade80');
+        let fwHtml = '';
+        if (session.framework_selection) {
+            let fwRows = '';
+            (session.framework_selection.columns || []).forEach((c) => {
+                fwRows += `<tr><td style="padding:6px;border-bottom:1px solid rgba(255,255,255,0.05);"><strong>${c.key}</strong></td><td style="padding:6px;border-bottom:1px solid rgba(255,255,255,0.05);color:#93c5fd;">${c.category || ''}</td><td style="padding:6px;border-bottom:1px solid rgba(255,255,255,0.05);color:#cbd5e1;">${c.desc || ''}</td></tr>`;
+            });
+            fwHtml = `
+            <details style="margin-bottom:15px; background:rgba(0,0,0,0.2); padding:10px; border-radius:8px;">
+                <summary style="cursor:pointer; color:#6ee7b7; font-weight:bold;">📋 Lihat Protokol Ekstraksi Saat Ini</summary>
+                <div style="margin-top:10px; font-size:0.9em;">
+                    <p><strong>Framework:</strong> ${session.framework_selection.framework}</p>
+                    <table style="width:100%;border-collapse:collapse;font-size:0.85em;margin-top:8px;">
+                        <tr><th style="text-align:left;padding:6px;color:#9ca3af;">Kolom</th><th style="text-align:left;padding:6px;color:#9ca3af;">Kat.</th><th style="text-align:left;padding:6px;color:#9ca3af;">Deskripsi</th></tr>
+                        ${fwRows}
+                    </table>
+                </div>
+            </details>`;
+        }
+
         html = wrapCard('Modul 7 L2 — Hasil Ekstraksi Data (Full-Text)', `
+            ${fwHtml}
             <p><strong>Total Paper:</strong> ${l.total_extracted || 0} paper berhasil dibaca dan diekstrak datanya oleh AI (Reviewer 1).</p>
             <p><strong>Pengecekan Kualitas (Cross-check):</strong> AI kedua (Reviewer 2) telah mengambil sampel acak ${l.verified_sample || 0} paper untuk diperiksa ulang. <br>
             <strong>Tingkat Perbedaan Pemahaman:</strong> <a href="#" onclick="window.showExtractionModal(true); return false;" style="color:${rateColor};font-weight:bold;text-decoration:underline;cursor:pointer;" title="Klik untuk memfilter dan HANYA melihat paper yang rancu/kuning di Tabel Ekstraksi">${rate}%</a></p>

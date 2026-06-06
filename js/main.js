@@ -142,7 +142,7 @@ window.showExtractionModal = async function(filterAmbiguous = false) {
                     // Cek ambiguitas
                     let isAmbiguous = false;
                     if (ext.ambiguous && Array.isArray(ext.ambiguous)) {
-                        isAmbiguous = ext.ambiguous.some(amb => amb.key === k);
+                        isAmbiguous = ext.ambiguous.includes(k);
                     }
                     if (isAmbiguous) style = 'color:#fcd34d;font-weight:bold;';
                     

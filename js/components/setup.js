@@ -32,7 +32,7 @@ export function initSetup() {
         'rprompt3':   'https://rprompt.ll.my.id/v1',
         'openrouter': 'https://openrouter.ai/api/v1',
         'xiaomi':     'https://token-plan-sgp.xiaomimimo.com/v1',
-        'kiro':       'https://api.kiro.ai/v1',
+        'kiro':       'https://rprompt.ll.my.id/v1',
     };
     // Provider yang field base URL-nya wajib/berguna ditampilkan
     const PROVIDERS_WITH_BASE_URL = new Set(Object.keys(PROVIDER_BASE_URLS));

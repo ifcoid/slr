@@ -1311,9 +1311,10 @@ export function renderApprovalContent(area, session, handleApproval) {
         const rate = (l.disagreement_rate || 0).toFixed(1);
         const rateColor = (l.disagreement_rate || 0) > 15 ? '#ef4444' : ((l.disagreement_rate || 0) >= 5 ? '#eab308' : '#4ade80');
         html = wrapCard('Modul 7 L2 — Hasil Ekstraksi Data (Full-Text)', `
-            <p><strong>Total paper diekstrak:</strong> ${l.total_extracted || 0}</p>
-            <p><strong>Spot-verification:</strong> ${l.verified_sample || 0} dicek (mencakup sampel acak 20% + seluruh paper ambigu) | Disagreement: <span style="color:${rateColor};font-weight:bold;">${rate}%</span></p>
-            <p><strong>Kolom Ambigu:</strong> Ditemukan ${l.ambiguous_count || 0} kolom data yang ambigu lintas paper.</p>
+            <p><strong>Total Paper:</strong> ${l.total_extracted || 0} paper berhasil dibaca dan diekstrak datanya oleh AI (Reviewer 1).</p>
+            <p><strong>Pengecekan Kualitas (Cross-check):</strong> AI kedua (Reviewer 2) telah mengambil sampel acak ${l.verified_sample || 0} paper untuk diperiksa ulang. <br>
+            <strong>Tingkat Perbedaan Pemahaman:</strong> <span style="color:${rateColor};font-weight:bold;">${rate}%</span></p>
+            <p><strong>Temuan Kerancuan:</strong> Ada ${l.ambiguous_count || 0} isian data yang ditandai masih membingungkan atau ambigu lintas paper.</p>
             <p style="font-size:0.85em;color:#94a3b8;">${l.nr_note || ''}</p>
             <div style="margin-top: 15px; text-align: center;">
                 <button class="btn btn-secondary" onclick="window.showExtractionModal()" style="width:100%;">📊 Lihat Tabel Ekstraksi</button>

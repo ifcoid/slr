@@ -284,6 +284,7 @@ window.runAutoResolve = async function(extId, fieldKey) {
     } catch(e) {
         showToast(`Auto-Resolve gagal: ${e.message}`, 'error');
         loader.classList.add('hidden');
+        throw e; // Added to propagate error to runAutoResolveAll
     }
 };
 
@@ -299,18 +300,34 @@ window.runAutoResolveAll = async function() {
     
     let successCount = 0;
     let failCount = 0;
+    let currentIndex = 0;
+    const CONCURRENCY_LIMIT = 3; // Proses 3 field sekaligus agar lebih cepat namun tidak terkena rate-limit
     
-    for (let i = 0; i < tasks.length; i++) {
-        const t = tasks[i];
-        progress.innerText = `Memproses ${i + 1} dari ${tasks.length} field... (${t.fieldKey})`;
-        
-        try {
-            await window.runAutoResolve(t.extId, t.fieldKey);
-            successCount++;
-        } catch (e) {
-            failCount++;
+    const worker = async () => {
+        while (currentIndex < tasks.length) {
+            const index = currentIndex++;
+            const t = tasks[index];
+            
+            // Update progress (hanya perkiraan karena concurrent)
+            progress.innerText = `Memproses... (Selesai: ${successCount+failCount} dari ${tasks.length} field)`;
+            
+            try {
+                await window.runAutoResolve(t.extId, t.fieldKey);
+                successCount++;
+            } catch (e) {
+                failCount++;
+            }
+            
+            progress.innerText = `Memproses... (Selesai: ${successCount+failCount} dari ${tasks.length} field)`;
         }
+    };
+    
+    const workers = [];
+    for (let i = 0; i < CONCURRENCY_LIMIT; i++) {
+        workers.push(worker());
     }
+    
+    await Promise.all(workers);
     
     progress.innerText = `Selesai! ${successCount} berhasil di-resolve. ${failCount} gagal/masih ambigu (silakan gunakan resolusi manual).`;
     btn.innerHTML = '🤖 Selesai';

@@ -111,6 +111,24 @@ export function initHealthDashboard() {
             <div style="margin-top: 15px; font-size: 0.85em; color: #9ca3af;">
                 * Pengecekan dilakukan secara real-time ke masing-masing API Server.
             </div>
+
+            <!-- MCP GUIDE BOX -->
+            <div style="margin-top: 30px; padding: 20px; background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 8px;">
+                <h3 style="margin-top: 0; color: #60a5fa; font-size: 1.1em; margin-bottom: 15px;">🔌 Mode Pasif: Integrasi Kiro (MCP)</h3>
+                <p style="font-size: 0.9em; margin-bottom: 10px; color: #e2e8f0;">
+                    Jika semua API LLM di atas penuh/error (terutama saat *weekend*), Anda bisa menggunakan **Mode Pasif** dengan menghubungkan AI eksternal Anda (misal: Kiro atau Cursor) ke NSA.
+                </p>
+                <div style="margin-bottom: 15px;">
+                    <strong style="font-size: 0.85em; color: #cbd5e1;">1. Pengaturan Kiro/Cursor (SSE):</strong>
+                    <div style="background: #0f172a; padding: 10px; border-radius: 4px; font-family: monospace; font-size: 0.85em; margin-top: 5px; color: #a7f3d0; word-break: break-all;">
+                        URL MCP (SSE): https://apk.fly.dev/api/mcp/sse
+                    </div>
+                </div>
+                <div>
+                    <strong style="font-size: 0.85em; color: #cbd5e1;">2. Prompt (Copy-Paste ke Kiro):</strong>
+                    <div style="background: #0f172a; padding: 10px; border-radius: 4px; font-family: monospace; font-size: 0.85em; margin-top: 5px; color: #fde047; white-space: pre-wrap;">"Tolong koneksikan dirimu ke MCP Server di atas. Ambil session_id disertasi saya dari URL saat ini, panggil 'get_screener_briefing' untuk memahami aturannya, lalu panggil 'get_pending_disagreements'. Berikan saya tabel perbandingannya, dan jika saya setuju, panggil 'submit_supervisor_resolution' untuk menyelesaikan semua errornya."</div>
+                </div>
+            </div>
         `;
 
         healthResults.innerHTML = tableHtml;

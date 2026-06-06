@@ -104,6 +104,18 @@ export const API = {
     }),
 
     getExtractions: (id) => apiFetch(`/sessions/${id}/extractions`),
+
+    getAmbiguousExtractions: (id) => apiFetch(`/sessions/${id}/extractions/ambiguous`),
+    
+    resolveExtractionManual: (id, extId, fieldKey, resolvedValue) => apiFetch(`/sessions/${id}/extractions/${extId}/resolve`, {
+        method: 'PUT',
+        body: JSON.stringify({ field_key: fieldKey, resolved_value: resolvedValue })
+    }),
+
+    resolveExtractionAuto: (id, extId, fieldKey) => apiFetch(`/sessions/${id}/extractions/${extId}/auto-resolve`, {
+        method: 'POST',
+        body: JSON.stringify({ field_key: fieldKey })
+    }),
     
     // LLM Config API
     updateLLMConfig: (provider, apiKey, defaultModel, baseUrl = "") => apiFetch('/llm/config', {

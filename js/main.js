@@ -165,3 +165,160 @@ window.showExtractionModal = async function(filterAmbiguous = false) {
 window.closeExtractionModal = function() {
     closeModal('extraction-modal');
 };
+
+window.showAmbiguityResolutionModal = async function() {
+    const sessionId = localStorage.getItem('activeSessionId');
+    if (!sessionId) return;
+    
+    // Close extraction modal if open
+    document.getElementById('extraction-modal').classList.add('hidden');
+    
+    const container = document.getElementById('ambiguity-list-container');
+    container.innerHTML = '<p style="text-align:center; padding:20px;">Memuat data ambigu...</p>';
+    document.getElementById('ambiguity-resolution-modal').classList.remove('hidden');
+
+    try {
+        const res = await API.getAmbiguousExtractions(sessionId);
+        if (!res.extractions || res.extractions.length === 0) {
+            container.innerHTML = '<p style="text-align:center; padding:20px; color:#a3e635;">Hore! Tidak ada data yang ambigu.</p>';
+            return;
+        }
+
+        let html = `
+        <div style="margin-bottom: 20px; text-align: center;">
+            <button id="btn-auto-resolve-all" class="btn btn-primary" onclick="runAutoResolveAll()" style="font-size: 1.1em; padding: 10px 20px; background-color: #10b981; border-color: #059669; box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.2);">
+                🤖 Auto-Resolve Semua Ambigu
+            </button>
+            <p id="progress-auto-resolve-all" style="margin-top: 10px; color: #9ca3af; font-size: 0.9em;"></p>
+        </div>
+        <div id="ambiguity-cards-container">
+        `;
+        
+        window.currentAmbiguousTasks = [];
+
+        res.extractions.forEach(ext => {
+            if (!ext.ambiguous || ext.ambiguous.length === 0) return;
+            
+            ext.ambiguous.forEach(fieldKey => {
+                window.currentAmbiguousTasks.push({ extId: ext._id, fieldKey: fieldKey });
+                const f = (ext.fields || []).find(x => x.key === fieldKey);
+                const rawVal = f ? f.value : 'N/A';
+                const evidence = f ? f.evidence : 'N/A';
+                
+                html += `
+                <div class="card" style="padding: 15px; border-left: 4px solid #fcd34d; background: rgba(252, 211, 77, 0.05); margin-bottom: 10px;" id="card-${ext._id}-${fieldKey}">
+                    <h3 style="margin-top: 0; font-size: 1.1em; color: var(--text-primary);">${ext.Title}</h3>
+                    <div style="display: flex; gap: 20px; margin-bottom: 10px; font-size: 0.9em;">
+                        <div><strong style="color: #9ca3af;">Field:</strong> <span style="color: #fef08a;">${fieldKey}</span></div>
+                        <div style="flex: 1;"><strong style="color: #9ca3af;">Nilai LLM Awal:</strong> ${rawVal}</div>
+                    </div>
+                    <div style="font-size: 0.85em; color: #6b7280; margin-bottom: 15px; font-style: italic;">
+                        <strong>Evidence Terakhir:</strong> ${evidence}
+                    </div>
+                    
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <input type="text" id="input-${ext._id}-${fieldKey}" class="input-modern" style="flex: 1; padding: 8px;" placeholder="Ketik nilai yang benar secara manual di sini..." value="${rawVal !== '[NOT REPORTED]' && rawVal !== 'AMBIGUOUS' ? rawVal : ''}">
+                        
+                        <button class="btn btn-secondary" onclick="saveManualResolution('${ext._id}', '${fieldKey}')" style="border-color: #3b82f6; color: #60a5fa;">💾 Save (Manual)</button>
+                        <button class="btn btn-secondary" onclick="runAutoResolve('${ext._id}', '${fieldKey}')" style="border-color: #eab308; color: #fef08a;">🤖 Auto-Resolve (AI)</button>
+                    </div>
+                    <div id="loader-${ext._id}-${fieldKey}" class="hidden" style="margin-top: 10px; color: #9ca3af; font-size: 0.85em;">Sedang memproses dengan LLM...</div>
+                </div>`;
+            });
+        });
+        
+        html += `</div>`; // close ambiguity-cards-container
+        container.innerHTML = html;
+        
+        if (window.currentAmbiguousTasks.length === 0) {
+            document.getElementById('btn-auto-resolve-all').style.display = 'none';
+        }
+        
+    } catch (e) {
+        container.innerHTML = `<p style="text-align:center; padding:20px; color:#ef4444;">Gagal memuat data ambigu: ${e.message}</p>`;
+    }
+};
+
+window.saveManualResolution = async function(extId, fieldKey) {
+    const sessionId = localStorage.getItem('activeSessionId');
+    const inputEl = document.getElementById(`input-${extId}-${fieldKey}`);
+    const resolvedValue = inputEl.value.trim();
+    if (!resolvedValue) {
+        showToast('Nilai manual tidak boleh kosong', 'error');
+        return;
+    }
+    
+    try {
+        await API.resolveExtractionManual(sessionId, extId, fieldKey, resolvedValue);
+        showToast(`Field ${fieldKey} berhasil di-resolve!`, 'success');
+        document.getElementById(`card-${extId}-${fieldKey}`).style.display = 'none';
+    } catch(e) {
+        showToast(`Gagal menyimpan: ${e.message}`, 'error');
+    }
+};
+
+window.runAutoResolve = async function(extId, fieldKey) {
+    const sessionId = localStorage.getItem('activeSessionId');
+    const loader = document.getElementById(`loader-${extId}-${fieldKey}`);
+    const card = document.getElementById(`card-${extId}-${fieldKey}`);
+    
+    loader.classList.remove('hidden');
+    
+    try {
+        const res = await API.resolveExtractionAuto(sessionId, extId, fieldKey);
+        showToast(`Field ${fieldKey} auto-resolve berhasil!`, 'success');
+        
+        // Ganti isi card untuk menunjukkan hasil sukses
+        card.style.borderLeftColor = '#10b981';
+        card.style.background = 'rgba(16, 185, 129, 0.05)';
+        card.innerHTML = `
+            <div style="color: #10b981; font-weight: bold; margin-bottom: 10px;">✅ Terselesaikan Otomatis</div>
+            <div style="font-size: 0.9em; margin-bottom: 5px;"><strong style="color:#9ca3af;">Field:</strong> ${fieldKey}</div>
+            <div style="font-size: 0.9em; margin-bottom: 5px;"><strong style="color:#9ca3af;">Nilai Baru:</strong> ${res.resolved_value}</div>
+            <div style="font-size: 0.85em; color: #6b7280; font-style: italic;"><strong style="color:#9ca3af;">Evidence:</strong> ${res.evidence}</div>
+        `;
+        
+        setTimeout(() => {
+            card.style.display = 'none';
+        }, 15000); // hilangkan card setelah 15 detik biar sempat terbaca
+    } catch(e) {
+        showToast(`Auto-Resolve gagal: ${e.message}`, 'error');
+        loader.classList.add('hidden');
+    }
+};
+
+window.runAutoResolveAll = async function() {
+    const tasks = window.currentAmbiguousTasks;
+    if (!tasks || tasks.length === 0) return;
+    
+    const btn = document.getElementById('btn-auto-resolve-all');
+    const progress = document.getElementById('progress-auto-resolve-all');
+    
+    btn.disabled = true;
+    btn.innerHTML = '🤖 Memproses...';
+    
+    let successCount = 0;
+    let failCount = 0;
+    
+    for (let i = 0; i < tasks.length; i++) {
+        const t = tasks[i];
+        progress.innerText = `Memproses ${i + 1} dari ${tasks.length} field... (${t.fieldKey})`;
+        
+        try {
+            await window.runAutoResolve(t.extId, t.fieldKey);
+            successCount++;
+        } catch (e) {
+            failCount++;
+        }
+    }
+    
+    progress.innerText = `Selesai! ${successCount} berhasil di-resolve. ${failCount} gagal/masih ambigu (silakan gunakan resolusi manual).`;
+    btn.innerHTML = '🤖 Selesai';
+    
+    if (failCount === 0) {
+        setTimeout(() => {
+            document.getElementById('ambiguity-resolution-modal').classList.add('hidden');
+            window.showExtractionModal();
+        }, 3000);
+    }
+};

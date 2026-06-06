@@ -72,7 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Global functions for Extraction Viewer Modal
-window.showExtractionModal = async function() {
+window.showExtractionModal = async function(filterAmbiguous = false) {
     const sessionId = localStorage.getItem('activeSessionId');
     if (!sessionId) {
         showToast('Error: No active session', 'error');
@@ -92,7 +92,12 @@ window.showExtractionModal = async function() {
         }
 
         // Generate Table
-        let html = '<table class="table-modern" style="width:100%; white-space:nowrap;"><thead><tr>';
+        let html = '';
+        if (filterAmbiguous) {
+            html += '<div style="background: rgba(234, 179, 8, 0.1); border-left: 4px solid #eab308; padding: 10px; margin-bottom: 15px; color: #fef08a;"><strong>Mode Filter Aktif:</strong> Saat ini Anda HANYA melihat paper yang memiliki isian rancu/ambigu (ditandai dengan kolom kuning tebal). Paper lain disembunyikan.</div>';
+        }
+        
+        html += '<table class="table-modern" style="width:100%; white-space:nowrap;"><thead><tr>';
         html += '<th style="position:sticky; left:0; background:var(--bg-secondary); z-index:2;">Title</th>';
         
         // Find all unique fields across all extractions
@@ -110,6 +115,13 @@ window.showExtractionModal = async function() {
         html += '</tr></thead><tbody>';
 
         res.extractions.forEach(ext => {
+            // Jika filterAmbiguous aktif, pastikan paper ini memiliki setidaknya 1 ambiguous
+            if (filterAmbiguous) {
+                if (!ext.ambiguous || ext.ambiguous.length === 0) {
+                    return; // Skip rendering this row entirely
+                }
+            }
+
             html += `<tr>`;
             html += `<td style="position:sticky; left:0; background:var(--bg-main); border-right:1px solid var(--border-color); max-width:300px; overflow:hidden; text-overflow:ellipsis;" title="${ext.Title}">${ext.Title || 'Unknown'}</td>`;
             

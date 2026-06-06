@@ -1314,7 +1314,7 @@ export function renderApprovalContent(area, session, handleApproval) {
             <p><strong>Total Paper:</strong> ${l.total_extracted || 0} paper berhasil dibaca dan diekstrak datanya oleh AI (Reviewer 1).</p>
             <p><strong>Pengecekan Kualitas (Cross-check):</strong> AI kedua (Reviewer 2) telah mengambil sampel acak ${l.verified_sample || 0} paper untuk diperiksa ulang. <br>
             <strong>Tingkat Perbedaan Pemahaman:</strong> <span style="color:${rateColor};font-weight:bold;">${rate}%</span></p>
-            <p><strong>Temuan Kerancuan:</strong> Ada ${l.ambiguous_count || 0} isian data yang ditandai masih membingungkan atau ambigu lintas paper.</p>
+            <p><strong>Temuan Kerancuan:</strong> Terdapat ${l.ambiguous_count || 0} isian data (seperti metodologi, hasil, atau variabel lainnya) yang ditandai ambigu/membingungkan oleh Reviewer 2. Isian yang ambigu ini akan ditandai dengan <strong>warna kuning</strong> pada Tabel Ekstraksi di bawah.</p>
             <p style="font-size:0.85em;color:#94a3b8;">${l.nr_note || ''}</p>
             <div style="margin-top: 15px; text-align: center;">
                 <button class="btn btn-secondary" onclick="window.showExtractionModal()" style="width:100%;">📊 Lihat Tabel Ekstraksi</button>

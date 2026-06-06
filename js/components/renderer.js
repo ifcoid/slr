@@ -1315,8 +1315,8 @@ export function renderApprovalContent(area, session, handleApproval) {
             <p><strong>Spot-verification:</strong> ${l.verified_sample || 0} dicek (mencakup sampel acak 20% + seluruh paper ambigu) | Disagreement: <span style="color:${rateColor};font-weight:bold;">${rate}%</span></p>
             <p><strong>Kolom Ambigu:</strong> Ditemukan ${l.ambiguous_count || 0} kolom data yang ambigu lintas paper.</p>
             <p style="font-size:0.85em;color:#94a3b8;">${l.nr_note || ''}</p>
-            <div style="margin-top: 15px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 6px; text-align: center;">
-                <p style="margin: 0; font-size: 0.85em; color:#cbd5e1;"><em>(Fitur Tabel Viewer sedang dikembangkan. Sementara ini, mohon tinjau raw data di <code>slr_extraction</code> sebelum menyetujui)</em></p>
+            <div style="margin-top: 15px; text-align: center;">
+                <button class="btn btn-secondary" onclick="window.showExtractionModal()" style="width:100%;">📊 Lihat Tabel Ekstraksi</button>
             </div>
         `);
 

@@ -102,6 +102,8 @@ export const API = {
     reimportData: (id) => apiFetch(`/sessions/${id}/reimport`, {
         method: 'PUT'
     }),
+
+    getExtractions: (id) => apiFetch(`/sessions/${id}/extractions`),
     
     // LLM Config API
     updateLLMConfig: (provider, apiKey, defaultModel, baseUrl = "") => apiFetch('/llm/config', {

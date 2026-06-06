@@ -215,6 +215,23 @@
         </div>
     </div>
 
+    <!-- Extraction Viewer Modal -->
+    <div id="extraction-modal" class="modal">
+        <div class="modal-content" style="max-width: 90vw; width: 1200px; max-height: 90vh; display: flex; flex-direction: column;">
+            <span class="close" onclick="closeExtractionModal()">&times;</span>
+            <h2 style="margin-top: 0;">Hasil Ekstraksi Data (Modul 7)</h2>
+            <p style="font-size: 0.9em; color: var(--text-secondary); margin-bottom: 15px;">Data di bawah ditarik langsung dari koleksi <code>slr_extraction</code>. <span style="color:#fca5a5;font-weight:bold;">Teks merah</span> menandakan data tidak dilaporkan (NOT_REPORTED), <span style="color:#fcd34d;font-weight:bold;">kuning</span> menandakan ambigu.</p>
+            
+            <div id="extraction-table-container" style="flex: 1; overflow: auto; border: 1px solid var(--border-color); border-radius: 8px;">
+                <!-- Table will be generated here -->
+            </div>
+            
+            <div style="margin-top: 15px; text-align: right;">
+                <button class="btn btn-secondary" onclick="closeExtractionModal()">Tutup</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Notification Toast -->
     <div id="toast-container" class="toast-container"></div>
 

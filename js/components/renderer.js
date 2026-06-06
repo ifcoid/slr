@@ -1313,7 +1313,7 @@ export function renderApprovalContent(area, session, handleApproval) {
         html = wrapCard('Modul 7 L2 — Hasil Ekstraksi Data (Full-Text)', `
             <p><strong>Total Paper:</strong> ${l.total_extracted || 0} paper berhasil dibaca dan diekstrak datanya oleh AI (Reviewer 1).</p>
             <p><strong>Pengecekan Kualitas (Cross-check):</strong> AI kedua (Reviewer 2) telah mengambil sampel acak ${l.verified_sample || 0} paper untuk diperiksa ulang. <br>
-            <strong>Tingkat Perbedaan Pemahaman:</strong> <span style="color:${rateColor};font-weight:bold;">${rate}%</span></p>
+            <strong>Tingkat Perbedaan Pemahaman:</strong> <a href="#" onclick="window.showExtractionModal(); return false;" style="color:${rateColor};font-weight:bold;text-decoration:underline;cursor:pointer;" title="Klik untuk melihat detail perbedaan di Tabel Ekstraksi">${rate}%</a></p>
             <p><strong>Temuan Kerancuan:</strong> Terdapat ${l.ambiguous_count || 0} isian data (seperti metodologi, hasil, atau variabel lainnya) yang ditandai ambigu/membingungkan oleh Reviewer 2. Isian yang ambigu ini akan ditandai dengan <strong>warna kuning</strong> pada Tabel Ekstraksi di bawah.</p>
             <p style="font-size:0.85em;color:#94a3b8;">${l.nr_note || ''}</p>
             <div style="margin-top: 15px; text-align: center;">

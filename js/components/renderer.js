@@ -1407,6 +1407,7 @@ export function renderApprovalContent(area, session, handleApproval) {
                 ${formatMarkdown(sumMd)}
             </div>
             <p style="margin-top:10px;font-size:0.9em;"><strong>Heterogeneity:</strong> ${sp.heterogeneity_verdict || '-'} | <strong>Meta-analysis:</strong> <span style="color:#6ee7b7;">${sp.meta_feasibility || '-'}</span></p>
+            ${sumMd.includes('ERROR') ? `<div style="margin-top: 12px;"><button id="btn-m7-retry-qa" class="btn" style="background:#fbbf24; color:#0f172a; width:100%; border:none; padding:10px; border-radius:6px; font-weight:bold; cursor:pointer;">🔄 Ulangi Penilaian QA untuk Studi yang ERROR</button></div>` : ''}
             <p style="margin-top: 8px; font-size: 0.9em; color:#4ade80;"><em>Setujui untuk menutup Modul 7 dan lanjut ke Modul 8 (Synthesis).</em></p>
         `);
 
@@ -1698,6 +1699,22 @@ export function renderApprovalContent(area, session, handleApproval) {
                             alert("Gagal revisi: " + err.message);
                             btnM7Revise.disabled = false;
                             btnM7Revise.textContent = '⚠️ Refine Protocol & Ekstrak Ulang (Revisi)';
+                        }
+                    }
+                });
+            const btnM7RetryQA = document.getElementById('btn-m7-retry-qa');
+            if (btnM7RetryQA) {
+                btnM7RetryQA.addEventListener('click', async () => {
+                    if (confirm("Apakah Anda yakin ingin mengevaluasi ulang semua studi yang berstatus ERROR?")) {
+                        try {
+                            btnM7RetryQA.disabled = true;
+                            btnM7RetryQA.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Memproses ulang...';
+                            await API.reviseStep(session.id, "Retry failed QA ratings", "M7_STEP3_QA");
+                            window.location.reload();
+                        } catch (err) {
+                            alert("Gagal mengulangi QA: " + err.message);
+                            btnM7RetryQA.disabled = false;
+                            btnM7RetryQA.textContent = '🔄 Ulangi Penilaian QA untuk Studi yang ERROR';
                         }
                     }
                 });

@@ -1702,6 +1702,8 @@ export function renderApprovalContent(area, session, handleApproval) {
                         }
                     }
                 });
+            }
+            
             const btnM7RetryQA = document.getElementById('btn-m7-retry-qa');
             if (btnM7RetryQA) {
                 btnM7RetryQA.addEventListener('click', async () => {

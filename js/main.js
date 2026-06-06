@@ -4,7 +4,7 @@ import { initAuth } from './components/auth.js';
 import { initSession } from './components/session.js';
 import { startTracking } from './components/tracker.js';
 import { initHealthDashboard } from './components/health.js';
-import { toggleHidden, openModal, showToast } from './ui.js';
+import { toggleHidden, openModal, closeModal, showToast } from './ui.js';
 import { API } from './api.js';
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -82,7 +82,7 @@ window.showExtractionModal = async function() {
     const modal = document.getElementById('extraction-modal');
     const container = document.getElementById('extraction-table-container');
     container.innerHTML = '<p style="text-align:center; padding:20px;">Memuat data ekstraksi dari server...</p>';
-    modal.style.display = 'block';
+    openModal('extraction-modal');
 
     try {
         const res = await API.getExtractions(sessionId);
@@ -151,5 +151,5 @@ window.showExtractionModal = async function() {
 };
 
 window.closeExtractionModal = function() {
-    document.getElementById('extraction-modal').style.display = 'none';
+    closeModal('extraction-modal');
 };

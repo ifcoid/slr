@@ -2361,11 +2361,12 @@ window.showQAXAIModal = async () => {
     try {
         const sid = localStorage.getItem('activeSessionId');
         const baseURL = localStorage.getItem('apiBaseURL') || 'http://localhost:50607/api';
-        const res = await fetch(`${baseURL}/sessions/${sid}/papers?rated=true`, {
+        const res = await fetch(`${baseURL}/sessions/${sid}/extractions`, {
             headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token')}` }
         });
-        if (!res.ok) throw new Error("Gagal mengambil data paper");
-        const papers = await res.json();
+        if (!res.ok) throw new Error("Gagal mengambil data ekstraksi");
+        const data = await res.json();
+        const papers = (data.extractions || []).filter(p => p.qa_rated === true);
         
         const modalHtml = `
             <div id="qa-xai-modal" style="position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(15, 23, 42, 0.9); display: flex; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(8px);">

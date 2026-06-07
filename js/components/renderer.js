@@ -2391,7 +2391,7 @@ window.showQAXAIModal = async () => {
                                                 <h4 style="margin:0 0 10px 0; color: #93c5fd;">Rater 1 <span style="font-size:0.8em; color:#94a3b8; font-weight:normal; margin-left:8px;">${p.qa_r1_category||'-'} (${p.qa_r1_score||0})</span></h4>
                                                 <div style="margin-bottom:8px;">
                                                     <div style="font-size:0.75em; color:#64748b; text-transform:uppercase; margin-bottom:2px;">Reasoning</div>
-                                                    <div style="font-size:0.85em; color:#cbd5e1; line-height:1.5;">${p.qa_r1_reasoning || '<em>Tidak ada alasan spesifik (skor lama)</em>'}</div>
+                                                    <div style="font-size:0.85em; color:#cbd5e1; line-height:1.5;">${p.qa_r1_reasoning || (p.qa_final_category === 'UNRATED' ? '<em>Teks penuh (full-text) tidak tersedia, proses QA dibatalkan secara otomatis.</em>' : '<em>Tidak ada alasan spesifik (skor lama)</em>')}</div>
                                                 </div>
                                                 <div>
                                                     <div style="font-size:0.75em; color:#64748b; text-transform:uppercase; margin-bottom:2px;">Evidence</div>
@@ -2402,7 +2402,7 @@ window.showQAXAIModal = async () => {
                                                 <h4 style="margin:0 0 10px 0; color: #93c5fd;">Rater 2 <span style="font-size:0.8em; color:#94a3b8; font-weight:normal; margin-left:8px;">${p.qa_r2_category||'-'} (${p.qa_r2_score||0})</span></h4>
                                                 <div style="margin-bottom:8px;">
                                                     <div style="font-size:0.75em; color:#64748b; text-transform:uppercase; margin-bottom:2px;">Reasoning</div>
-                                                    <div style="font-size:0.85em; color:#cbd5e1; line-height:1.5;">${p.qa_r2_reasoning || '<em>Tidak ada alasan spesifik (skor lama)</em>'}</div>
+                                                    <div style="font-size:0.85em; color:#cbd5e1; line-height:1.5;">${p.qa_r2_reasoning || (p.qa_final_category === 'UNRATED' ? '<em>Teks penuh (full-text) tidak tersedia, proses QA dibatalkan secara otomatis.</em>' : '<em>Tidak ada alasan spesifik (skor lama)</em>')}</div>
                                                 </div>
                                                 <div>
                                                     <div style="font-size:0.75em; color:#64748b; text-transform:uppercase; margin-bottom:2px;">Evidence</div>

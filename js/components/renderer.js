@@ -1400,6 +1400,10 @@ export function renderApprovalContent(area, session, handleApproval) {
                 const bg = v.toUpperCase() === 'SENSITIVE' ? 'rgba(251,191,36,0.1)' : 'rgba(74,222,128,0.1)';
                 return `Verdict: <span style="background:${bg}; color:${color}; padding: 4px 10px; border-radius: 12px; font-weight: bold; margin-left: 6px; display: inline-block;">${v.toUpperCase()}</span>`;
             })}</div>` : ''}
+
+            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: flex-end;">
+                <button class="btn" style="background: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.4);" onclick="if(confirm('Anda yakin ingin mengulang seluruh proses Quality Appraisal? Semua data alasan dan skor Rater 1 & Rater 2 akan dihapus.')) window.resetModul7()">⚠️ Ulangi Modul 7</button>
+            </div>
         `);
 
     } else if (status === 'M7_STEP4_WAITING_APPROVAL') {
@@ -2419,5 +2423,24 @@ window.showQAXAIModal = async () => {
         });
     } catch (err) {
         alert("Gagal memuat data QA: " + err.message);
+    }
+};
+
+window.resetModul7 = async () => {
+    try {
+        const sid = localStorage.getItem('activeSessionId');
+        if (!sid) return;
+        const res = await fetch(`/api/sessions/${sid}/reset-m7`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token')}` }
+        });
+        if (!res.ok) {
+            const errData = await res.json().catch(() => ({}));
+            throw new Error(errData.error || "Gagal mereset Modul 7");
+        }
+        alert("Modul 7 berhasil direset. Halaman akan dimuat ulang.");
+        window.location.reload();
+    } catch(err) {
+        alert("Error reset Modul 7: " + err.message);
     }
 };

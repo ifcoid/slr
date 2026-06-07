@@ -154,5 +154,7 @@ export const API = {
         body: JSON.stringify(cfg)
     }),
 
-    checkLLMHealth: () => apiFetch('/llm/health')
+    checkLLMHealth: () => apiFetch('/llm/health'),
+
+    resetModul7: (id) => apiFetch(`/sessions/${id}/reset-m7`, { method: 'POST' })
 };

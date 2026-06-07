@@ -2383,7 +2383,7 @@ window.showQAXAIModal = async () => {
                                 ${papers.map(p => `
                                     <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; overflow: hidden;">
                                         <div style="padding: 12px 15px; background: rgba(0,0,0,0.2); border-bottom: 1px solid rgba(255,255,255,0.05); font-weight: bold; color: #e2e8f0; display:flex; justify-content: space-between;">
-                                            <span>${p.title || p.doi || 'Unknown Title'}</span>
+                                            <span>${p.Title || p.title || p.DOI || p.doi || 'Unknown Title'}</span>
                                             <span style="color:#38bdf8; font-size:0.9em;">Final: ${p.qa_final_category || '-'} (${p.qa_total_score || 0})</span>
                                         </div>
                                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: rgba(255,255,255,0.05);">

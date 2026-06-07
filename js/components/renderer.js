@@ -2430,7 +2430,8 @@ window.resetModul7 = async () => {
     try {
         const sid = localStorage.getItem('activeSessionId');
         if (!sid) return;
-        const res = await fetch(`/api/sessions/${sid}/reset-m7`, {
+        const baseURL = localStorage.getItem('apiBaseURL') || 'http://localhost:50607/api';
+        const res = await fetch(`${baseURL}/sessions/${sid}/reset-m7`, {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token')}` }
         });

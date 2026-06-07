@@ -1388,9 +1388,81 @@ export function renderApprovalContent(area, session, handleApproval) {
                     <div><strong style="color:#fff;">Hanya Rater 1 yang Meloloskan:</strong> ${q.kappa_details.r1_pass_r2_fail} paper</div>
                     <div><strong style="color:#fff;">Hanya Rater 2 yang Meloloskan:</strong> ${q.kappa_details.r1_fail_r2_pass} paper</div>
                     ${q.kappa_details.total_rated > 0 && q.kappa === 0 ? `<div style="margin-top: 8px; font-style: italic; color: #fbbf24;">* ⚠️ Jika Kappa bernilai 0.000 padahal Total Valid > 0, itu terjadi karena fenomena matematis "Cohen's Kappa Paradox" di mana probabilitas kesepakatan homogen sama persis dengan probabilitas tebakan acak. Kesepakatan aktual tetap berlaku.</div>` : ''}
+                    <button class="btn btn-secondary" onclick="window.showQAXAIModal()" style="margin-top:10px; padding:6px 12px; font-size:0.9em; width:fit-content;">🔍 Buka Detail Keputusan Rater (xAI)</button>
                 </div>
             </details>
             ` : ''}
+
+            <script>
+                window.showQAXAIModal = async () => {
+                    try {
+                        const sid = localStorage.getItem('activeSessionId');
+                        const res = await fetch(\`/api/sessions/\${sid}/papers?rated=true\`);
+                        if (!res.ok) throw new Error("Gagal mengambil data paper");
+                        const papers = await res.json();
+                        
+                        const modalHtml = \`
+                            <div id="qa-xai-modal" style="position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(15, 23, 42, 0.9); display: flex; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(8px);">
+                                <div style="background: #1e293b; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); width: 90vw; max-width: 1200px; height: 85vh; display: flex; flex-direction: column; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);">
+                                    <div style="padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); border-top-left-radius: 12px; border-top-right-radius: 12px;">
+                                        <h3 style="margin:0; color:#fca5a5; display:flex; align-items:center; gap:10px;">
+                                            <span>🔍</span> xAI: Transparansi Keputusan Dual-Rater
+                                        </h3>
+                                        <button id="btn-close-qa-xai" style="background: transparent; border: none; color: #94A3B8; font-size: 1.5rem; cursor: pointer;">&times;</button>
+                                    </div>
+                                    <div style="padding: 20px; overflow-y: auto; flex: 1;">
+                                        \${papers.length === 0 ? '<p style="color:#94a3b8; text-align:center;">Tidak ada data QA yang tersedia.</p>' : \`
+                                            <div style="display:flex; flex-direction:column; gap:20px;">
+                                                \${papers.map(p => \`
+                                                    <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; overflow: hidden;">
+                                                        <div style="padding: 12px 15px; background: rgba(0,0,0,0.2); border-bottom: 1px solid rgba(255,255,255,0.05); font-weight: bold; color: #e2e8f0; display:flex; justify-content: space-between;">
+                                                            <span>\${p.title || p.doi || 'Unknown Title'}</span>
+                                                            <span style="color:#38bdf8; font-size:0.9em;">Final: \${p.qa_final_category || '-'} (\${p.qa_total_score || 0})</span>
+                                                        </div>
+                                                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: rgba(255,255,255,0.05);">
+                                                            <div style="padding: 15px; background: #1e293b;">
+                                                                <h4 style="margin:0 0 10px 0; color: #93c5fd;">Rater 1 <span style="font-size:0.8em; color:#94a3b8; font-weight:normal; margin-left:8px;">\${p.qa_r1_category||'-'} (\${p.qa_r1_score||0})</span></h4>
+                                                                <div style="margin-bottom:8px;">
+                                                                    <div style="font-size:0.75em; color:#64748b; text-transform:uppercase; margin-bottom:2px;">Reasoning</div>
+                                                                    <div style="font-size:0.85em; color:#cbd5e1; line-height:1.5;">\${p.qa_r1_reasoning || '<em>Tidak ada alasan spesifik (skor lama)</em>'}</div>
+                                                                </div>
+                                                                <div>
+                                                                    <div style="font-size:0.75em; color:#64748b; text-transform:uppercase; margin-bottom:2px;">Evidence</div>
+                                                                    <div style="font-size:0.85em; color:#94a3b8; font-style:italic; border-left:2px solid #475569; padding-left:8px; line-height:1.5;">\${p.qa_r1_evidence || '-'}</div>
+                                                                </div>
+                                                            </div>
+                                                            <div style="padding: 15px; background: #1e293b;">
+                                                                <h4 style="margin:0 0 10px 0; color: #93c5fd;">Rater 2 <span style="font-size:0.8em; color:#94a3b8; font-weight:normal; margin-left:8px;">\${p.qa_r2_category||'-'} (\${p.qa_r2_score||0})</span></h4>
+                                                                <div style="margin-bottom:8px;">
+                                                                    <div style="font-size:0.75em; color:#64748b; text-transform:uppercase; margin-bottom:2px;">Reasoning</div>
+                                                                    <div style="font-size:0.85em; color:#cbd5e1; line-height:1.5;">\${p.qa_r2_reasoning || '<em>Tidak ada alasan spesifik (skor lama)</em>'}</div>
+                                                                </div>
+                                                                <div>
+                                                                    <div style="font-size:0.75em; color:#64748b; text-transform:uppercase; margin-bottom:2px;">Evidence</div>
+                                                                    <div style="font-size:0.85em; color:#94a3b8; font-style:italic; border-left:2px solid #475569; padding-left:8px; line-height:1.5;">\${p.qa_r2_evidence || '-'}</div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                \`).join('')}
+                                            </div>
+                                        \`}
+                                    </div>
+                                </div>
+                            </div>
+                        \`;
+                        const modalContainer = document.createElement('div');
+                        modalContainer.innerHTML = modalHtml;
+                        document.body.appendChild(modalContainer);
+
+                        document.getElementById('btn-close-qa-xai').addEventListener('click', () => {
+                            document.body.removeChild(modalContainer);
+                        });
+                    } catch (err) {
+                        alert("Gagal memuat data QA: " + err.message);
+                    }
+                };
+            </script>
             
             ${sens ? `<div class="sensitivity-table-wrapper" style="margin-top:15px; font-size:0.88em; background: rgba(0,0,0,0.2); padding: 12px; border-radius: 8px;">${formatMarkdown(sens).replace(/Verdict:\s*(SENSITIVE|ROBUST)/i, (m, v) => {
                 const color = v.toUpperCase() === 'SENSITIVE' ? '#fbbf24' : '#4ade80';

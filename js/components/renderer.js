@@ -2360,7 +2360,10 @@ export function renderApprovalContent(area, session, handleApproval) {
 window.showQAXAIModal = async () => {
     try {
         const sid = localStorage.getItem('activeSessionId');
-        const res = await fetch(`/api/sessions/${sid}/papers?rated=true`);
+        const baseURL = localStorage.getItem('apiBaseURL') || 'http://localhost:50607/api';
+        const res = await fetch(`${baseURL}/sessions/${sid}/papers?rated=true`, {
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token')}` }
+        });
         if (!res.ok) throw new Error("Gagal mengambil data paper");
         const papers = await res.json();
         

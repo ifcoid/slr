@@ -64,12 +64,19 @@ export function initSetup() {
     const PROVIDERS = ['gemini', 'groq', 'zhipu', 'claude', 'openrouter', 'cohere', 'xiaomi', 'rprompt1', 'rprompt2', 'rprompt3'];
     let roleSelectsPopulated = false;
 
+    const formatProviderName = (p) => {
+        if (p.startsWith('rprompt')) {
+            return p.replace('rprompt', 'LLMy');
+        }
+        return p;
+    };
+
     const populateRoleSelects = () => {
         if (roleSelectsPopulated) return;
         ROLE_IDS.forEach((id) => {
             const sel = document.getElementById('role-' + id);
             if (!sel) return;
-            sel.innerHTML = PROVIDERS.map((p) => `<option value="${p}">${p}</option>`).join('');
+            sel.innerHTML = PROVIDERS.map((p) => `<option value="${p}">${formatProviderName(p)}</option>`).join('');
         });
         roleSelectsPopulated = true;
     };

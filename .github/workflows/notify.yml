@@ -1,0 +1,20 @@
+name: Notify Telegram on Deployment
+
+on:
+  deployment_status:
+
+jobs:
+  notify:
+    if: github.event.deployment_status.state == 'success' && github.event.deployment.environment == 'github-pages'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Telegram Message
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_CHAT_ID }}
+          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          message: |
+            ✅ Berhasil! SLR Frontend telah selesai di-deploy ke GitHub Pages.
+            
+            URL: ${{ github.event.deployment_status.environment_url }}
+            Repository: ${{ github.repository }}

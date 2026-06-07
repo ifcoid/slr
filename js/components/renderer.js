@@ -2180,7 +2180,10 @@ export function renderApprovalContent(area, session, handleApproval) {
                             
                             let locHtml = '';
                             if (p.retrieved) {
-                                locHtml = '<span style="color: #10B981; font-weight: bold;"><i class="fa fa-check-circle"></i> Selesai</span>';
+                                locHtml = `<div style="display: flex; flex-direction: column; gap: 5px;">
+                                              <span style="color: #10B981; font-weight: bold;"><i class="fa fa-check-circle"></i> Selesai</span>
+                                              <button class="btn-delete-qdrant" data-id="${p.id}" data-doi="${doiDisplay}" data-title="${p.title}" style="background: transparent; border: 1px solid #ef4444; color: #ef4444; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; cursor: pointer; text-align: center; width: fit-content;" title="Hapus vektor di database jika PDF rusak/watermark">🗑️ Hapus Vektor (Fix PDF)</button>
+                                           </div>`;
                             } else {
                                 locHtml = p.location === 'arxiv' ? 
                                     `<div style="display: flex; flex-direction: column; gap: 5px;">
@@ -2283,7 +2286,40 @@ export function renderApprovalContent(area, session, handleApproval) {
                         // Bind Inaccessible events using event delegation
                         const tbody = modalContainer.querySelector('#m6-tbody');
                         tbody.addEventListener('click', async (e) => {
-                            if (e.target.classList.contains('btn-mark-inacc')) {
+                            if (e.target.classList.contains('btn-delete-qdrant')) {
+                                const paperDoi = e.target.getAttribute('data-doi');
+                                const paperTitle = e.target.getAttribute('data-title');
+                                if(!confirm("Apakah Anda yakin ingin menghapus vektor untuk PDF ini dari Qdrant? (Anda harus re-upload ulang PDF yang benar via Notebook nantinya)")) return;
+                                
+                                const btn = e.target;
+                                btn.innerHTML = 'Menghapus...';
+                                btn.disabled = true;
+                                
+                                try {
+                                    const token = localStorage.getItem('auth_token');
+                                    const res = await fetch(`${apiBase}/sessions/${session.id}/m6/qdrant/paper`, {
+                                        method: 'DELETE',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                            'Authorization': `Bearer ${token}`
+                                        },
+                                        body: JSON.stringify({ doi: paperDoi, title: paperTitle })
+                                    });
+                                    if (!res.ok) throw new Error("Gagal menghapus vektor dari Qdrant");
+                                    
+                                    const parentDiv = e.target.closest('.td-action');
+                                    parentDiv.innerHTML = `<div style="display: flex; flex-direction: column; gap: 5px;">
+                                        <a href="#" style="color: #F59E0B; text-decoration: none; display: flex; align-items: center; gap: 4px;"><i class="fa fa-user"></i> HITL Download</a>
+                                        <button class="btn-mark-inacc" data-id="${e.target.getAttribute('data-id')}" style="background: transparent; border: 1px solid #ef4444; color: #ef4444; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; cursor: pointer; text-align: center; width: fit-content;">Tandai Inaccessible</button>
+                                    </div>`;
+                                    
+                                    alert(`Vektor berhasil dihapus!\n\nSILAKAN JALANKAN NOTEBOOK BERIKUT:\nPastikan PDF yang benar sudah berada di folder Anda. Jalankan ulang script Notebook PEDE Colab/Lokal khusus untuk paper ini.\nDOI: ${paperDoi}\nJudul: ${paperTitle}\n\nSetelah re-upload sukses, kembali ke web ini dan sinkronkan Qdrant lagi, lalu tekan "Reset Modul 7" untuk mengulang QA.`);
+                                } catch (err) {
+                                    alert(err.message);
+                                    btn.innerHTML = '🗑️ Hapus Vektor (Fix PDF)';
+                                    btn.disabled = false;
+                                }
+                            } else if (e.target.classList.contains('btn-mark-inacc')) {
                                 const paperId = e.target.getAttribute('data-id');
                                 const parentDiv = e.target.parentElement;
                                 parentDiv.innerHTML = `

@@ -2415,7 +2415,10 @@ window.showQAXAIModal = async (btn) => {
                         <h3 style="margin:0; color:#fca5a5; display:flex; align-items:center; gap:10px;">
                             <span>🔍</span> xAI: Transparansi Keputusan Dual-Rater
                         </h3>
-                        <button id="btn-close-qa-xai" style="background: transparent; border: none; color: #94A3B8; font-size: 1.5rem; cursor: pointer;">&times;</button>
+                        <div style="display:flex; align-items:center; gap:15px;">
+                            <button id="btn-xai-sync" style="background: #8b5cf6; border: none; color: white; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.85em; font-weight: bold; display: flex; align-items: center; gap: 5px; transition: background 0.2s;">🔄 Sinkronisasi Qdrant</button>
+                            <button id="btn-close-qa-xai" style="background: transparent; border: none; color: #94A3B8; font-size: 1.5rem; cursor: pointer;">&times;</button>
+                        </div>
                     </div>
                     <div style="padding: 20px; overflow-y: auto; flex: 1;">
                         ${papers.length === 0 ? '<p style="color:#94a3b8; text-align:center;">Tidak ada data QA yang tersedia.</p>' : `
@@ -2504,7 +2507,7 @@ window.showQAXAIModal = async (btn) => {
                                     <li>Klik tautan berikut untuk membuka Colab secara langsung:
                                         <br/><a href="${colabLink}" target="_blank" style="color:#60a5fa; text-decoration:underline; font-weight:bold; display:inline-block; margin-top:8px;">🚀 Buka Notebook PEDE di Google Colab</a>
                                     </li>
-                                    <li>Setelah re-upload sukses, Refresh halaman utama SLR ini, tekan <strong>Sinkronisasi Qdrant</strong> di Modul 6, lalu klik <strong>Reset Modul 7</strong> untuk mengulang proses QA.</li>
+                                    <li>Setelah re-upload sukses, tekan tombol <strong>🔄 Sinkronisasi Qdrant</strong> di pojok kanan atas jendela layar ini, lalu klik <strong>⚠️ Ulangi Modul 7</strong> di layar utama untuk mengulang proses QA.</li>
                                 </ol>
                                 <div style="text-align: right; margin-top: 25px;">
                                     <button id="btn-close-success-modal" style="background: #34d399; color: #0f172a; border: none; padding: 8px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: background 0.2s;">Saya Mengerti</button>
@@ -2529,6 +2532,28 @@ window.showQAXAIModal = async (btn) => {
         document.getElementById('btn-close-qa-xai').addEventListener('click', () => {
             document.body.removeChild(modalContainer);
         });
+
+        const btnXaiSync = document.getElementById('btn-xai-sync');
+        if (btnXaiSync) {
+            btnXaiSync.addEventListener('click', async () => {
+                try {
+                    btnXaiSync.disabled = true;
+                    btnXaiSync.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Sinkronisasi...';
+                    const req = await fetch(`${baseURL}/sessions/${sid}/m6/sync-qdrant`, { 
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token')}` }
+                    });
+                    if (!req.ok) throw new Error("Sinkronisasi gagal");
+                    const resSync = await req.json();
+                    alert("Sinkronisasi Qdrant berhasil! Tersinkron: " + resSync.synced_count);
+                    window.location.reload();
+                } catch(e) {
+                    alert(e.message);
+                    btnXaiSync.disabled = false;
+                    btnXaiSync.innerHTML = '🔄 Sinkronisasi Qdrant';
+                }
+            });
+        }
     } catch (err) {
         alert("Gagal memuat data QA: " + err.message);
     } finally {

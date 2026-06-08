@@ -1401,10 +1401,29 @@ export function renderApprovalContent(area, session, handleApproval) {
                 return `Verdict: <span style="background:${bg}; color:${color}; padding: 4px 10px; border-radius: 12px; font-weight: bold; margin-left: 6px; display: inline-block;">${v.toUpperCase()}</span>`;
             })}</div>` : ''}
 
-            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: flex-end;">
-                <button class="btn" style="background: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.4);" onclick="if(confirm('Anda yakin ingin mengulang seluruh proses Quality Appraisal? Semua data alasan dan skor Rater 1 & Rater 2 akan dihapus.')) window.resetModul7()">⚠️ Ulangi Modul 7</button>
+            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: flex-end; gap: 10px;">
+                <button id="btn-m7-resume-qa" class="btn" style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4);" title="Klik ini jika Anda baru saja menghapus & re-upload PDF untuk melanjutkan penilaian QA pada paper yang tersisa saja.">▶️ Lanjutkan QA (Hanya Sisa PDF)</button>
+                <button class="btn" style="background: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.4);" onclick="if(confirm('Anda yakin ingin mengulang SELURUH proses Quality Appraisal dari nol? Semua data alasan dan skor Rater 1 & Rater 2 akan dihapus.')) window.resetModul7()">⚠️ Reset Total Modul 7</button>
             </div>
         `);
+        
+        setTimeout(() => {
+            const btnResumeQA = document.getElementById('btn-m7-resume-qa');
+            if (btnResumeQA) {
+                btnResumeQA.addEventListener('click', async () => {
+                    try {
+                        btnResumeQA.disabled = true;
+                        btnResumeQA.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Melanjutkan...';
+                        await API.reviseStep(session.id, 'Melanjutkan QA sisa paper yang baru diupload', 'M7_STEP3_QA');
+                        window.location.reload();
+                    } catch(e) {
+                        alert("Gagal melanjutkan QA: " + e.message);
+                        btnResumeQA.disabled = false;
+                        btnResumeQA.innerHTML = '▶️ Lanjutkan QA (Hanya Sisa PDF)';
+                    }
+                });
+            }
+        }, 0);
 
     } else if (status === 'M7_STEP4_WAITING_APPROVAL') {
         const sumMd = (session.modul7_summary && session.modul7_summary.markdown) || 'Menunggu data...';

@@ -2496,7 +2496,11 @@ window.showQAXAIModal = async (btn) => {
                                         </div>
                                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: rgba(255,255,255,0.05);">
                                             <div style="padding: 15px; background: #1e293b;">
-                                                <h4 style="margin:0 0 10px 0; color: #93c5fd;">Rater 1 <span style="font-size:0.8em; color:#94a3b8; font-weight:normal; margin-left:8px;">${p.qa_r1_category||'-'} (${p.qa_r1_score||0})</span></h4>
+                                                <h4 style="margin:0 0 10px 0; color: #93c5fd; display:flex; align-items:center; flex-wrap:wrap; gap:8px;">
+                                                    <span>Rater 1</span>
+                                                    <span style="font-size:0.8em; color:#94a3b8; font-weight:normal;">${p.qa_r1_category||'-'} (${p.qa_r1_score||0})</span>
+                                                    ${p.qa_r1_model ? `<span style="font-size:0.7em; background:rgba(56,189,248,0.1); color:#38bdf8; padding:2px 6px; border-radius:4px; border:1px solid rgba(56,189,248,0.2);">${p.qa_r1_model}</span>` : ''}
+                                                </h4>
                                                 <div style="margin-bottom:8px;">
                                                     <div style="font-size:0.75em; color:#64748b; text-transform:uppercase; margin-bottom:2px;">Reasoning</div>
                                                     <div style="font-size:0.85em; color:#cbd5e1; line-height:1.5;">${p.qa_r1_reasoning || (p.qa_final_category === 'UNRATED' ? '<em>Teks penuh (full-text) tidak tersedia, proses QA dibatalkan secara otomatis.</em>' : '<em>Tidak ada alasan spesifik (skor lama)</em>')}</div>
@@ -2507,7 +2511,11 @@ window.showQAXAIModal = async (btn) => {
                                                 </div>
                                             </div>
                                             <div style="padding: 15px; background: #1e293b;">
-                                                <h4 style="margin:0 0 10px 0; color: #93c5fd;">Rater 2 <span style="font-size:0.8em; color:#94a3b8; font-weight:normal; margin-left:8px;">${p.qa_r2_category||'-'} (${p.qa_r2_score||0})</span></h4>
+                                                <h4 style="margin:0 0 10px 0; color: #93c5fd; display:flex; align-items:center; flex-wrap:wrap; gap:8px;">
+                                                    <span>Rater 2</span>
+                                                    <span style="font-size:0.8em; color:#94a3b8; font-weight:normal;">${p.qa_r2_category||'-'} (${p.qa_r2_score||0})</span>
+                                                    ${p.qa_r2_model ? `<span style="font-size:0.7em; background:rgba(56,189,248,0.1); color:#38bdf8; padding:2px 6px; border-radius:4px; border:1px solid rgba(56,189,248,0.2);">${p.qa_r2_model}</span>` : ''}
+                                                </h4>
                                                 <div style="margin-bottom:8px;">
                                                     <div style="font-size:0.75em; color:#64748b; text-transform:uppercase; margin-bottom:2px;">Reasoning</div>
                                                     <div style="font-size:0.85em; color:#cbd5e1; line-height:1.5;">${p.qa_r2_reasoning || (p.qa_final_category === 'UNRATED' ? '<em>Teks penuh (full-text) tidak tersedia, proses QA dibatalkan secara otomatis.</em>' : '<em>Tidak ada alasan spesifik (skor lama)</em>')}</div>
@@ -2650,10 +2658,12 @@ window.downloadQAXAIMarkdown = async (btn) => {
                 md += `- **Keputusan Final**: ${p.qa_final_category || '-'} (Skor: ${p.qa_total_score || 0})\n\n`;
                 
                 md += `### Rater 1\n`;
+                if (p.qa_r1_model) md += `- **Model AI**: ${p.qa_r1_model}\n`;
                 md += `- **Kategori**: ${p.qa_r1_category || '-'} (Skor: ${p.qa_r1_score || 0})\n`;
                 md += `- **Reasoning**: ${(p.qa_r1_reasoning || '').replace(/\\n/g, ' ') || (p.qa_final_category === 'UNRATED' ? 'Teks penuh tidak tersedia' : 'Tidak ada alasan spesifik')}\n\n`;
                 
                 md += `### Rater 2\n`;
+                if (p.qa_r2_model) md += `- **Model AI**: ${p.qa_r2_model}\n`;
                 md += `- **Kategori**: ${p.qa_r2_category || '-'} (Skor: ${p.qa_r2_score || 0})\n`;
                 md += `- **Reasoning**: ${(p.qa_r2_reasoning || '').replace(/\\n/g, ' ') || (p.qa_final_category === 'UNRATED' ? 'Teks penuh tidak tersedia' : 'Tidak ada alasan spesifik')}\n\n`;
                 

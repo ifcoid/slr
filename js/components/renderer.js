@@ -2406,7 +2406,7 @@ window.showQAXAIModal = async (btn) => {
         });
         if (!res.ok) throw new Error("Gagal mengambil data ekstraksi");
         const data = await res.json();
-        const papers = (data.extractions || []).filter(p => p.qa_rated === true);
+        const papers = (data.extractions || []).filter(p => p.qa_rated === true).sort((a, b) => Number(a.qa_total_score || 0) - Number(b.qa_total_score || 0));
         
         const modalHtml = `
             <div id="qa-xai-modal" style="position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(15, 23, 42, 0.9); display: flex; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(8px);">

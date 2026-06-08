@@ -1386,7 +1386,10 @@ export function renderApprovalContent(area, session, handleApproval) {
                     <div><strong style="color:#fff;">Hanya Rater 1 yang Meloloskan:</strong> ${q.kappa_details.r1_pass_r2_fail} paper</div>
                     <div><strong style="color:#fff;">Hanya Rater 2 yang Meloloskan:</strong> ${q.kappa_details.r1_fail_r2_pass} paper</div>
                     ${q.kappa_details.total_rated > 0 && q.kappa === 0 ? `<div style="margin-top: 8px; font-style: italic; color: #fbbf24;">* ⚠️ Jika Kappa bernilai 0.000 padahal Total Valid > 0, itu terjadi karena fenomena matematis "Cohen's Kappa Paradox" di mana probabilitas kesepakatan homogen sama persis dengan probabilitas tebakan acak. Kesepakatan aktual tetap berlaku.</div>` : ''}
-                    <button class="btn btn-secondary" onclick="window.showQAXAIModal(this)" style="margin-top:10px; padding:6px 12px; font-size:0.9em; width:fit-content;">🔍 Buka Detail Keputusan Rater (xAI)</button>
+                    <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:10px;">
+                        <button class="btn btn-secondary" onclick="window.showQAXAIModal(this)" style="padding:6px 12px; font-size:0.9em; width:fit-content;">🔍 Buka Detail Keputusan Rater (xAI)</button>
+                        <button class="btn btn-secondary" onclick="window.downloadQAXAIMarkdown(this)" style="padding:6px 12px; font-size:0.9em; width:fit-content;">⬇️ Download Detail Keputusan (Markdown)</button>
+                    </div>
                 </div>
             </details>
             ` : ''}
@@ -2619,6 +2622,60 @@ window.showQAXAIModal = async (btn) => {
         if (btn) {
             btn.disabled = false;
             btn.innerHTML = '🔍 Buka Detail Keputusan Rater (xAI)';
+        }
+    }
+};
+
+window.downloadQAXAIMarkdown = async (btn) => {
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Mendownload...';
+    }
+    try {
+        const sid = localStorage.getItem('activeSessionId');
+        const baseURL = localStorage.getItem('apiBaseURL') || 'http://localhost:50607/api';
+        const res = await fetch(`${baseURL}/sessions/${sid}/extractions`, {
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token')}` }
+        });
+        if (!res.ok) throw new Error("Gagal mengambil data ekstraksi");
+        const data = await res.json();
+        const papers = (data.extractions || []).filter(p => p.qa_rated === true).sort((a, b) => Number(a.qa_total_score || 0) - Number(b.qa_total_score || 0));
+        
+        let md = `# Detail Keputusan Quality Appraisal (xAI)\n\n`;
+        if (papers.length === 0) {
+            md += `Tidak ada data QA yang tersedia.\n`;
+        } else {
+            papers.forEach(p => {
+                md += `## ${p.Title || p.title || p.DOI || p.doi || 'Unknown Title'}\n`;
+                md += `- **Keputusan Final**: ${p.qa_final_category || '-'} (Skor: ${p.qa_total_score || 0})\n\n`;
+                
+                md += `### Rater 1\n`;
+                md += `- **Kategori**: ${p.qa_r1_category || '-'} (Skor: ${p.qa_r1_score || 0})\n`;
+                md += `- **Reasoning**: ${(p.qa_r1_reasoning || '').replace(/\\n/g, ' ') || (p.qa_final_category === 'UNRATED' ? 'Teks penuh tidak tersedia' : 'Tidak ada alasan spesifik')}\n\n`;
+                
+                md += `### Rater 2\n`;
+                md += `- **Kategori**: ${p.qa_r2_category || '-'} (Skor: ${p.qa_r2_score || 0})\n`;
+                md += `- **Reasoning**: ${(p.qa_r2_reasoning || '').replace(/\\n/g, ' ') || (p.qa_final_category === 'UNRATED' ? 'Teks penuh tidak tersedia' : 'Tidak ada alasan spesifik')}\n\n`;
+                
+                md += `---\n\n`;
+            });
+        }
+        
+        const blob = new Blob([md], { type: 'text/markdown' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'QAXAI_Detail_Keputusan.md';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    } catch (err) {
+        alert("Gagal mendownload data xAI: " + err.message);
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '⬇️ Download Detail Keputusan (Markdown)';
         }
     }
 };

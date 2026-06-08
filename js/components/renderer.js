@@ -2422,9 +2422,12 @@ window.showQAXAIModal = async (btn) => {
                             <div style="display:flex; flex-direction:column; gap:20px;">
                                 ${papers.map(p => `
                                     <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; overflow: hidden;">
-                                        <div style="padding: 12px 15px; background: rgba(0,0,0,0.2); border-bottom: 1px solid rgba(255,255,255,0.05); font-weight: bold; color: #e2e8f0; display:flex; justify-content: space-between;">
+                                        <div style="padding: 12px 15px; background: rgba(0,0,0,0.2); border-bottom: 1px solid rgba(255,255,255,0.05); font-weight: bold; color: #e2e8f0; display:flex; justify-content: space-between; align-items: center;">
                                             <span>${p.Title || p.title || p.DOI || p.doi || 'Unknown Title'}</span>
-                                            <span style="color:#38bdf8; font-size:0.9em;">Final: ${p.qa_final_category || '-'} (${p.qa_total_score || 0})</span>
+                                            <div style="display:flex; align-items:center; gap:15px;">
+                                                <button class="btn-delete-qdrant-xai" data-doi="${p.DOI || p.doi || '-'}" data-title="${p.Title || p.title || ''}" style="background: transparent; border: 1px solid #ef4444; color: #ef4444; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; display: flex; align-items: center; gap: 4px;" title="Hapus vektor di database jika PDF rusak/watermark">🗑️ Hapus Vektor (Fix PDF)</button>
+                                                <span style="color:#38bdf8; font-size:0.9em;">Final: ${p.qa_final_category || '-'} (${p.qa_total_score || 0})</span>
+                                            </div>
                                         </div>
                                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: rgba(255,255,255,0.05);">
                                             <div style="padding: 15px; background: #1e293b;">
@@ -2461,6 +2464,39 @@ window.showQAXAIModal = async (btn) => {
         const modalContainer = document.createElement('div');
         modalContainer.innerHTML = modalHtml;
         document.body.appendChild(modalContainer);
+
+        modalContainer.addEventListener('click', async (e) => {
+            const target = e.target.closest('.btn-delete-qdrant-xai');
+            if (target) {
+                const paperDoi = target.getAttribute('data-doi');
+                const paperTitle = target.getAttribute('data-title');
+                if(!confirm("Apakah Anda yakin ingin menghapus vektor untuk PDF ini dari Qdrant? (Anda harus re-upload ulang PDF yang benar via Notebook nantinya)")) return;
+                
+                const originalText = target.innerHTML;
+                target.innerHTML = 'Menghapus...';
+                target.disabled = true;
+                
+                try {
+                    const token = localStorage.getItem('auth_token');
+                    const res = await fetch(`${baseURL}/sessions/${sid}/m6/qdrant/paper`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ doi: paperDoi, title: paperTitle })
+                    });
+                    if (!res.ok) throw new Error("Gagal menghapus vektor dari Qdrant");
+                    
+                    target.style.display = 'none';
+                    alert(`Vektor berhasil dihapus!\n\nSILAKAN JALANKAN NOTEBOOK BERIKUT:\nPastikan PDF yang benar sudah berada di folder Anda. Jalankan ulang script Notebook PEDE Colab/Lokal khusus untuk paper ini.\nDOI: ${paperDoi}\nJudul: ${paperTitle}\n\nSetelah re-upload sukses, silakan Refresh halaman ini, tekan tombol sinkronisasi Qdrant di Modul 6, lalu tekan "Reset Modul 7" untuk mengulang QA.`);
+                } catch (err) {
+                    alert(err.message);
+                    target.innerHTML = originalText;
+                    target.disabled = false;
+                }
+            }
+        });
 
         document.getElementById('btn-close-qa-xai').addEventListener('click', () => {
             document.body.removeChild(modalContainer);

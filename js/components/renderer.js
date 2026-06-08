@@ -1400,6 +1400,7 @@ export function renderApprovalContent(area, session, handleApproval) {
             })}</div>` : ''}
 
             <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: flex-end; gap: 10px;">
+                <button id="btn-m7-download-md" class="btn" style="background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4);" title="Unduh laporan QA & Sensitivitas dalam format Markdown untuk dibagikan ke LLM lain">⬇️ Unduh Report (.md)</button>
                 <button id="btn-m7-resume-qa" class="btn" style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4);" title="Klik ini jika Anda baru saja menghapus & re-upload PDF untuk melanjutkan penilaian QA pada paper yang tersisa saja.">▶️ Lanjutkan QA (Hanya Sisa PDF)</button>
                 <button class="btn" style="background: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.4);" onclick="if(confirm('Anda yakin ingin mengulang SELURUH proses Quality Appraisal dari nol? Semua data alasan dan skor Rater 1 & Rater 2 akan dihapus.')) window.resetModul7()">⚠️ Reset Total Modul 7</button>
             </div>
@@ -1419,6 +1420,47 @@ export function renderApprovalContent(area, session, handleApproval) {
                         btnResumeQA.disabled = false;
                         btnResumeQA.innerHTML = '▶️ Lanjutkan QA (Hanya Sisa PDF)';
                     }
+                });
+            }
+            
+            const btnDownloadMd = document.getElementById('btn-m7-download-md');
+            if (btnDownloadMd) {
+                btnDownloadMd.addEventListener('click', () => {
+                    const md = `# Quality Appraisal & Sensitivity Report
+
+## Appraisal Tool
+- **Tool**: ${q.tool || '-'}
+- **Threshold**: >= ${q.threshold || 0}%
+- **Kategorisasi**: ${q.categorization || '-'}
+- **Dual-Rater Kappa**: ${(q.kappa || 0).toFixed(3)}
+
+## Justification
+${q.tool_justification || '-'}
+
+### Threshold 3-Layer Justification
+- **Literature**: ${q.layer_literature || '-'}
+- **Developer Tool**: ${q.layer_developer || '-'}
+- **Feasibility**: ${q.layer_feasibility || '-'}
+
+## Dual-Rater Agreement Details (xAI)
+- **Total Valid Pairs**: ${q.kappa_details ? q.kappa_details.total_rated : 0}
+- **Both Pass (HIGH/MODERATE)**: ${q.kappa_details ? q.kappa_details.both_pass : 0}
+- **Both Fail (LOW)**: ${q.kappa_details ? q.kappa_details.both_fail : 0}
+- **Rater 1 Pass, Rater 2 Fail**: ${q.kappa_details ? q.kappa_details.r1_pass_r2_fail : 0}
+- **Rater 1 Fail, Rater 2 Pass**: ${q.kappa_details ? q.kappa_details.r1_fail_r2_pass : 0}
+
+## Sensitivity Analysis
+${sens || 'Tidak tersedia'}
+`;
+                    const blob = new Blob([md], { type: 'text/markdown' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'Quality_Appraisal_Report.md';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
                 });
             }
         }, 0);

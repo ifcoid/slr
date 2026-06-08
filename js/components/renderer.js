@@ -1404,7 +1404,8 @@ export function renderApprovalContent(area, session, handleApproval) {
                 });
             }
         }, 100);
-        // Do not return true here, let it render html
+        area.insertAdjacentHTML('beforeend', html);
+        return true;
     } else if (status === 'M7_STEP3_QA' && session.qa_threshold_justification) {
         const q = session.qa_threshold_justification;
         const sens = (session.sensitivity_analysis && session.sensitivity_analysis.markdown) || '';

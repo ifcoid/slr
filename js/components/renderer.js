@@ -2425,7 +2425,7 @@ window.showQAXAIModal = async (btn) => {
                                         <div style="padding: 12px 15px; background: rgba(0,0,0,0.2); border-bottom: 1px solid rgba(255,255,255,0.05); font-weight: bold; color: #e2e8f0; display:flex; justify-content: space-between; align-items: center;">
                                             <span>${p.Title || p.title || p.DOI || p.doi || 'Unknown Title'}</span>
                                             <div style="display:flex; align-items:center; gap:15px;">
-                                                <button class="btn-delete-qdrant-xai" data-doi="${p.DOI || p.doi || '-'}" data-title="${p.Title || p.title || ''}" style="background: transparent; border: 1px solid #ef4444; color: #ef4444; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; display: flex; align-items: center; gap: 4px;" title="Hapus vektor di database jika PDF rusak/watermark">🗑️ Hapus Vektor (Fix PDF)</button>
+                                                ${Number(p.qa_total_score || 0) === 0 ? `<button class="btn-delete-qdrant-xai" data-doi="${p.DOI || p.doi || '-'}" data-title="${p.Title || p.title || ''}" style="background: transparent; border: 1px solid #ef4444; color: #ef4444; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; display: flex; align-items: center; gap: 4px;" title="Hapus vektor di database jika PDF rusak/watermark">🗑️ Hapus Vektor (Fix PDF)</button>` : ''}
                                                 <span style="color:#38bdf8; font-size:0.9em;">Final: ${p.qa_final_category || '-'} (${p.qa_total_score || 0})</span>
                                             </div>
                                         </div>

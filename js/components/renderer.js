@@ -1388,7 +1388,7 @@ export function renderApprovalContent(area, session, handleApproval) {
                     <div><strong style="color:#fff;">Hanya Rater 1 yang Meloloskan:</strong> ${q.kappa_details.r1_pass_r2_fail} paper</div>
                     <div><strong style="color:#fff;">Hanya Rater 2 yang Meloloskan:</strong> ${q.kappa_details.r1_fail_r2_pass} paper</div>
                     ${q.kappa_details.total_rated > 0 && q.kappa === 0 ? `<div style="margin-top: 8px; font-style: italic; color: #fbbf24;">* ⚠️ Jika Kappa bernilai 0.000 padahal Total Valid > 0, itu terjadi karena fenomena matematis "Cohen's Kappa Paradox" di mana probabilitas kesepakatan homogen sama persis dengan probabilitas tebakan acak. Kesepakatan aktual tetap berlaku.</div>` : ''}
-                    <button class="btn btn-secondary" onclick="window.showQAXAIModal()" style="margin-top:10px; padding:6px 12px; font-size:0.9em; width:fit-content;">🔍 Buka Detail Keputusan Rater (xAI)</button>
+                    <button class="btn btn-secondary" onclick="window.showQAXAIModal(this)" style="margin-top:10px; padding:6px 12px; font-size:0.9em; width:fit-content;">🔍 Buka Detail Keputusan Rater (xAI)</button>
                 </div>
             </details>
             ` : ''}
@@ -2393,7 +2393,11 @@ export function renderApprovalContent(area, session, handleApproval) {
     return false;
 }
 
-window.showQAXAIModal = async () => {
+window.showQAXAIModal = async (btn) => {
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Memuat Data...';
+    }
     try {
         const sid = localStorage.getItem('activeSessionId');
         const baseURL = localStorage.getItem('apiBaseURL') || 'http://localhost:50607/api';
@@ -2463,6 +2467,11 @@ window.showQAXAIModal = async () => {
         });
     } catch (err) {
         alert("Gagal memuat data QA: " + err.message);
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '🔍 Buka Detail Keputusan Rater (xAI)';
+        }
     }
 };
 

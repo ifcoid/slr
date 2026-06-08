@@ -2489,7 +2489,35 @@ window.showQAXAIModal = async (btn) => {
                     if (!res.ok) throw new Error("Gagal menghapus vektor dari Qdrant");
                     
                     target.style.display = 'none';
-                    alert(`Vektor berhasil dihapus!\n\nSILAKAN JALANKAN NOTEBOOK BERIKUT:\nPastikan PDF yang benar sudah berada di folder Anda. Jalankan ulang script Notebook PEDE Colab/Lokal khusus untuk paper ini.\nDOI: ${paperDoi}\nJudul: ${paperTitle}\n\nSetelah re-upload sukses, silakan Refresh halaman ini, tekan tombol sinkronisasi Qdrant di Modul 6, lalu tekan "Reset Modul 7" untuk mengulang QA.`);
+                    const colabLink = "https://colab.research.google.com/github/ifcoid/pede/blob/main/notebooks/pede_colab.ipynb";
+                    const successModalHtml = `
+                        <div id="success-delete-modal" style="position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(15, 23, 42, 0.9); display: flex; justify-content: center; align-items: center; z-index: 2000; backdrop-filter: blur(8px);">
+                            <div style="background: #1e293b; border-radius: 12px; border: 1px solid #34d399; width: 90vw; max-width: 600px; padding: 25px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); color: #f8fafc;">
+                                <h3 style="margin-top:0; color:#34d399; display:flex; align-items:center; gap:10px;">✅ Vektor Berhasil Dihapus!</h3>
+                                <p style="line-height: 1.6;">Langkah selanjutnya untuk pemulihan data PDF:</p>
+                                <ol style="line-height: 1.6; color:#cbd5e1; padding-left: 20px;">
+                                    <li>Pastikan PDF yang benar (tanpa watermark / teks penuh terbaca) sudah berada di folder lokal/Drive Anda.</li>
+                                    <li>Buka dan jalankan ulang script <strong>Notebook PEDE Colab/Lokal</strong> khusus untuk paper ini:
+                                        <br/><strong style="color:#f8fafc">DOI:</strong> ${paperDoi}
+                                        <br/><strong style="color:#f8fafc">Judul:</strong> ${paperTitle}
+                                    </li>
+                                    <li>Klik tautan berikut untuk membuka Colab secara langsung:
+                                        <br/><a href="${colabLink}" target="_blank" style="color:#60a5fa; text-decoration:underline; font-weight:bold; display:inline-block; margin-top:8px;">🚀 Buka Notebook PEDE di Google Colab</a>
+                                    </li>
+                                    <li>Setelah re-upload sukses, Refresh halaman utama SLR ini, tekan <strong>Sinkronisasi Qdrant</strong> di Modul 6, lalu klik <strong>Reset Modul 7</strong> untuk mengulang proses QA.</li>
+                                </ol>
+                                <div style="text-align: right; margin-top: 25px;">
+                                    <button id="btn-close-success-modal" style="background: #34d399; color: #0f172a; border: none; padding: 8px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: background 0.2s;">Saya Mengerti</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    const successDiv = document.createElement('div');
+                    successDiv.innerHTML = successModalHtml;
+                    document.body.appendChild(successDiv);
+                    document.getElementById('btn-close-success-modal').addEventListener('click', () => {
+                        successDiv.remove();
+                    });
                 } catch (err) {
                     alert(err.message);
                     target.innerHTML = originalText;

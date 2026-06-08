@@ -1350,9 +1350,10 @@ export function renderApprovalContent(area, session, handleApproval) {
                     <div style="font-size: 0.75em; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em;">Appraisal Tool</div>
                     <div style="font-size: 1.1em; font-weight: bold; color: #fff;">${q.tool}</div>
                 </div>
-                <div style="background: rgba(255,255,255,0.05); padding: 8px 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1);">
-                    <div style="font-size: 0.75em; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em;">Threshold</div>
-                    <div style="font-size: 1.1em; font-weight: bold; color: #38bdf8;">${q.threshold}%</div>
+                <div style="background: rgba(255,255,255,0.05); padding: 8px 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); flex: 1;">
+                    <div style="font-size: 0.75em; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em;">Threshold & Kategorisasi</div>
+                    <div style="font-size: 1.1em; font-weight: bold; color: #38bdf8;">Batas Lulus: &ge; ${q.threshold}%</div>
+                    <div style="font-size: 0.75em; color: #94a3b8; margin-top: 4px;">${q.categorization || ''}</div>
                 </div>
                 <div style="background: rgba(255,255,255,0.05); padding: 8px 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1);" title="Jika 0.000, kemungkinan belum cukup sampel untuk cross-check, atau rater kedua belum selesai.">
                     <div style="font-size: 0.75em; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 4px;">Dual-rater κ <span style="cursor:help; font-size: 1.2em;">ℹ️</span></div>
@@ -1364,10 +1365,7 @@ export function renderApprovalContent(area, session, handleApproval) {
                 ${(q.tool_justification || '').replace(/\n/g, '<br>')}
             </div>
 
-            <div style="font-size:0.85em; color:#94a3b8; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-                <strong>Kategorisasi:</strong>
-                <span style="background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 12px; color: #cbd5e1;">${q.categorization || ''}</span>
-            </div>
+
 
             <details style="margin-bottom:15px; background: rgba(255,255,255,0.02); padding: 8px 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.05);">
                 <summary style="cursor:pointer; color:#93c5fd; font-weight: 500;">Justifikasi threshold 3-lapis</summary>

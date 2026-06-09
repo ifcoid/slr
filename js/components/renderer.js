@@ -122,23 +122,23 @@ export function renderApprovalContent(area, session, handleApproval) {
                 <form id="form-filters">
                     <div class="form-group" style="margin-bottom: 1rem;">
                         <label>Rentang Tahun (Misal: 2018-2024)</label>
-                        <input type="text" id="filter-tahun" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #555; background: #222; color: #fff;" value="${session.scope_filters?.rentang_tahun || ''}">
+                        <input type="text" id="filter-tahun" placeholder="contoh: 2018-2023" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #555; background: #222; color: #fff;" value="${(session.scope_filters?.rentang_tahun || '').includes('[ISI DI SINI') ? '' : session.scope_filters?.rentang_tahun}">
                     </div>
                     <div class="form-group" style="margin-bottom: 1rem;">
                         <label>Geografis (Misal: Global, Asia, USA)</label>
-                        <input type="text" id="filter-geografis" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #555; background: #222; color: #fff;" value="${session.scope_filters?.geografis || 'Global'}">
+                        <input type="text" id="filter-geografis" placeholder="contoh: Global / Asia Tenggara" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #555; background: #222; color: #fff;" value="${(session.scope_filters?.geografis || '').includes('[ISI DI SINI') ? '' : session.scope_filters?.geografis}">
                     </div>
                     <div class="form-group" style="margin-bottom: 1rem;">
                         <label>Sektor / Bidang (Misal: Computer Science & Medicine)</label>
-                        <input type="text" id="filter-sektor" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #555; background: #222; color: #fff;" value="${session.scope_filters?.sektor || ''}">
+                        <input type="text" id="filter-sektor" placeholder="contoh: Pendidikan / Kesehatan" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #555; background: #222; color: #fff;" value="${(session.scope_filters?.sektor || '').includes('[ISI DI SINI') ? '' : session.scope_filters?.sektor}">
                     </div>
                     <div class="form-group" style="margin-bottom: 1rem;">
                         <label>Bahasa (Misal: English only)</label>
-                        <input type="text" id="filter-bahasa" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #555; background: #222; color: #fff;" value="${session.scope_filters?.bahasa || 'English only'}">
+                        <input type="text" id="filter-bahasa" placeholder="contoh: English only" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #555; background: #222; color: #fff;" value="${(session.scope_filters?.bahasa || '').includes('[ISI DI SINI') ? '' : session.scope_filters?.bahasa}">
                     </div>
                     <div class="form-group" style="margin-bottom: 1rem;">
                         <label>Lainnya (Misal: Hanya Jurnal Peer-Reviewed, Bebas Konferensi)</label>
-                        <input type="text" id="filter-lainnya" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #555; background: #222; color: #fff;" value="${session.scope_filters?.lainnya || ''}">
+                        <input type="text" id="filter-lainnya" placeholder="contoh: Hanya Jurnal Peer-Reviewed" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #555; background: #222; color: #fff;" value="${(session.scope_filters?.lainnya || '').includes('[ISI DI SINI') ? '' : session.scope_filters?.lainnya}">
                     </div>
                     <button type="submit" class="btn btn-primary" style="margin-top: 10px;">Simpan Filters & Lanjut</button>
                 </form>

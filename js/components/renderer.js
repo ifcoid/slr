@@ -165,9 +165,13 @@ export function renderApprovalContent(area, session, handleApproval) {
                         btn.disabled = true;
                         
                         const { getBaseURL } = await import('../api.js');
+                        const token = localStorage.getItem('auth_token');
+                        const headers = { 'Content-Type': 'application/json' };
+                        if (token) headers['Authorization'] = `Bearer ${token}`;
+                        
                         const response = await fetch(`${getBaseURL()}/sessions/${session.id}`, {
                             method: 'PUT',
-                            headers: { 'Content-Type': 'application/json' },
+                            headers: headers,
                             body: JSON.stringify({ 
                                 scope_filters: filterData,
                                 status: 'M2_STEP3_5_FILTERS_PROVIDED'

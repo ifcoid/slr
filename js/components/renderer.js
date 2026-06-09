@@ -1303,6 +1303,7 @@ export function renderApprovalContent(area, session, handleApproval) {
             <details style="margin-bottom:15px; background:rgba(0,0,0,0.2); padding:10px; border-radius:8px;">
                 <summary style="cursor:pointer; color:#60a5fa; font-weight:bold; font-size: 0.85em;">🔍 xAI: Lihat Prompt Dibalik Keputusan Ini</summary>
                 <div style="margin-top:10px; font-size:0.8em; color:#cbd5e1; max-height: 250px; overflow-y: auto;">
+                    ${fw.model_used ? `<p style="color:#fcd34d; margin-bottom:5px;"><strong>🧠 LLM Model:</strong> ${fw.model_used}</p>` : ''}
                     <strong>System Prompt (Instruksi Agent):</strong><br>
                     <pre style="white-space: pre-wrap; font-family: monospace; background: rgba(0,0,0,0.3); padding: 8px; border-radius: 4px; margin-top: 5px; margin-bottom: 10px;">${(fw.system_prompt || '').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>
                     <strong>User Prompt (Konteks Riset Anda):</strong><br>

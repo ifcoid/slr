@@ -1299,6 +1299,17 @@ export function renderApprovalContent(area, session, handleApproval) {
         });
         html = wrapCard('Modul 7 L1 — Framework & Template Ekstraksi', `
             <p><strong>Framework:</strong> <span style="color:#6ee7b7;">${fw.framework}</span></p>
+            ${fw.system_prompt ? `
+            <details style="margin-bottom:15px; background:rgba(0,0,0,0.2); padding:10px; border-radius:8px;">
+                <summary style="cursor:pointer; color:#60a5fa; font-weight:bold; font-size: 0.85em;">🔍 xAI: Lihat Prompt Dibalik Keputusan Ini</summary>
+                <div style="margin-top:10px; font-size:0.8em; color:#cbd5e1; max-height: 250px; overflow-y: auto;">
+                    <strong>System Prompt (Instruksi Agent):</strong><br>
+                    <pre style="white-space: pre-wrap; font-family: monospace; background: rgba(0,0,0,0.3); padding: 8px; border-radius: 4px; margin-top: 5px; margin-bottom: 10px;">${(fw.system_prompt || '').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>
+                    <strong>User Prompt (Konteks Riset Anda):</strong><br>
+                    <pre style="white-space: pre-wrap; font-family: monospace; background: rgba(0,0,0,0.3); padding: 8px; border-radius: 4px; margin-top: 5px;">${(fw.user_prompt || '').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>
+                </div>
+            </details>
+            ` : ''}
             <p style="font-size:0.9em;color:#cbd5e1;">${fw.justification || ''}</p>
             <table style="width:100%;border-collapse:collapse;font-size:0.85em;margin-top:8px;">
                 <tr><th style="text-align:left;padding:6px;color:#9ca3af;">Kolom</th><th style="text-align:left;padding:6px;color:#9ca3af;">Kat.</th><th style="text-align:left;padding:6px;color:#9ca3af;">Deskripsi</th></tr>

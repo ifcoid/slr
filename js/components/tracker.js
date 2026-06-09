@@ -156,7 +156,7 @@ async function fetchSessionStatus() {
             toggleHidden('status-spinner', false);
             document.getElementById('interactive-area').innerHTML = `
                 <div style="background: rgba(239, 68, 68, 0.1); border-left: 4px solid #ef4444; padding: 1rem; border-radius: 4px; margin-bottom: 1rem;">
-                    <h4 style="color: #ef4444; margin-top: 0;">Sistem Mengalami Kendala</h4>
+                    <h4 style="color: #ef4444; margin-top: 0;">Sistem Mengalami Kendala <span style="font-size: 0.8em; color: #666;">[v1.0.1 - 09 Juni 2026]</span></h4>
                     <p style="margin-bottom: 1rem; font-size: 0.9rem;">${session.system_error || 'Silakan cek log terminal untuk detail error.'}</p>
                     <button id="btn-retry-error" class="btn btn-primary">🔄 Coba Lagi (Retry)</button>
                 </div>

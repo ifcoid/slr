@@ -349,7 +349,8 @@ window.downloadExtractionMarkdown = async (sessionId) => {
         if (btn) btn.innerText = "⏳ Sedang Mengunduh...";
         
         const session = await API.getSession(sessionId);
-        const extractions = await API.getExtractions(sessionId);
+        const extractionsRes = await API.getExtractions(sessionId);
+        const extractions = extractionsRes.extractions || [];
         
         const l = session.extraction_log || {};
         const rate = (l.disagreement_rate || 0).toFixed(1);

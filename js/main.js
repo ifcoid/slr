@@ -112,6 +112,7 @@ window.showExtractionModal = async function(filterAmbiguous = false) {
             html += `<th>${k}</th>`;
         });
         html += '<th>Notes / Coverage</th>';
+        html += '<th>Model AI</th>';
         html += '</tr></thead><tbody>';
 
         res.extractions.forEach(ext => {
@@ -151,6 +152,7 @@ window.showExtractionModal = async function(filterAmbiguous = false) {
             });
             
             html += `<td style="max-width:200px; white-space:normal; font-size:0.85em;">Coverage: ${ext.coverage || '-'}</td>`;
+            html += `<td style="max-width:150px; font-size:0.85em; color:#9ca3af;">${ext.model_extraction || 'Default'}</td>`;
             html += `</tr>`;
         });
         
@@ -275,6 +277,7 @@ window.runAutoResolve = async function(extId, fieldKey) {
             <div style="color: #10b981; font-weight: bold; margin-bottom: 10px;">✅ Terselesaikan Otomatis</div>
             <div style="font-size: 0.9em; margin-bottom: 5px;"><strong style="color:#9ca3af;">Field:</strong> ${fieldKey}</div>
             <div style="font-size: 0.9em; margin-bottom: 5px;"><strong style="color:#9ca3af;">Nilai Baru:</strong> ${res.resolved_value}</div>
+            <div style="font-size: 0.85em; margin-bottom: 5px;"><strong style="color:#9ca3af;">Model AI Resolusi:</strong> ${res.model_used || 'Default'}</div>
             <div style="font-size: 0.85em; color: #6b7280; font-style: italic;"><strong style="color:#9ca3af;">Evidence:</strong> ${res.evidence}</div>
         `;
         

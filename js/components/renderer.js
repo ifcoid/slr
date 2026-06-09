@@ -1362,8 +1362,33 @@ export function renderApprovalContent(area, session, handleApproval) {
             </details>`;
         }
 
+        let xaiHtml = `
+            <details style="margin-bottom:15px; background:rgba(0,0,0,0.2); padding:10px; border-radius:8px;">
+                <summary style="cursor:pointer; color:#60a5fa; font-weight:bold; font-size: 0.85em;">🔍 xAI: Lihat Langkah AI, Prompt & Model Dibalik Ekstraksi Ini</summary>
+                <div style="margin-top:10px; font-size:0.8em; color:#cbd5e1; max-height: 400px; overflow-y: auto;">
+                    <div style="margin-bottom:15px; padding-bottom:10px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                        <strong style="color:#a78bfa; display:block; margin-bottom:5px;">📋 Langkah-Langkah yang Dilakukan Agent AI (Step 2):</strong>
+                        <ol style="margin:0; padding-left:20px; color:#94a3b8; line-height: 1.4;">
+                            <li style="margin-bottom:4px;"><strong>Persiapan RAG:</strong> AI memuat indeks vektor teks penuh (full-text) dari PDF yang telah diunduh di Modul 6.</li>
+                            <li style="margin-bottom:4px;"><strong>Ekstraksi Massal (Reviewer 1):</strong> Model Ekstraksi membaca secara iteratif setiap paper dan mengekstrak data spesifik berdasarkan definisi operasional dan struktur framework (Prompt).</li>
+                            <li style="margin-bottom:4px;"><strong>Penanganan Data Kosong:</strong> Jika informasi tak ditemukan dalam teks, AI dilarang menebak dan diwajibkan mengisinya dengan [NOT REPORTED].</li>
+                            <li style="margin-bottom:4px;"><strong>Spot-Verification (Reviewer 2):</strong> Model Refine Protocol (AI Kedua) mengambil sampel acak 20% dan me-review field yang terindikasi "AMBIGUOUS" untuk dibandingkan secara ketat dengan isi teks asli.</li>
+                            <li><strong>Kalkulasi Disagreement:</strong> Tingkat kerancuan dihitung untuk menentukan apakah ekstraksi dapat dilanjutkan atau memerlukan perbaikan manual (Refine Protocol).</li>
+                        </ol>
+                    </div>
+                    ${l.model_extraction ? `<p style="color:#fcd34d; margin-bottom:5px;"><strong>🧠 LLM Model Ekstraksi (Reviewer 1):</strong> ${l.model_extraction}</p>` : ''}
+                    ${l.model_refine_protocol ? `<p style="color:#fcd34d; margin-bottom:5px;"><strong>🧠 LLM Model Refine Protocol (Reviewer 2):</strong> ${l.model_refine_protocol}</p>` : ''}
+                    ${l.system_prompt ? `
+                    <strong style="margin-top:10px; display:block;">System Prompt (Instruksi Agent Ekstraksi):</strong>
+                    <pre style="white-space: pre-wrap; font-family: monospace; background: rgba(0,0,0,0.3); padding: 8px; border-radius: 4px; margin-top: 5px; margin-bottom: 10px;">${(l.system_prompt || '').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>
+                    ` : '<p style="color:#94a3b8; font-style:italic;">Data prompt tidak direkam pada sesi lama.</p>'}
+                </div>
+            </details>
+        `;
+
         html = wrapCard('Modul 7 L2 — Hasil Ekstraksi Data (Full-Text)', `
             ${fwHtml}
+            ${xaiHtml}
             <p><strong>Total Paper:</strong> ${l.total_extracted || 0} paper berhasil dibaca dan diekstrak datanya oleh AI (Reviewer 1).</p>
             <p><strong>Pengecekan Kualitas (Cross-check):</strong> AI kedua (Reviewer 2) telah mengambil sampel acak ${l.verified_sample || 0} paper untuk diperiksa ulang. <br>
             <strong>Tingkat Perbedaan Pemahaman:</strong> <a href="#" onclick="window.showExtractionModal(true); return false;" style="color:${rateColor};font-weight:bold;text-decoration:underline;cursor:pointer;" title="Klik untuk memfilter dan HANYA melihat paper yang rancu/kuning di Tabel Ekstraksi">${rate}%</a></p>

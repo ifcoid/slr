@@ -165,7 +165,7 @@ export function renderApprovalContent(area, session, handleApproval) {
                         btn.disabled = true;
                         
                         const { getBaseURL } = await import('../api.js');
-                        await fetch(`${getBaseURL()}/sessions/${session.id}`, {
+                        const response = await fetch(`${getBaseURL()}/sessions/${session.id}`, {
                             method: 'PUT',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ 
@@ -174,9 +174,25 @@ export function renderApprovalContent(area, session, handleApproval) {
                             })
                         });
                         
-                        window.location.reload();
+                        if (!response.ok) {
+                            const errData = await response.json().catch(() => ({}));
+                            throw new Error(errData.error || `HTTP Error ${response.status}`);
+                        }
+                        
+                        // Sukses! Cukup trigger re-fetch dari tracker utama, jangan reload page penuh
+                        if (window.fetchSessionStatus) {
+                            window.fetchSessionStatus();
+                        } else {
+                            window.location.reload();
+                        }
                     } catch (error) {
-                        alert("Gagal update filter: " + error);
+                        console.error("Gagal update filter:", error);
+                        alert("Gagal update filter: " + error.message);
+                        
+                        // Kembalikan tombol ke kondisi semula
+                        const btn = e.target.querySelector('button');
+                        btn.textContent = "Simpan Filters & Lanjut";
+                        btn.disabled = false;
                     }
                 });
             }

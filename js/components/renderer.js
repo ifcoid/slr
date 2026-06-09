@@ -165,7 +165,7 @@ export function renderApprovalContent(area, session, handleApproval) {
                         btn.disabled = true;
                         
                         const { getBaseURL } = await import('../api.js');
-                        await fetch(`${getBaseURL()}/api/sessions/${session.id}`, {
+                        await fetch(`${getBaseURL()}/sessions/${session.id}`, {
                             method: 'PUT',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ 

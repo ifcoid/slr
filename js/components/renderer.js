@@ -1400,6 +1400,19 @@ export function renderApprovalContent(area, session, handleApproval) {
             </div>
         `);
 
+    } else if (status === 'M7_STEP3_QA_TOOL_WAITING_APPROVAL' && session.qa_threshold_justification) {
+        const q = session.qa_threshold_justification;
+        html = wrapCard('Modul 7 L3 — QA Tool Selection', `
+            <p>Sistem telah merekomendasikan alat ukur kualitas (QA Tool) berikut berdasarkan desain studi Anda:</p>
+            <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                <p><strong>Tool:</strong> <span style="color:#6ee7b7; font-weight:bold;">${q.tool}</span></p>
+                <p><strong>Kategorisasi:</strong> ${q.categorization || '-'}</p>
+                <p><strong>Rekomendasi Threshold:</strong> &ge; ${q.threshold}%</p>
+                <p style="margin-top:10px;"><strong>Justifikasi Tool:</strong><br><span style="color:#cbd5e1;">${(q.tool_justification || '').replace(/\n/g, '<br>')}</span></p>
+            </div>
+            <p style="font-size:0.85em;color:#94a3b8;">Klik <strong>Setuju & Lanjut</strong> untuk memulai penilaian kualitas pada semua paper menggunakan tool ini, atau berikan revisi (contoh: "Tolong ganti ke JBI Tool dengan threshold 80%").</p>
+        `);
+
     } else if (status === 'M7_STEP3_WAITING_APPROVAL' && session.qa_threshold_justification) {
         const q = session.qa_threshold_justification;
         const sens = (session.sensitivity_analysis && session.sensitivity_analysis.markdown) || '';

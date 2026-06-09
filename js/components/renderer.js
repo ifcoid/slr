@@ -1394,8 +1394,9 @@ export function renderApprovalContent(area, session, handleApproval) {
             <strong>Tingkat Perbedaan Pemahaman:</strong> <a href="#" onclick="window.showExtractionModal(true); return false;" style="color:${rateColor};font-weight:bold;text-decoration:underline;cursor:pointer;" title="Klik untuk memfilter dan HANYA melihat paper yang rancu/kuning di Tabel Ekstraksi">${rate}%</a></p>
             <p><strong>Temuan Kerancuan:</strong> Terdapat ${l.ambiguous_count || 0} isian data (seperti metodologi, hasil, atau variabel lainnya) yang ditandai ambigu/membingungkan oleh Reviewer 2. Isian yang ambigu ini akan ditandai dengan <strong>warna kuning</strong> pada Tabel Ekstraksi di bawah.</p>
             <p style="font-size:0.85em;color:#94a3b8;">${l.nr_note || ''}</p>
-            <div style="margin-top: 15px; text-align: center;">
+            <div style="margin-top: 15px; text-align: center; display: flex; gap: 10px; justify-content: center;">
                 <button class="btn btn-secondary" onclick="window.showExtractionModal()" style="width:100%;">📊 Lihat Tabel Ekstraksi</button>
+                <button class="btn btn-primary" id="btn-dl-ext-md" onclick="window.downloadExtractionMarkdown('${session.id}')" style="width:100%;">📥 Download Laporan (MD)</button>
             </div>
         `);
 

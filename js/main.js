@@ -342,3 +342,88 @@ window.runAutoResolveAll = async function() {
         }, 3000);
     }
 };
+
+window.downloadExtractionMarkdown = async (sessionId) => {
+    try {
+        const btn = document.getElementById('btn-dl-ext-md');
+        if (btn) btn.innerText = "⏳ Sedang Mengunduh...";
+        
+        const session = await API.getSession(sessionId);
+        const extractions = await API.getExtractions(sessionId);
+        
+        const l = session.extraction_log || {};
+        const rate = (l.disagreement_rate || 0).toFixed(1);
+
+        let md = `# Laporan Hasil Ekstraksi Data (Full-Text)\n\n`;
+        md += `## 📋 Protokol Ekstraksi Saat Ini\n`;
+        md += `**Framework:** ${session.framework_selection?.framework || 'Tidak ada'}\n\n`;
+        
+        if (session.framework_selection && session.framework_selection.columns) {
+            md += `| Kolom | Kategori | Deskripsi |\n`;
+            md += `|-------|----------|-----------|\n`;
+            session.framework_selection.columns.forEach(c => {
+                md += `| ${c.key} | ${c.category || ''} | ${c.desc || ''} |\n`;
+            });
+            md += `\n`;
+        }
+
+        md += `## 🔍 xAI: Langkah AI, Prompt & Model Dibalik Ekstraksi Ini\n`;
+        md += `**Langkah-Langkah yang Dilakukan Agent AI:**\n`;
+        md += `1. **Persiapan RAG:** AI memuat indeks vektor teks penuh (full-text) dari PDF yang telah diunduh di Modul 6.\n`;
+        md += `2. **Ekstraksi Massal (Reviewer 1):** Model Ekstraksi membaca secara iteratif setiap paper dan mengekstrak data spesifik berdasarkan definisi operasional dan struktur framework (Prompt).\n`;
+        md += `3. **Penanganan Data Kosong:** Jika informasi tak ditemukan dalam teks, AI dilarang menebak dan diwajibkan mengisinya dengan [NOT REPORTED].\n`;
+        md += `4. **Spot-Verification (Reviewer 2):** Model Refine Protocol (AI Kedua) mengambil sampel acak 20% dan me-review field yang terindikasi "AMBIGUOUS" untuk dibandingkan secara ketat dengan isi teks asli.\n`;
+        md += `5. **Kalkulasi Disagreement:** Tingkat kerancuan dihitung untuk menentukan apakah ekstraksi dapat dilanjutkan atau memerlukan perbaikan manual (Refine Protocol).\n\n`;
+        
+        if (l.model_extraction) md += `- **LLM Model Ekstraksi (Reviewer 1):** ${l.model_extraction}\n`;
+        if (l.model_refine_protocol) md += `- **LLM Model Refine Protocol (Reviewer 2):** ${l.model_refine_protocol}\n`;
+        
+        if (l.system_prompt) {
+            md += `\n**System Prompt (Instruksi Agent Ekstraksi):**\n\`\`\`\n${l.system_prompt}\n\`\`\`\n\n`;
+        }
+        
+        md += `## 📈 Hasil Perhitungan Matematis\n`;
+        md += `- **Total Paper:** ${l.total_extracted || 0} paper berhasil dibaca dan diekstrak datanya oleh AI (Reviewer 1).\n`;
+        md += `- **Sampel Pengecekan Kualitas (Cross-check):** ${l.verified_sample || 0} paper.\n`;
+        md += `- **Tingkat Perbedaan Pemahaman (Disagreement Rate):** ${rate}%\n`;
+        md += `- **Temuan Kerancuan:** ${l.ambiguous_count || 0} isian data (seperti metodologi, hasil, atau variabel lainnya) ditandai ambigu/membingungkan oleh Reviewer 2.\n\n`;
+
+        md += `## 📊 Tabel Ekstraksi\n`;
+        
+        if (extractions && extractions.length > 0 && session.framework_selection && session.framework_selection.columns) {
+            let headers = ['DOI / Judul'].concat(session.framework_selection.columns.map(c => c.key));
+            md += `| ${headers.join(' | ')} |\n`;
+            md += `| ${headers.map(() => '---').join(' | ')} |\n`;
+            
+            extractions.forEach(ext => {
+                let row = [`${ext.doi || 'N/A'}<br>${ext.title}`];
+                session.framework_selection.columns.forEach(c => {
+                    let fieldObj = (ext.fields || []).find(f => f.key === c.key);
+                    let val = fieldObj ? (fieldObj.value || '-') : '-';
+                    val = String(val).replace(/\|/g, '\\|').replace(/\n/g, '<br>');
+                    row.push(val);
+                });
+                md += `| ${row.join(' | ')} |\n`;
+            });
+        } else {
+            md += `*Data ekstraksi tidak tersedia.*\n`;
+        }
+
+        const blob = new Blob([md], { type: 'text/markdown' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Laporan_Ekstraksi_Modul7_${sessionId}.md`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        if (btn) btn.innerText = "📥 Download Laporan (MD)";
+    } catch (e) {
+        console.error(e);
+        alert('Gagal mendownload laporan: ' + e.message);
+        const btn = document.getElementById('btn-dl-ext-md');
+        if (btn) btn.innerText = "📥 Download Laporan (MD)";
+    }
+};

@@ -164,7 +164,8 @@ export function renderApprovalContent(area, session, handleApproval) {
                         btn.textContent = "Menyimpan...";
                         btn.disabled = true;
                         
-                        await fetch(`http://localhost:50607/api/sessions/${session.id}`, {
+                        const { getBaseURL } = await import('../api.js');
+                        await fetch(`${getBaseURL()}/api/sessions/${session.id}`, {
                             method: 'PUT',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ 

@@ -1405,7 +1405,7 @@ export function renderApprovalContent(area, session, handleApproval) {
             <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: flex-end; gap: 10px;">
                 <button id="btn-m7-download-md" class="btn" style="background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4);" title="Unduh laporan QA & Sensitivitas dalam format Markdown untuk dibagikan ke LLM lain">⬇️ Unduh Report (.md)</button>
                 <button id="btn-m7-resume-qa" class="btn" style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4);" title="Klik ini jika Anda baru saja menghapus & re-upload PDF untuk melanjutkan penilaian QA pada paper yang tersisa saja.">▶️ Lanjutkan QA (Hanya Sisa PDF)</button>
-                <button class="btn" style="background: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.4);" onclick="if(confirm('Anda yakin ingin mengulang SELURUH proses Quality Appraisal dari nol? Semua data alasan dan skor Rater 1 & Rater 2 akan dihapus.')) window.resetModul7()">⚠️ Reset Total Modul 7</button>
+                <button class="btn" style="background: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.4);" onclick="if(confirm('Anda yakin ingin men-drop Modul 7 dan mengulang dari nol? Semua data ekstraksi PDF dan skor QA akan dihapus permanen!')) window.resetModul7()">⚠️ Drop Modul 7</button>
             </div>
         `);
         

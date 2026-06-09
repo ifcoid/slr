@@ -214,6 +214,21 @@ function renderApprovalUI(session) {
 
     // M2_STEP1: Topik Sugesti
     if (session.status === 'M2_STEP1_WAITING_APPROVAL' && session.suggested_topics) {
+        // Tampilkan info prompt sebelumnya
+        const infoBox = document.createElement('div');
+        infoBox.style.cssText = "background: rgba(30, 41, 59, 0.5); padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.1);";
+        infoBox.innerHTML = `
+            <p style="margin-top:0; font-size: 0.9em; color: #94a3b8;"><i class="fas fa-history"></i> <strong>Prompt Terakhir yang Digunakan:</strong></p>
+            <div style="background: rgba(0,0,0,0.2); padding: 10px; border-radius: 4px; font-style: italic; font-size: 0.85em; color: #cbd5e1; margin-bottom: 10px;">
+                ${session.feedback ? session.feedback : session.topic}
+            </div>
+            <p style="font-size: 0.8em; color: #64748b; margin-bottom: 0;">
+                <i class="fas fa-robot"></i> Jika hasil berantakan (seperti judul/field kosong), artinya model LLM gagal mengikuti instruksi JSON karena prompt terlalu panjang/memaksa. 
+                Anda bisa mengganti model LLM di menu <strong>⚙️ Settings</strong> di pojok kanan atas, lalu coba revisi kembali.
+            </p>
+        `;
+        area.appendChild(infoBox);
+
         const grid = document.createElement('div');
         grid.className = 'options-grid';
         
@@ -223,16 +238,16 @@ function renderApprovalUI(session) {
             card.innerHTML = `
                 <div class="option-header">
                     <span class="badge">Opsi ${idx + 1}</span>
-                    <span class="badge" style="background: rgba(59, 130, 246, 0.2); color: #93c5fd;">${topic.type}</span>
+                    <span class="badge" style="background: rgba(59, 130, 246, 0.2); color: #93c5fd;">${topic.type || 'TIPE A'}</span>
                 </div>
                 <div class="option-body">
-                    <p><strong>Judul:</strong> ${topic.name}</p>
-                    <p><strong>Gap:</strong> ${topic.gap}</p>
+                    <p><strong>Judul:</strong> ${topic.name || '<span style="color:#ef4444;font-style:italic;">[Gagal diekstrak dari LLM]</span>'}</p>
+                    <p><strong>Gap:</strong> ${topic.gap || '<span style="color:#ef4444;font-style:italic;">[Gagal diekstrak dari LLM]</span>'}</p>
                     <div style="background: rgba(59, 130, 246, 0.1); padding: 10px; border-radius: 4px; border-left: 3px solid #3b82f6; margin: 10px 0;">
-                        <p style="margin: 0; font-size: 0.9em;"><strong>Alasan Klasifikasi (${topic.type}):</strong> ${topic.type_reason}</p>
+                        <p style="margin: 0; font-size: 0.9em;"><strong>Alasan Klasifikasi (${topic.type || 'TIPE A'}):</strong> ${topic.type_reason || ''}</p>
                     </div>
-                    <p><strong>Bukti/Konteks (Evidence):</strong> ${topic.evidence}</p>
-                    <p><strong>Pentingnya:</strong> ${topic.importance}</p>
+                    <p><strong>Bukti/Konteks (Evidence):</strong> ${topic.evidence || ''}</p>
+                    <p><strong>Pentingnya:</strong> ${topic.importance || ''}</p>
                     ${topic.references && topic.references.length > 0 ? `
                     <div style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed rgba(255,255,255,0.2);">
                         <p style="margin-bottom: 5px; font-size: 0.85em; color: var(--text-muted);"><strong><i class="fa fa-book"></i> Referensi Grounding:</strong></p>

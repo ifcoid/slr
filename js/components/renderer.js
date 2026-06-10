@@ -459,18 +459,19 @@ export function renderApprovalContent(area, session, handleApproval) {
                         btn.textContent = "Menyimpan...";
                         btn.disabled = true;
                         
-                        await fetch(`${getBaseURL()}/sessions/${session.id}`, {
-                            method: 'PUT',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ 
+                        const res = await API.updateSession(session.id, { 
                                 feedback: hits,
                                 status: 'M3_STEP4_EVALUATION'
-                            })
                         });
                         
+                        // Sukses, muntahkan pesan respons ke user lalu tunggu klik OK
+                        alert("Berhasil! Server merespons: " + (res.message || "Data Hits Tersimpan."));
                         window.location.reload();
                     } catch (error) {
-                        alert("Gagal update hits: " + error);
+                        alert("Gagal update hits: " + error.message);
+                        const btn = e.target.querySelector('button');
+                        btn.textContent = "Simpan Hits & Lanjut Evaluasi";
+                        btn.disabled = false;
                     }
                 });
             }
@@ -558,18 +559,17 @@ export function renderApprovalContent(area, session, handleApproval) {
                         btn.textContent = "Menyimpan...";
                         btn.disabled = true;
                         
-                        await fetch(`${getBaseURL()}/sessions/${session.id}`, {
-                            method: 'PUT',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ 
+                        await API.updateSession(session.id, { 
                                 data_mining_log: newDataMiningLog,
-                                status: 'M4_STEP1_EVALUATE'
-                            })
+                                status: 'M4_STEP1_EVALUATION'
                         });
                         
                         window.location.reload();
                     } catch (error) {
-                        alert("Gagal update data: " + error);
+                        alert("Gagal update data: " + error.message);
+                        const btn = e.target.querySelector('button');
+                        btn.textContent = "Lakukan Sanity Check";
+                        btn.disabled = false;
                     }
                 });
             }

@@ -26,10 +26,10 @@ export function initSetup() {
 
     // Provider-specific base URL defaults
     const PROVIDER_BASE_URLS = {
-        'rprompt':    'https://rprompt.ll.my.id/v1',
-        'rprompt1':   'https://rprompt.ll.my.id/v1',
-        'rprompt2':   'https://rprompt.ll.my.id/v1',
-        'rprompt3':   'https://rprompt.ll.my.id/v1',
+        'rprompt':    'http://localhost:8080/v1',
+        'rprompt1':   'http://localhost:8080/v1',
+        'rprompt2':   'http://localhost:8080/v1',
+        'rprompt3':   'http://localhost:8080/v1',
         'openrouter': 'https://openrouter.ai/api/v1',
         'xiaomi':     'https://token-plan-sgp.xiaomimimo.com/v1',
     };

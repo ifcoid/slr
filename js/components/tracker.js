@@ -192,8 +192,47 @@ async function fetchSessionStatus() {
         } else {
             // Agen sedang bekerja
             toggleHidden('status-spinner', true); // Show spinner
-            document.getElementById('interactive-area').innerHTML = '';
-            toggleHidden('interactive-area', false);
+            const area = document.getElementById('interactive-area');
+            area.innerHTML = `
+                <div style="margin-top: 15px; padding: 15px; background: rgba(239, 68, 68, 0.1); border: 1px dashed rgba(239, 68, 68, 0.5); border-radius: 8px;">
+                    <h5 style="color: #ef4444; margin-top: 0; margin-bottom: 10px;">⚠️ Interupsi Paksa (Force Stop & Revise)</h5>
+                    <p style="font-size: 0.85em; color: #fca5a5; margin-bottom: 10px;">
+                        <strong>Peringatan:</strong> Mengirim instruksi ini akan <strong>mematikan proses agen yang sedang berjalan secara paksa</strong> dan mengulanginya dari awal langkah ini. Jangan iseng menekan tombol ini jika Anda hanya ingin melanjutkan ke langkah berikutnya.
+                    </p>
+                    <form id="form-force-revise" style="margin-top: 0.5rem;">
+                        <textarea id="input-force-feedback" rows="2" placeholder="Tulis instruksi revisi paksa di sini..." required style="width: 100%; border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 4px; padding: 8px; background: rgba(0,0,0,0.2); color: white; resize: vertical; font-family: inherit; margin-bottom: 8px;"></textarea>
+                        <button type="submit" class="btn btn-danger" style="width: 100%; font-weight: bold; padding: 10px;">🛑 MATIKAN PROSES & ULANGI DENGAN REVISI INI</button>
+                    </form>
+                </div>
+            `;
+            
+            setTimeout(() => {
+                const formForceRevise = document.getElementById('form-force-revise');
+                if (formForceRevise) {
+                    formForceRevise.addEventListener('submit', async (e) => {
+                        e.preventDefault();
+                        if (!confirm("⚠️ PERINGATAN KERAS ⚠️\n\nAnda yakin ingin MEMATIKAN paksa proses AI yang sedang berjalan ini?\n\nSemua progres pada langkah ini akan terhenti dan diulang dari awal dengan instruksi baru Anda.")) {
+                            return;
+                        }
+                        const feedback = document.getElementById('input-force-feedback').value;
+                        const btn = e.target.querySelector('button');
+                        const originalText = btn.textContent;
+                        btn.textContent = "Mengeksekusi Force Stop...";
+                        btn.disabled = true;
+                        
+                        try {
+                            await API.reviseStep(currentSessionId, feedback);
+                            showToast('Proses berhasil dihentikan! Agen akan mengulang.', 'success');
+                            fetchSessionStatus(); // re-poll immediately
+                        } catch (error) {
+                            showToast(error.message, 'error');
+                            btn.textContent = originalText;
+                            btn.disabled = false;
+                        }
+                    });
+                }
+            }, 0);
+            toggleHidden('interactive-area', true); // Show the interactive area
         }
     } catch (error) {
         console.error('Failed to poll status:', error);

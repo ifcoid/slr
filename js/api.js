@@ -70,6 +70,11 @@ export const API = {
     
     getSession: (id) => apiFetch(`/sessions/${id}`),
 
+    updateSession: (id, payload = {}) => apiFetch(`/sessions/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(payload)
+    }),
+
     resumeSession: (id) => apiFetch(`/sessions/${id}/resume`, {
         method: 'POST'
     }),

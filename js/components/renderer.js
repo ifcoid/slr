@@ -1,5 +1,5 @@
 // js/components/renderer.js
-import { API } from '../api.js';
+import { API, getBaseURL } from '../api.js';
 export function renderApprovalContent(area, session, handleApproval) {
     const status = session.status;
     let html = '';
@@ -459,7 +459,7 @@ export function renderApprovalContent(area, session, handleApproval) {
                         btn.textContent = "Menyimpan...";
                         btn.disabled = true;
                         
-                        await fetch(`http://localhost:50607/api/sessions/${session.id}`, {
+                        await fetch(`${getBaseURL()}/sessions/${session.id}`, {
                             method: 'PUT',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ 
@@ -558,7 +558,7 @@ export function renderApprovalContent(area, session, handleApproval) {
                         btn.textContent = "Menyimpan...";
                         btn.disabled = true;
                         
-                        await fetch(`http://localhost:50607/api/sessions/${session.id}`, {
+                        await fetch(`${getBaseURL()}/sessions/${session.id}`, {
                             method: 'PUT',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ 
@@ -710,7 +710,7 @@ export function renderApprovalContent(area, session, handleApproval) {
                         btn.textContent = "Mengunggah & Memproses...";
                         btn.disabled = true;
                         
-                        const res = await fetch(`http://localhost:50607/api/sessions/${session.id}/import-data`, {
+                        const res = await fetch(`${getBaseURL()}/sessions/${session.id}/import-data`, {
                             method: 'POST',
                             body: formData // Jangan set Content-Type, biarkan browser set multipart/form-data boundary
                         });
@@ -2534,7 +2534,7 @@ window.showQAXAIModal = async (btn) => {
     }
     try {
         const sid = localStorage.getItem('activeSessionId');
-        const baseURL = localStorage.getItem('apiBaseURL') || 'http://localhost:50607/api';
+        const baseURL = getBaseURL();
         const res = await fetch(`${baseURL}/sessions/${sid}/extractions`, {
             headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token')}` }
         });
@@ -2713,7 +2713,7 @@ window.downloadQAXAIMarkdown = async (btn) => {
     }
     try {
         const sid = localStorage.getItem('activeSessionId');
-        const baseURL = localStorage.getItem('apiBaseURL') || 'http://localhost:50607/api';
+        const baseURL = getBaseURL();
         const res = await fetch(`${baseURL}/sessions/${sid}/extractions`, {
             headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token')}` }
         });
@@ -2766,7 +2766,7 @@ window.resetModul7 = async () => {
     try {
         const sid = localStorage.getItem('activeSessionId');
         if (!sid) return;
-        const baseURL = localStorage.getItem('apiBaseURL') || 'http://localhost:50607/api';
+        const baseURL = getBaseURL();
         const res = await fetch(`${baseURL}/sessions/${sid}/reset-m7`, {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token')}` }

@@ -30,6 +30,19 @@ export function startTracking(sessionId) {
     if (btnRefresh) {
         btnRefresh.addEventListener('click', fetchSessionStatus);
     }
+    
+    const spinner = document.getElementById('status-spinner');
+    if (spinner && !spinner.hasAttribute('data-bound')) {
+        spinner.style.cursor = 'pointer';
+        spinner.title = 'Klik untuk menampilkan opsi Force Stop';
+        spinner.addEventListener('click', () => {
+            const block = document.getElementById('force-revise-block');
+            if (block) {
+                block.style.display = block.style.display === 'none' ? 'block' : 'none';
+            }
+        });
+        spinner.setAttribute('data-bound', 'true');
+    }
 
     const btnExitSession = document.getElementById('btn-exit-session');
     if (btnExitSession) {
@@ -194,7 +207,7 @@ async function fetchSessionStatus() {
             toggleHidden('status-spinner', true); // Show spinner
             const area = document.getElementById('interactive-area');
             area.innerHTML = `
-                <div style="margin-top: 15px; padding: 15px; background: rgba(239, 68, 68, 0.1); border: 1px dashed rgba(239, 68, 68, 0.5); border-radius: 8px;">
+                <div id="force-revise-block" style="display: none; margin-top: 15px; padding: 15px; background: rgba(239, 68, 68, 0.1); border: 1px dashed rgba(239, 68, 68, 0.5); border-radius: 8px;">
                     <h5 style="color: #ef4444; margin-top: 0; margin-bottom: 10px;">⚠️ Interupsi Paksa (Force Stop & Revise)</h5>
                     <p style="font-size: 0.85em; color: #fca5a5; margin-bottom: 10px;">
                         <strong>Peringatan:</strong> Mengirim instruksi ini akan <strong>mematikan proses agen yang sedang berjalan secara paksa</strong> dan mengulanginya dari awal langkah ini. Jangan iseng menekan tombol ini jika Anda hanya ingin melanjutkan ke langkah berikutnya.

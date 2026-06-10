@@ -30,6 +30,7 @@ export function initSetup() {
         'rprompt1':   'http://localhost:8080/v1',
         'rprompt2':   'http://localhost:8080/v1',
         'rprompt3':   'http://localhost:8080/v1',
+        'rprompt4':   'http://localhost:8080/v1',
         'openrouter': 'https://openrouter.ai/api/v1',
         'xiaomi':     'https://token-plan-sgp.xiaomimimo.com/v1',
     };
@@ -61,7 +62,7 @@ export function initSetup() {
 
     // ===== Model Routing (peran -> provider) =====
     const ROLE_IDS = ['reviewer1', 'reviewer1_fallback', 'reviewer2', 'reviewer2_fallback', 'supervisor', 'supervisor_fallback', 'brain', 'brain_fallback'];
-    const PROVIDERS = ['gemini', 'groq', 'zhipu', 'claude', 'openrouter', 'cohere', 'xiaomi', 'rprompt1', 'rprompt2', 'rprompt3'];
+    const PROVIDERS = ['gemini', 'groq', 'zhipu', 'claude', 'openrouter', 'cohere', 'xiaomi', 'rprompt1', 'rprompt2', 'rprompt3', 'rprompt4'];
     let roleSelectsPopulated = false;
 
     const formatProviderName = (p) => {

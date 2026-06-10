@@ -435,6 +435,14 @@ export function renderApprovalContent(area, session, handleApproval) {
 
                     <button type="submit" class="btn btn-primary">Simpan Hits & Lanjut Evaluasi</button>
                 </form>
+
+                <hr style="border-color: rgba(255,255,255,0.1); margin: 2rem 0;">
+                <h5 style="color: #fca5a5;">Apakah ada query yang error di database (Scopus/IEEE/PubMed)?</h5>
+                <p style="font-size: 0.9em; color: #d1d5db;">Jika query di atas mengalami syntax error saat dijalankan, beri tahu LLM untuk memperbaikinya.</p>
+                <form id="form-scopus-revision">
+                    <textarea id="m3-revision" class="input-modern" rows="3" placeholder="Misal: Query IEEE Xplore error karena ada masalah pada tanda kurung di bagian..."></textarea>
+                    <button type="submit" class="btn btn-warning" style="margin-top: 10px;">Revisi Keyword (Kembali ke M3.3)</button>
+                </form>
             </div>
         `;
         area.insertAdjacentHTML('beforeend', execHtml);
@@ -471,6 +479,33 @@ export function renderApprovalContent(area, session, handleApproval) {
                         alert("Gagal update hits: " + error.message);
                         const btn = e.target.querySelector('button');
                         btn.textContent = "Simpan Hits & Lanjut Evaluasi";
+                        btn.disabled = false;
+                    }
+                });
+            }
+
+            const formRev = document.getElementById('form-scopus-revision');
+            if (formRev) {
+                formRev.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const revText = document.getElementById('m3-revision').value.trim();
+                    if (!revText) {
+                        alert("Harap isi pesan revisi terlebih dahulu!");
+                        return;
+                    }
+                    try {
+                        const btn = e.target.querySelector('button');
+                        btn.textContent = "Mengirim Revisi...";
+                        btn.disabled = true;
+                        
+                        const res = await API.reviseStep(session.id, revText, 'M3_STEP3_NEEDS_REVISION');
+                        
+                        alert("Revisi terkirim! Status kembali ke pemrosesan M3.3.");
+                        window.location.reload();
+                    } catch (error) {
+                        alert("Gagal mengirim revisi: " + error.message);
+                        const btn = e.target.querySelector('button');
+                        btn.textContent = "Revisi Keyword (Kembali ke M3.3)";
                         btn.disabled = false;
                     }
                 });

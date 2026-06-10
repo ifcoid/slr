@@ -181,7 +181,7 @@ async function fetchSessionStatus() {
                     <div style="background: #0f172a; padding: 8px; border-radius: 4px; font-family: monospace; font-size: 0.8em; color: #a7f3d0; white-space: pre-wrap; margin-bottom: 10px;">{
   "mcpServers": {
     "nsa-supervisor": {
-      "url": "https://apk.fly.dev/api/mcp/sse"
+      "url": "${getBaseURL()}/mcp/sse"
     }
   }
 }</div>

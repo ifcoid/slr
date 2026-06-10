@@ -1,4 +1,4 @@
-import { API } from '../api.js';
+import { API, getBaseURL } from '../api.js';
 
 export function initHealthDashboard() {
     const btnHealth = document.getElementById('btn-health');
@@ -121,7 +121,7 @@ export function initHealthDashboard() {
                 <div style="margin-bottom: 15px;">
                     <strong style="font-size: 0.85em; color: #cbd5e1;">1. Pengaturan Konfigurasi (Endpoint SSE):</strong>
                     <div style="background: #0f172a; padding: 10px; border-radius: 4px; font-family: monospace; font-size: 0.85em; margin-top: 5px; color: #a7f3d0; word-break: break-all;">
-                        URL MCP (SSE): https://apk.fly.dev/api/mcp/sse
+                        URL MCP (SSE): ${getBaseURL()}/mcp/sse
                     </div>
                 </div>
                 <div>

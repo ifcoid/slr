@@ -1,6 +1,6 @@
 // js/components/tracker.js
 import { API, getBaseURL } from '../api.js';
-import { showToast, toggleHidden } from '../ui.js';
+import { showToast, toggleHidden, setButtonLoading } from '../ui.js';
 import { renderApprovalContent } from './renderer.js';
 
 let pollingInterval = null;
@@ -341,7 +341,17 @@ function renderApprovalUI(session) {
             setTimeout(() => {
                 const btnApprove = document.getElementById('btn-generic-approve');
                 if (btnApprove) {
-                    btnApprove.addEventListener('click', () => handleApproval({}));
+                    btnApprove.addEventListener('click', async () => {
+                        setButtonLoading(btnApprove, true);
+                        try {
+                            await API.approveStep(currentSessionId, {});
+                            showToast('Berhasil disetujui! Agen melanjutkan pekerjaannya.');
+                            fetchSessionStatus();
+                        } catch (err) {
+                            showToast(err.message, 'error');
+                            setButtonLoading(btnApprove, false, 'Setuju & Lanjut');
+                        }
+                    });
                 }
             }, 0);
         }

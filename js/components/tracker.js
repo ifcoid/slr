@@ -152,7 +152,7 @@ async function fetchSessionStatus() {
         lastRenderedStatus = session.status;
 
         // Logic for animation and interaction based on status
-        if (session.status && (session.status.includes('WAITING') || session.status.includes('DONE'))) {
+        if (session.status && (session.status.includes('WAITING') || session.status.includes('DONE') || session.status.includes('LOW_KAPPA'))) {
             toggleHidden('status-spinner', false); // Hide spinner
             renderApprovalUI(session);
         } else if (session.status === 'COMPLETED') {

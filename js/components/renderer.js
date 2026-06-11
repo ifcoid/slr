@@ -1516,29 +1516,70 @@ export function renderApprovalContent(area, session, handleApproval) {
 
     } else if (status === 'M7_STEP3_QA_CALIBRATION_LOW_KAPPA' && session.qa_calibration) {
         const cal = session.qa_calibration;
+        const pilots = cal.pilot_results || [];
+        const kappaColor = (cal.pilot_kappa >= 0.6) ? '#4ade80' : '#fca5a5';
+
+        let pilotRows = pilots.map(p => `
+            <tr>
+                <td style="padding:6px 8px;border-bottom:1px solid rgba(255,255,255,0.05);">${escHtml(p.title || p.paper_id || '-')}</td>
+                <td style="padding:6px 8px;border-bottom:1px solid rgba(255,255,255,0.05);text-align:center;">${p.r1_score ?? '-'}</td>
+                <td style="padding:6px 8px;border-bottom:1px solid rgba(255,255,255,0.05);text-align:center;">${escHtml(p.r1_category || '-')}</td>
+                <td style="padding:6px 8px;border-bottom:1px solid rgba(255,255,255,0.05);text-align:center;">${p.r2_score ?? '-'}</td>
+                <td style="padding:6px 8px;border-bottom:1px solid rgba(255,255,255,0.05);text-align:center;">${escHtml(p.r2_category || '-')}</td>
+                <td style="padding:6px 8px;border-bottom:1px solid rgba(255,255,255,0.05);text-align:center;font-weight:bold;">${escHtml(p.final_category || '-')}</td>
+                <td style="padding:6px 8px;border-bottom:1px solid rgba(255,255,255,0.05);text-align:center;">${p.disagreement ? '<span style="color:#fca5a5;">Yes</span>' : '<span style="color:#6ee7b7;">No</span>'}</td>
+            </tr>
+        `).join('');
+
         html = wrapCard('Modul 7 L3 — QA Calibration: Low Kappa', `
             <div style="background:rgba(239,68,68,0.15);border:1px solid #fca5a5;border-radius:8px;padding:15px;margin-bottom:15px;">
                 <p style="color:#fca5a5;font-weight:bold;margin:0 0 8px 0;">&#9888; Inter-rater agreement (kappa) terlalu rendah</p>
                 <p style="color:#fecaca;margin:0;font-size:0.9em;">Nilai kappa pilot: <strong>${(cal.pilot_kappa || 0).toFixed(3)}</strong> (minimum 0.6 diperlukan). Sistem perlu melakukan kalibrasi ulang agar hasil QA konsisten antar reviewer.</p>
             </div>
 
-            ${cal.refinement_note ? `
-            <div style="background:rgba(0,0,0,0.2);padding:12px 15px;border-radius:6px;border-left:3px solid #60a5fa;margin-bottom:15px;">
-                <div style="font-size:0.75em;color:#94a3b8;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;">Refinement Note from Brain</div>
-                <div style="color:#cbd5e1;font-size:0.9em;">${cal.refinement_note}</div>
-            </div>
-            ` : ''}
-
-            <div style="display:flex;gap:12px;margin-bottom:15px;">
+            <div style="display:flex;gap:12px;margin-bottom:15px;flex-wrap:wrap;align-items:center;">
                 <div style="background:rgba(255,255,255,0.05);padding:8px 12px;border-radius:6px;border:1px solid rgba(255,255,255,0.1);">
-                    <div style="font-size:0.75em;color:#94a3b8;text-transform:uppercase;">Attempts</div>
+                    <div style="font-size:0.75em;color:#94a3b8;text-transform:uppercase;letter-spacing:0.05em;">Pilot Kappa</div>
+                    <div style="font-size:1.1em;font-weight:bold;color:${kappaColor};">${(cal.pilot_kappa || 0).toFixed(3)}</div>
+                </div>
+                <div style="background:rgba(255,255,255,0.05);padding:8px 12px;border-radius:6px;border:1px solid rgba(255,255,255,0.1);">
+                    <div style="font-size:0.75em;color:#94a3b8;text-transform:uppercase;letter-spacing:0.05em;">Calibration</div>
+                    <div style="margin-top:4px;"><span style="background:#7f1d1d;color:#fca5a5;padding:2px 8px;border-radius:4px;font-size:0.85em;">NOT PASSED</span></div>
+                </div>
+                <div style="background:rgba(255,255,255,0.05);padding:8px 12px;border-radius:6px;border:1px solid rgba(255,255,255,0.1);">
+                    <div style="font-size:0.75em;color:#94a3b8;text-transform:uppercase;letter-spacing:0.05em;">Attempts</div>
                     <div style="font-size:1.1em;font-weight:bold;color:#fff;">${cal.attempts || 0} / ${cal.max_attempts || 3}</div>
                 </div>
             </div>
 
+            <h5 style="color:#93c5fd;margin-bottom:8px;">Pilot Results</h5>
+            <div style="overflow-x:auto;margin-bottom:15px;">
+                <table style="width:100%;border-collapse:collapse;font-size:0.85em;">
+                    <thead>
+                        <tr style="border-bottom:2px solid rgba(255,255,255,0.1);">
+                            <th style="padding:8px;text-align:left;color:#94a3b8;">Paper</th>
+                            <th style="padding:8px;text-align:center;color:#94a3b8;">R1 Score</th>
+                            <th style="padding:8px;text-align:center;color:#94a3b8;">R1 Cat</th>
+                            <th style="padding:8px;text-align:center;color:#94a3b8;">R2 Score</th>
+                            <th style="padding:8px;text-align:center;color:#94a3b8;">R2 Cat</th>
+                            <th style="padding:8px;text-align:center;color:#94a3b8;">Final</th>
+                            <th style="padding:8px;text-align:center;color:#94a3b8;">Disagree</th>
+                        </tr>
+                    </thead>
+                    <tbody>${pilotRows}</tbody>
+                </table>
+            </div>
+
+            ${cal.refinement_note ? `
+            <div style="background:rgba(0,0,0,0.2);padding:12px 15px;border-radius:6px;border-left:3px solid #60a5fa;margin-bottom:15px;">
+                <div style="font-size:0.75em;color:#94a3b8;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;">Refinement Note from Brain</div>
+                <div style="color:#cbd5e1;font-size:0.9em;">${escHtml(cal.refinement_note)}</div>
+            </div>
+            ` : ''}
+
             <div style="display:flex;gap:10px;justify-content:center;">
-                <button class="btn btn-primary" id="btn-retry-calibration">&#128260; Retry Calibration</button>
-                <button class="btn btn-secondary" id="btn-force-proceed" style="border-color:#eab308;color:#fef08a;">&#9889; Force Proceed</button>
+                <button class="btn btn-primary" id="btn-retry-calibration">&#128260; Retry Kalibrasi</button>
+                <button class="btn btn-secondary" id="btn-force-proceed" style="border-color:#eab308;color:#fef08a;">&#9889; Lanjutkan (Force Proceed)</button>
             </div>
         `);
 
@@ -1554,7 +1595,7 @@ export function renderApprovalContent(area, session, handleApproval) {
                     } catch (err) {
                         showToast(err.message, 'error');
                     } finally {
-                        setButtonLoading(btnRetry, false, '\u{1F504} Retry Calibration');
+                        setButtonLoading(btnRetry, false, '\u{1F504} Retry Kalibrasi');
                     }
                 });
             }
@@ -1562,12 +1603,12 @@ export function renderApprovalContent(area, session, handleApproval) {
                 btnForce.addEventListener('click', async () => {
                     setButtonLoading(btnForce, true);
                     try {
-                        await handleApproval({});
+                        await API.reviseStep(session.id, 'Force proceed despite low kappa', 'M7_STEP3_QA_CALIBRATION_FORCE_PROCEED');
                         showToast('Melanjutkan tanpa kalibrasi ulang...');
                     } catch (err) {
                         showToast(err.message, 'error');
                     } finally {
-                        setButtonLoading(btnForce, false, '\u26A1 Force Proceed');
+                        setButtonLoading(btnForce, false, '\u26A1 Lanjutkan (Force Proceed)');
                     }
                 });
             }

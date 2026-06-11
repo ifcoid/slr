@@ -15,23 +15,29 @@ export function setBaseURL(url) {
 // Universal fetch wrapper
 async function apiFetch(endpoint, options = {}) {
     try {
-        const headers = {
-            'Content-Type': 'application/json',
-            ...options.headers
-        };
+        const isFormData = options.body instanceof FormData;
+        const headers = isFormData
+            ? { ...(options.headers || {}) }
+            : { 'Content-Type': 'application/json', ...(options.headers || {}) };
+
+        // Remove Content-Type if explicitly set to null/undefined (e.g. for multipart)
+        if (headers['Content-Type'] === null || headers['Content-Type'] === undefined) {
+            delete headers['Content-Type'];
+        }
 
         const token = localStorage.getItem('auth_token');
         if (token) {
             headers['Authorization'] = `Bearer ${token}`;
         }
 
+        const body = isFormData ? options.body : options.body;
+
         const response = await fetch(`${baseURL}${endpoint}`, {
             ...options,
-            headers
+            headers,
+            body
         });
-        
-        const data = await response.json().catch(() => ({}));
-        
+
         if (response.status === 401) {
             // Unauthorized, redirect to login
             localStorage.removeItem('auth_token');
@@ -39,6 +45,17 @@ async function apiFetch(endpoint, options = {}) {
             window.location.reload();
             throw new Error('Sesi berakhir atau tidak valid. Silakan login kembali.');
         }
+
+        // Handle non-JSON responses (e.g. CSV export)
+        if (options.responseType === 'text') {
+            if (!response.ok) {
+                const text = await response.text().catch(() => '');
+                throw new Error(text || `HTTP Error ${response.status}`);
+            }
+            return await response.text();
+        }
+
+        const data = await response.json().catch(() => ({}));
 
         if (!response.ok) {
             throw new Error(data.error || `HTTP Error ${response.status}`);
@@ -91,9 +108,6 @@ export const API = {
 
     importData: (id, formData) => apiFetch(`/sessions/${id}/import-data`, {
         method: 'POST',
-        headers: {
-            'Content-Type': undefined // Biarkan browser yang atur boundary
-        },
         body: formData
     }),
 
@@ -161,5 +175,26 @@ export const API = {
 
     checkLLMHealth: () => apiFetch('/llm/health'),
 
-    resetModul7: (id) => apiFetch(`/sessions/${id}/reset-m7`, { method: 'POST' })
+    resetModul7: (id) => apiFetch(`/sessions/${id}/reset-m7`, { method: 'POST' }),
+
+    // M6 API
+    syncQdrant: (id) => apiFetch(`/sessions/${id}/m6/sync-qdrant`, {
+        method: 'POST'
+    }),
+
+    deleteQdrantPaper: (id, payload) => apiFetch(`/sessions/${id}/m6/qdrant/paper`, {
+        method: 'DELETE',
+        body: JSON.stringify(payload)
+    }),
+
+    markInaccessible: (id, paperId, documentation) => apiFetch(`/sessions/${id}/m6/mark-inaccessible`, {
+        method: 'POST',
+        body: JSON.stringify({ paper_id: paperId, documentation })
+    }),
+
+    exportLinks: (id) => apiFetch(`/sessions/${id}/m6/export-links`, {
+        responseType: 'text'
+    }),
+
+    getM6Papers: (id) => apiFetch(`/sessions/${id}/m6/papers`)
 };

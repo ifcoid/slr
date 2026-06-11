@@ -747,6 +747,9 @@ export function renderApprovalContent(area, session, handleApproval) {
                         
                         const res = await fetch(`${getBaseURL()}/sessions/${session.id}/import-data`, {
                             method: 'POST',
+                            headers: {
+                                'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                            },
                             body: formData // Jangan set Content-Type, biarkan browser set multipart/form-data boundary
                         });
                         

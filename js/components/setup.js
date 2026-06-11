@@ -132,6 +132,44 @@ export function initSetup() {
         } catch (e) { console.warn('Gagal memuat GitHub config:', e.message); }
     };
 
+    // ===== Embed Config =====
+    const loadEmbedConfig = async () => {
+        try {
+            const res = await API.getEmbedConfig();
+            const c = res.config || {};
+            const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v || ''; };
+            set('embed-cfg-endpoint', c.endpoint);
+            set('embed-cfg-model', c.model);
+            const keyEl = document.getElementById('embed-cfg-key');
+            if (keyEl) keyEl.placeholder = res.key_set ? '(key tersimpan — kosongkan = tetap)' : 'API Key';
+        } catch (e) { console.warn('Gagal memuat Embed config:', e.message); }
+    };
+
+    const formEmbed = document.getElementById('form-embed-config');
+    if (formEmbed) {
+        formEmbed.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const val = (id) => (document.getElementById(id) || {}).value || '';
+            const payload = {
+                endpoint: val('embed-cfg-endpoint'),
+                api_key: val('embed-cfg-key'),
+                model: val('embed-cfg-model'),
+            };
+            const btn = e.target.querySelector('button[type="submit"]');
+            setButtonLoading(btn, true);
+            try {
+                await API.updateEmbedConfig(payload);
+                showToast('Embed config berhasil disimpan!');
+                document.getElementById('embed-cfg-key').value = '';
+                await loadEmbedConfig();
+            } catch (error) {
+                showToast(error.message, 'error');
+            } finally {
+                setButtonLoading(btn, false, 'Simpan Embed Config');
+            }
+        });
+    }
+
     const formGitHub = document.getElementById('form-github-config');
     if (formGitHub) {
         formGitHub.addEventListener('submit', async (e) => {
@@ -162,6 +200,7 @@ export function initSetup() {
             openModal('modal-settings');
             loadRolesIntoForm();
             loadGitHubConfig();
+            loadEmbedConfig();
         });
     }
 

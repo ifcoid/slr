@@ -2241,12 +2241,32 @@ ${sens || 'Tidak tersedia'}
                 </div>
             `;
                 
-                const apiBase = localStorage.getItem('apiBaseURL') || '';
-                
                 contentHtml += `
                 <div class="action-buttons" style="display: flex; gap: 10px; margin-bottom: 20px;">
                     <button id="btn-m6-sync" class="btn" style="background: #8b5cf6; color: white;">🔄 Sinkronisasi dengan Qdrant DB</button>
-                    <button id="btn-m6-details" class="btn" style="background: #64748b; color: white;">📋 Status PDF & Vektor</button>
+                    <button id="btn-m6-export-csv" class="btn" style="background: #14b8a6; color: white;">⬇️ Export CSV</button>
+                    <button id="btn-m6-details" class="btn" style="background: #64748b; color: white;">📋 Status PDF & Vektor (Modal)</button>
+                </div>
+                <div id="m6-papers-container" style="margin-top: 10px;">
+                    <div id="m6-papers-loading" style="text-align: center; padding: 20px; color: #94a3b8;">
+                        <i class="fa fa-spinner fa-spin"></i> Memuat data papers...
+                    </div>
+                    <div id="m6-papers-table-wrapper" style="display: none; max-height: 400px; overflow-y: auto; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; background: rgba(15, 23, 42, 0.5);">
+                        <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                            <thead style="position: sticky; top: 0; background: #1e293b; z-index: 1;">
+                                <tr style="border-bottom: 2px solid #334155; color: #94A3B8;">
+                                    <th style="padding: 10px 12px; font-size: 0.8rem;">Title</th>
+                                    <th style="padding: 10px 12px; font-size: 0.8rem;">DOI</th>
+                                    <th style="padding: 10px 12px; font-size: 0.8rem;">Publisher</th>
+                                    <th style="padding: 10px 12px; font-size: 0.8rem; text-align: center;">Retrieved</th>
+                                    <th style="padding: 10px 12px; font-size: 0.8rem; text-align: center;">Inaccessible</th>
+                                    <th style="padding: 10px 12px; font-size: 0.8rem;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="m6-papers-tbody"></tbody>
+                        </table>
+                    </div>
+                    <div id="m6-papers-error" style="display: none; color: #ef4444; padding: 10px;"></div>
                 </div>
             `;
         }
@@ -2262,68 +2282,219 @@ ${sens || 'Tidak tersedia'}
         
         area.innerHTML = html;
         
-        setTimeout(() => {
+        setTimeout(async () => {
+            // --- Helper: Load papers into inline table ---
+            const loadPapersTable = async () => {
+                const loadingEl = document.getElementById('m6-papers-loading');
+                const tableWrapper = document.getElementById('m6-papers-table-wrapper');
+                const errorEl = document.getElementById('m6-papers-error');
+                const tbody = document.getElementById('m6-papers-tbody');
+                
+                if (!loadingEl || !tableWrapper || !tbody) return;
+                
+                loadingEl.style.display = 'block';
+                tableWrapper.style.display = 'none';
+                errorEl.style.display = 'none';
+                
+                try {
+                    const data = await API.getM6Papers(session.id);
+                    let papers = data.papers || [];
+                    
+                    // Sort: action needed first, retrieved middle, inaccessible last
+                    papers.sort((a, b) => {
+                        const getScore = (p) => {
+                            if (!p.retrieved && !p.inaccessible) return 1;
+                            if (p.retrieved) return 2;
+                            return 3;
+                        };
+                        return getScore(a) - getScore(b);
+                    });
+                    
+                    let rows = '';
+                    papers.forEach((p) => {
+                        let doiFull = p.doi || '-';
+                        let doiDisplay = doiFull;
+                        let doiHtml = '-';
+                        
+                        if (doiFull !== '-') {
+                            if (doiFull.startsWith('2-s2.0-')) {
+                                doiHtml = `<a href="https://www.scopus.com/record/display.uri?eid=${doiFull}&origin=resultslist" target="_blank" style="color: #F59E0B; text-decoration: none; font-size: 0.8rem;" title="Scopus EID">${doiDisplay}</a>`;
+                            } else {
+                                if (doiFull.startsWith('https://doi.org/')) doiDisplay = doiFull.replace('https://doi.org/', '');
+                                else if (doiFull.startsWith('http://doi.org/')) doiDisplay = doiFull.replace('http://doi.org/', '');
+                                const linkHref = doiFull.startsWith('http') ? doiFull : 'https://doi.org/' + doiFull;
+                                doiHtml = `<a href="${linkHref}" target="_blank" style="color: #60a5fa; text-decoration: none; font-size: 0.8rem;">${doiDisplay}</a>`;
+                            }
+                        }
+                        
+                        const retrievedBadge = p.retrieved
+                            ? '<span style="background: rgba(74, 222, 128, 0.15); color: #4ade80; padding: 2px 8px; border-radius: 10px; font-size: 0.75rem; font-weight: 600;">Retrieved</span>'
+                            : '<span style="background: rgba(239, 68, 68, 0.15); color: #ef4444; padding: 2px 8px; border-radius: 10px; font-size: 0.75rem; font-weight: 600;">Not Retrieved</span>';
+                        
+                        const inaccessibleBadge = p.inaccessible
+                            ? '<span style="background: rgba(234, 179, 8, 0.15); color: #eab308; padding: 2px 8px; border-radius: 10px; font-size: 0.75rem; font-weight: 600;">Inaccessible</span>'
+                            : '<span style="color: #94a3b8; font-size: 0.75rem;">-</span>';
+                        
+                        let actionsHtml = '';
+                        if (p.retrieved) {
+                            actionsHtml = `<button class="btn-inline-delete-qdrant" data-id="${p.id}" data-doi="${doiDisplay}" data-title="${(p.title || '').replace(/"/g, '&quot;')}" style="background: transparent; border: 1px solid #ef4444; color: #ef4444; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; white-space: nowrap;">Delete from Qdrant</button>`;
+                        } else if (!p.inaccessible) {
+                            actionsHtml = `<button class="btn-inline-mark-inacc" data-id="${p.id}" style="background: transparent; border: 1px solid #eab308; color: #eab308; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; white-space: nowrap;">Mark Inaccessible</button>`;
+                        }
+                        
+                        rows += `
+                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);" onmouseover="this.style.background='rgba(255,255,255,0.03)'" onmouseout="this.style.background='transparent'">
+                                <td style="padding: 8px 12px; color: var(--text-primary, #e2e8f0); font-size: 0.85rem; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${(p.title || '').replace(/"/g, '&quot;')}">${p.title || '-'}</td>
+                                <td style="padding: 8px 12px; font-size: 0.8rem; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${doiHtml}</td>
+                                <td style="padding: 8px 12px; font-size: 0.8rem; color: #94a3b8;">${p.publisher || '-'}</td>
+                                <td style="padding: 8px 12px; text-align: center;">${retrievedBadge}</td>
+                                <td style="padding: 8px 12px; text-align: center;">${inaccessibleBadge}</td>
+                                <td style="padding: 8px 12px;" class="td-inline-action" data-id="${p.id}">${actionsHtml}</td>
+                            </tr>
+                        `;
+                    });
+                    
+                    tbody.innerHTML = rows;
+                    loadingEl.style.display = 'none';
+                    tableWrapper.style.display = 'block';
+                    
+                } catch (err) {
+                    loadingEl.style.display = 'none';
+                    errorEl.style.display = 'block';
+                    errorEl.textContent = 'Failed to load papers: ' + err.message;
+                }
+            };
+            
+            // --- Load inline papers table ---
+            await loadPapersTable();
+            
+            // --- Bind event delegation for inline table actions ---
+            const tableWrapper = document.getElementById('m6-papers-table-wrapper');
+            if (tableWrapper) {
+                tableWrapper.addEventListener('click', async (e) => {
+                    const target = e.target;
+                    
+                    if (target.classList.contains('btn-inline-delete-qdrant')) {
+                        const paperDoi = target.getAttribute('data-doi');
+                        const paperTitle = target.getAttribute('data-title');
+                        if (!confirm('Delete this paper from Qdrant? You will need to re-upload the PDF via Notebook.')) return;
+                        
+                        target.innerHTML = '...';
+                        target.disabled = true;
+                        
+                        try {
+                            await API.deleteQdrantPaper(session.id, { doi: paperDoi, title: paperTitle });
+                            await loadPapersTable();
+                        } catch (err) {
+                            alert('Delete failed: ' + err.message);
+                            target.innerHTML = 'Delete from Qdrant';
+                            target.disabled = false;
+                        }
+                    } else if (target.classList.contains('btn-inline-mark-inacc')) {
+                        const paperId = target.getAttribute('data-id');
+                        const actionCell = target.closest('.td-inline-action');
+                        actionCell.innerHTML = `
+                            <div style="display: flex; flex-direction: column; gap: 4px;">
+                                <textarea id="inacc-doc-${paperId}" placeholder="Documentation (e.g., paywall, no institutional access)" style="font-size: 0.75rem; padding: 4px; border-radius: 4px; border: 1px solid #475569; background: #334155; color: white; resize: vertical; min-height: 40px; width: 100%;" autocomplete="off"></textarea>
+                                <div style="display: flex; gap: 4px;">
+                                    <button class="btn-inline-save-inacc" data-id="${paperId}" style="background: #eab308; color: #1a1a1a; border: none; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; font-weight: 600;">Submit</button>
+                                    <button class="btn-inline-cancel-inacc" data-id="${paperId}" style="background: transparent; color: #94a3b8; border: 1px solid #475569; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; cursor: pointer;">Cancel</button>
+                                </div>
+                            </div>
+                        `;
+                        setTimeout(() => {
+                            const ta = document.getElementById(`inacc-doc-${paperId}`);
+                            if (ta) ta.focus();
+                        }, 50);
+                    } else if (target.classList.contains('btn-inline-save-inacc')) {
+                        const paperId = target.getAttribute('data-id');
+                        const textarea = document.getElementById(`inacc-doc-${paperId}`);
+                        const documentation = textarea ? textarea.value.trim() : '';
+                        
+                        if (!documentation) {
+                            textarea.style.border = '1px solid #ef4444';
+                            return;
+                        }
+                        
+                        target.innerHTML = '...';
+                        target.disabled = true;
+                        
+                        try {
+                            await API.markInaccessible(session.id, paperId, documentation);
+                            await loadPapersTable();
+                        } catch (err) {
+                            alert('Mark inaccessible failed: ' + err.message);
+                            target.innerHTML = 'Submit';
+                            target.disabled = false;
+                        }
+                    } else if (target.classList.contains('btn-inline-cancel-inacc')) {
+                        await loadPapersTable();
+                    }
+                });
+            }
+            
+            // --- Sync Qdrant button ---
             const btnSync = document.getElementById('btn-m6-sync');
             if (btnSync) {
                 btnSync.addEventListener('click', async () => {
                     try {
                         btnSync.disabled = true;
-                        btnSync.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Sinkronisasi...';
-                        const apiBase = localStorage.getItem('apiBaseURL') || '';
-                        const req = await fetch(`${apiBase}/sessions/${session.id}/m6/sync-qdrant`, { 
-                            method: 'POST',
-                            headers: {
-                                'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-                            }
-                        });
-                        if (!req.ok) {
-                            let errMsg = "Sinkronisasi gagal";
-                            try {
-                                const errData = await req.json();
-                                if (errData.error) errMsg = errData.error;
-                            } catch(e) {}
-                            throw new Error(errMsg);
-                        }
-                        const res = await req.json();
-                        let msg = "Sinkronisasi Qdrant berhasil! Tersinkron: " + res.synced_count;
-                        if (res.version) {
-                            msg += `\n(Debug - API: ${res.version}, Qdrant DOIs: ${res.debug_qdrant_unique}, Mongo Papers: ${res.debug_mongo_papers})`;
-                        }
+                        btnSync.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Syncing...';
+                        const res = await API.syncQdrant(session.id);
+                        const msg = `Qdrant sync complete! Synced: ${res.synced_count}`;
                         alert(msg);
-                        window.location.reload();
+                        await loadPapersTable();
+                        btnSync.disabled = false;
+                        btnSync.innerHTML = '🔄 Sinkronisasi dengan Qdrant DB';
                     } catch(e) {
-                        alert(e.message);
+                        alert('Sync failed: ' + e.message);
                         btnSync.disabled = false;
                         btnSync.innerHTML = '🔄 Sinkronisasi dengan Qdrant DB';
                     }
                 });
             }
+            
+            // --- Export CSV button ---
+            const btnExportCsv = document.getElementById('btn-m6-export-csv');
+            if (btnExportCsv) {
+                btnExportCsv.addEventListener('click', async () => {
+                    try {
+                        btnExportCsv.disabled = true;
+                        btnExportCsv.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Preparing...';
+                        const csvText = await API.exportLinks(session.id);
+                        const blob = new Blob([csvText], { type: 'text/csv' });
+                        const url = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `M6_acquisition_links_${session.id}.csv`;
+                        document.body.appendChild(a);
+                        a.click();
+                        a.remove();
+                        window.URL.revokeObjectURL(url);
+                    } catch (err) {
+                        alert('Export failed: ' + err.message);
+                    } finally {
+                        btnExportCsv.disabled = false;
+                        btnExportCsv.innerHTML = '⬇️ Export CSV';
+                    }
+                });
+            }
 
+            // --- Details Modal button (full-screen view) ---
             const btnDetails = document.getElementById('btn-m6-details');
             if (btnDetails) {
                 btnDetails.addEventListener('click', async () => {
                     btnDetails.disabled = true;
                     btnDetails.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Memuat...';
                     try {
-                        const apiBase = localStorage.getItem('apiBaseURL') || '';
-                        const req = await fetch(`${apiBase}/sessions/${session.id}/m6/papers`, {
-                            headers: {
-                                'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-                            }
-                        });
-                        if (!req.ok) throw new Error('Gagal memuat data');
-                        const data = await req.json();
+                        const data = await API.getM6Papers(session.id);
                         let papers = data.papers || [];
                         
-                        // Sort papers: 
-                        // 1. Not retrieved and not inaccessible (Action needed) -> TOP
-                        // 2. Retrieved (Done) -> MIDDLE
-                        // 3. Inaccessible (Can't do anything) -> BOTTOM
                         papers.sort((a, b) => {
                             const getScore = (p) => {
                                 if (!p.retrieved && !p.inaccessible) return 1;
                                 if (p.retrieved) return 2;
-                                return 3; // inaccessible
+                                return 3;
                             };
                             return getScore(a) - getScore(b);
                         });
@@ -2336,13 +2507,10 @@ ${sens || 'Tidak tersedia'}
                             
                             if (doiFull !== '-') {
                                 if (doiFull.startsWith('2-s2.0-')) {
-                                    // This is a Scopus EID, not a DOI
                                     doiHtml = `<a href="https://www.scopus.com/record/display.uri?eid=${doiFull}&origin=resultslist" target="_blank" style="color: #F59E0B; text-decoration: none;" title="Buka di Scopus (EID)"><i class="fa fa-external-link-square"></i> EID: ${doiDisplay}</a>`;
                                 } else {
-                                    // Regular DOI
                                     if (doiFull.startsWith('https://doi.org/')) doiDisplay = doiFull.replace('https://doi.org/', '');
                                     else if (doiFull.startsWith('http://doi.org/')) doiDisplay = doiFull.replace('http://doi.org/', '');
-                                    
                                     const linkHref = doiFull.startsWith('http') ? doiFull : 'https://doi.org/' + doiFull;
                                     doiHtml = `<a href="${linkHref}" target="_blank" style="color: #3b82f6; text-decoration: none;">${doiDisplay}</a>`;
                                 }
@@ -2354,7 +2522,7 @@ ${sens || 'Tidak tersedia'}
                             if (p.retrieved) {
                                 locHtml = `<div style="display: flex; flex-direction: column; gap: 5px;">
                                               <span style="color: #10B981; font-weight: bold;"><i class="fa fa-check-circle"></i> Selesai</span>
-                                              <button class="btn-delete-qdrant" data-id="${p.id}" data-doi="${doiDisplay}" data-title="${p.title}" style="background: transparent; border: 1px solid #ef4444; color: #ef4444; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; cursor: pointer; text-align: center; width: fit-content;" title="Hapus vektor di database jika PDF rusak/watermark">🗑️ Hapus Vektor (Fix PDF)</button>
+                                              <button class="btn-delete-qdrant" data-id="${p.id}" data-doi="${doiDisplay}" data-title="${(p.title || '').replace(/"/g, '&quot;')}" style="background: transparent; border: 1px solid #ef4444; color: #ef4444; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; cursor: pointer; text-align: center; width: fit-content;" title="Hapus vektor di database jika PDF rusak/watermark">🗑️ Hapus Vektor (Fix PDF)</button>
                                            </div>`;
                             } else {
                                 locHtml = p.location === 'arxiv' ? 
@@ -2424,24 +2592,18 @@ ${sens || 'Tidak tersedia'}
                             document.body.removeChild(modalContainer);
                         });
                         
-                        // CSV Export Logic within the Modal
-                        document.getElementById('btn-modal-export-csv').addEventListener('click', async (e) => {
-                            const btnExport = e.currentTarget;
+                        // CSV Export in Modal
+                        document.getElementById('btn-modal-export-csv').addEventListener('click', async (ev) => {
+                            const btnExport = ev.currentTarget;
                             try {
                                 btnExport.disabled = true;
                                 btnExport.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Menyiapkan...';
-                                
-                                const token = localStorage.getItem('auth_token');
-                                const req = await fetch(`${apiBase}/sessions/${session.id}/m6/export-links`, {
-                                    headers: { 'Authorization': `Bearer ${token}` }
-                                });
-                                if (!req.ok) throw new Error("Gagal mengunduh CSV");
-                                
-                                const blob = await req.blob();
+                                const csvText = await API.exportLinks(session.id);
+                                const blob = new Blob([csvText], { type: 'text/csv' });
                                 const url = window.URL.createObjectURL(blob);
                                 const a = document.createElement('a');
                                 a.href = url;
-                                a.download = `m6_acquisition_links_${session.id}.csv`;
+                                a.download = `M6_acquisition_links_${session.id}.csv`;
                                 document.body.appendChild(a);
                                 a.click();
                                 a.remove();
@@ -2450,42 +2612,30 @@ ${sens || 'Tidak tersedia'}
                                 alert(err.message);
                             } finally {
                                 btnExport.disabled = false;
-                                btnExport.disabled = false;
                                 btnExport.innerHTML = '⬇️ Unduh CSV';
                             }
                         });
 
-                        // Bind Inaccessible events using event delegation
-                        const tbody = modalContainer.querySelector('#m6-tbody');
-                        tbody.addEventListener('click', async (e) => {
+                        // Event delegation for modal table actions
+                        const modalTbody = modalContainer.querySelector('#m6-tbody');
+                        modalTbody.addEventListener('click', async (e) => {
                             if (e.target.classList.contains('btn-delete-qdrant')) {
                                 const paperDoi = e.target.getAttribute('data-doi');
                                 const paperTitle = e.target.getAttribute('data-title');
-                                if(!confirm("Apakah Anda yakin ingin menghapus vektor untuk PDF ini dari Qdrant? (Anda harus re-upload ulang PDF yang benar via Notebook nantinya)")) return;
+                                if(!confirm("Delete this paper's vectors from Qdrant? You will need to re-upload the PDF via Notebook.")) return;
                                 
                                 const btn = e.target;
-                                btn.innerHTML = 'Menghapus...';
+                                btn.innerHTML = 'Deleting...';
                                 btn.disabled = true;
                                 
                                 try {
-                                    const token = localStorage.getItem('auth_token');
-                                    const res = await fetch(`${apiBase}/sessions/${session.id}/m6/qdrant/paper`, {
-                                        method: 'DELETE',
-                                        headers: {
-                                            'Content-Type': 'application/json',
-                                            'Authorization': `Bearer ${token}`
-                                        },
-                                        body: JSON.stringify({ doi: paperDoi, title: paperTitle })
-                                    });
-                                    if (!res.ok) throw new Error("Gagal menghapus vektor dari Qdrant");
-                                    
+                                    await API.deleteQdrantPaper(session.id, { doi: paperDoi, title: paperTitle });
                                     const parentDiv = e.target.closest('.td-action');
                                     parentDiv.innerHTML = `<div style="display: flex; flex-direction: column; gap: 5px;">
-                                        <a href="#" style="color: #F59E0B; text-decoration: none; display: flex; align-items: center; gap: 4px;"><i class="fa fa-user"></i> HITL Download</a>
-                                        <button class="btn-mark-inacc" data-id="${e.target.getAttribute('data-id')}" style="background: transparent; border: 1px solid #ef4444; color: #ef4444; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; cursor: pointer; text-align: center; width: fit-content;">Tandai Inaccessible</button>
+                                        <span style="color: #ef4444; font-size: 0.8rem;"><i class="fa fa-trash"></i> Deleted - re-upload needed</span>
                                     </div>`;
-                                    
-                                    alert(`Vektor berhasil dihapus!\n\nSILAKAN JALANKAN NOTEBOOK BERIKUT:\nPastikan PDF yang benar sudah berada di folder Anda. Jalankan ulang script Notebook PEDE Colab/Lokal khusus untuk paper ini.\nDOI: ${paperDoi}\nJudul: ${paperTitle}\n\nSetelah re-upload sukses, kembali ke web ini dan sinkronkan Qdrant lagi, lalu tekan "Reset Modul 7" untuk mengulang QA.`);
+                                    // Refresh inline table
+                                    await loadPapersTable();
                                 } catch (err) {
                                     alert(err.message);
                                     btn.innerHTML = '🗑️ Hapus Vektor (Fix PDF)';
@@ -2496,7 +2646,7 @@ ${sens || 'Tidak tersedia'}
                                 const parentDiv = e.target.parentElement;
                                 parentDiv.innerHTML = `
                                     <div style="display: flex; flex-direction: column; gap: 4px; margin-top: 5px;">
-                                        <input type="text" id="reason-${paperId}" placeholder="Alasan (contoh: berbayar)" style="font-size: 0.75rem; padding: 4px; border-radius: 4px; border: 1px solid #475569; background: #334155; color: white;" autocomplete="off">
+                                        <input type="text" id="modal-reason-${paperId}" placeholder="Alasan (contoh: berbayar)" style="font-size: 0.75rem; padding: 4px; border-radius: 4px; border: 1px solid #475569; background: #334155; color: white;" autocomplete="off">
                                         <div style="display: flex; gap: 4px;">
                                             <button class="btn-save-inacc" data-id="${paperId}" style="background: #ef4444; color: white; border: none; padding: 3px 6px; border-radius: 4px; font-size: 0.75rem; cursor: pointer;">Simpan</button>
                                             <button class="btn-cancel-inacc" data-id="${paperId}" style="background: transparent; color: #94A3B8; border: 1px solid #475569; padding: 3px 6px; border-radius: 4px; font-size: 0.75rem; cursor: pointer;">Batal</button>
@@ -2504,7 +2654,7 @@ ${sens || 'Tidak tersedia'}
                                     </div>
                                 `;
                                 setTimeout(() => {
-                                    const input = document.getElementById(`reason-${paperId}`);
+                                    const input = document.getElementById(`modal-reason-${paperId}`);
                                     if(input) input.focus();
                                 }, 50);
                             } else if (e.target.classList.contains('btn-cancel-inacc')) {
@@ -2513,7 +2663,7 @@ ${sens || 'Tidak tersedia'}
                                 parentDiv.innerHTML = `<button class="btn-mark-inacc" data-id="${paperId}" style="background: transparent; border: 1px solid #ef4444; color: #ef4444; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; cursor: pointer; text-align: center; width: fit-content;">Tandai Inaccessible</button>`;
                             } else if (e.target.classList.contains('btn-save-inacc')) {
                                 const paperId = e.target.getAttribute('data-id');
-                                const reasonInput = document.getElementById(`reason-${paperId}`);
+                                const reasonInput = document.getElementById(`modal-reason-${paperId}`);
                                 const reason = reasonInput ? reasonInput.value.trim() : '';
                                 
                                 if (!reason) {
@@ -2526,22 +2676,13 @@ ${sens || 'Tidak tersedia'}
                                 btn.disabled = true;
                                 
                                 try {
-                                    const token = localStorage.getItem('auth_token');
-                                    const res = await fetch(`${apiBase}/sessions/${session.id}/m6/mark-inaccessible`, {
-                                        method: 'POST',
-                                        headers: {
-                                            'Content-Type': 'application/json',
-                                            'Authorization': `Bearer ${token}`
-                                        },
-                                        body: JSON.stringify({ paper_id: paperId, documentation: reason })
-                                    });
-                                    if (!res.ok) throw new Error("Gagal menandai inaccessible");
-                                    
+                                    await API.markInaccessible(session.id, paperId, reason);
                                     const parentDiv = e.target.closest('.td-action');
                                     parentDiv.innerHTML = `<div style="display: flex; flex-direction: column; gap: 5px;">
-                                        <a href="#" style="color: #F59E0B; text-decoration: none; display: flex; align-items: center; gap: 4px;"><i class="fa fa-user"></i> HITL Download</a>
                                         <span style="color: #ef4444; font-size: 0.8rem;"><i class="fa fa-ban"></i> Inaccessible</span>
                                     </div>`;
+                                    // Refresh inline table
+                                    await loadPapersTable();
                                 } catch (err) {
                                     alert(err.message);
                                     btn.innerHTML = 'Simpan';
@@ -2554,7 +2695,7 @@ ${sens || 'Tidak tersedia'}
                         alert("Gagal memuat data: " + e.message);
                     } finally {
                         btnDetails.disabled = false;
-                        btnDetails.innerHTML = '📋 Status PDF & Vektor';
+                        btnDetails.innerHTML = '📋 Status PDF & Vektor (Modal)';
                     }
                 });
             }

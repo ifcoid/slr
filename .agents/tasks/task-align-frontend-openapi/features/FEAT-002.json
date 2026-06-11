@@ -1,0 +1,27 @@
+{
+  "id": "FEAT-002",
+  "type": "feat",
+  "description": "Add M6 Papers Management UI: table showing papers with full-text retrieval status, sync Qdrant button, export CSV button, mark inaccessible functionality, and delete from Qdrant button. This is the main missing UI feature from the OpenAPI spec.",
+  "status": "completed",
+  "steps": [
+    "In js/components/renderer.js, locate the M6_STEP1_WAITING_SYNC status handler (around line 1280+) and enhance it to include: (1) A 'Sync Qdrant' button that calls API.syncQdrant and shows synced_count result, (2) An 'Export CSV' button that calls API.exportLinks and triggers file download, (3) A papers table loaded via API.getM6Papers showing columns: Title, DOI, Publisher, Retrieved (green check/red X), Inaccessible (badge), with action buttons per row.",
+    "For each paper row in the M6 papers table, add: (1) A 'Delete from Qdrant' button (red, only shown if retrieved=true) that calls API.deleteQdrantPaper with the paper's doi/title, (2) A 'Mark Inaccessible' button (orange, only shown if retrieved=false and inaccessible=false) that opens a small inline form for documentation text, then calls API.markInaccessible.",
+    "Add a modal or expandable section in the M6_STEP1_WAITING_SYNC handler for the papers table since it may have many rows. Use a scrollable container with max-height similar to the extraction modal pattern. Include a loading state while papers are being fetched.",
+    "Ensure the Sync Qdrant button, after successful sync, refreshes the papers table to show updated retrieved status. Show a toast with the synced_count from the response.",
+    "For the Export CSV button, implement it to fetch the CSV from API.exportLinks(sessionId), create a Blob with type 'text/csv', and trigger a download with filename like 'M6_acquisition_links_{sessionId}.csv'."
+  ],
+  "acceptance_criteria": [
+    "When session status is M6_STEP1_WAITING_SYNC, the UI shows a Sync Qdrant button, Export CSV button, and a papers table",
+    "Papers table displays title, DOI, publisher, retrieved status, and inaccessible status for each paper",
+    "Sync Qdrant button calls the correct API endpoint and shows result count",
+    "Export CSV triggers a file download of the CSV data",
+    "Mark Inaccessible opens a documentation input and submits to the correct endpoint",
+    "Delete from Qdrant removes a paper from the index and refreshes the table"
+  ],
+  "verification": [
+    "Read renderer.js and verify the M6_STEP1_WAITING_SYNC handler includes papers table, sync button, export button, mark inaccessible, and delete functionality",
+    "Verify all button click handlers call the correct API methods from api.js"
+  ],
+  "blocked_reason": null,
+  "findings": "Replaced all raw fetch() calls in the M6_STEP1_WAITING_SYNC handler with API methods (API.syncQdrant, API.exportLinks, API.getM6Papers, API.deleteQdrantPaper, API.markInaccessible). Added inline papers table with scrollable container (max-height: 400px), loading state, and per-row actions. Kept the existing modal for full-screen view but also uses API methods. The setTimeout uses async pattern as required."
+}

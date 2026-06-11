@@ -1719,7 +1719,8 @@ export function renderApprovalContent(area, session, handleApproval) {
                 return `Verdict: <span style="background:${bg}; color:${color}; padding: 4px 10px; border-radius: 12px; font-weight: bold; margin-left: 6px; display: inline-block;">${v.toUpperCase()}</span>`;
             })}</div>` : ''}
 
-            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: flex-end; gap: 10px;">
+            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap;">
+                <button id="btn-m7-recalc-qa" class="btn" style="background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4);" title="Recalculate ERROR papers yang memiliki skor R1+R2 valid tanpa mengulang seluruh proses QA">🔄 Recalculate ERROR Papers</button>
                 <button id="btn-m7-download-md" class="btn" style="background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4);" title="Unduh laporan QA & Sensitivitas dalam format Markdown untuk dibagikan ke LLM lain">⬇️ Unduh Report (.md)</button>
                 <button id="btn-m7-resume-qa" class="btn" style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4);" title="Klik ini jika Anda baru saja menghapus & re-upload PDF untuk melanjutkan penilaian QA pada paper yang tersisa saja.">▶️ Lanjutkan QA (Hanya Sisa PDF)</button>
                 <button class="btn" style="background: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.4);" onclick="if(confirm('Anda yakin ingin men-drop Modul 7 dan mengulang dari nol? Semua data ekstraksi PDF dan skor QA akan dihapus permanen!')) window.resetModul7()">⚠️ Drop Modul 7</button>
@@ -1727,6 +1728,29 @@ export function renderApprovalContent(area, session, handleApproval) {
         `);
         
         setTimeout(() => {
+            const btnRecalcQA = document.getElementById('btn-m7-recalc-qa');
+            if (btnRecalcQA) {
+                btnRecalcQA.addEventListener('click', async () => {
+                    if (!confirm('Recalculate semua paper ERROR yang memiliki skor R1+R2 valid? Ini akan menghitung ulang kategori final tanpa mengulang rating.')) return;
+                    try {
+                        btnRecalcQA.disabled = true;
+                        btnRecalcQA.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Recalculating...';
+                        const resp = await fetch(`/api/sessions/${session.id}/m7/recalculate-qa`, {
+                            method: 'POST',
+                            headers: { 'Authorization': 'Bearer ' + localStorage.getItem('token') }
+                        });
+                        const data = await resp.json();
+                        if (!resp.ok) throw new Error(data.error || 'Unknown error');
+                        alert(`${data.message}\n\nKappa baru: ${(data.kappa || 0).toFixed(3)}`);
+                        window.location.reload();
+                    } catch(e) {
+                        alert("Gagal recalculate: " + e.message);
+                        btnRecalcQA.disabled = false;
+                        btnRecalcQA.innerHTML = '🔄 Recalculate ERROR Papers';
+                    }
+                });
+            }
+
             const btnResumeQA = document.getElementById('btn-m7-resume-qa');
             if (btnResumeQA) {
                 btnResumeQA.addEventListener('click', async () => {

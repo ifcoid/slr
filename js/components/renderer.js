@@ -1943,7 +1943,15 @@ ${sens || 'Tidak tersedia'}
 
     if (html !== '') {
         area.insertAdjacentHTML('beforeend', html);
-        
+
+        // States yang sudah merender tombol aksinya sendiri di dalam kartu.
+        // Jangan tambahkan blok generik "Setuju & Lanjut" (backend tidak
+        // menangani approve polos untuk state ini -- hanya retry/force-proceed).
+        const SELF_CONTAINED_STATES = ['M7_STEP3_QA_CALIBRATION_LOW_KAPPA'];
+        if (SELF_CONTAINED_STATES.includes(status)) {
+            return true;
+        }
+
         let extraBtn = '';
         let isDanger = false;
         let isHalted = false;

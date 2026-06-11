@@ -1,0 +1,26 @@
+{
+  "id": "FEAT-001",
+  "type": "fix",
+  "description": "Fix api.js: add missing M6 API methods, fix importData multipart handling, and add proper auth headers for file upload in renderer.js",
+  "status": "completed",
+  "steps": [
+    "In js/api.js, modify the apiFetch function to handle cases where Content-Type should not be set (for multipart/form-data). When options.headers['Content-Type'] is explicitly set to null/undefined, remove Content-Type from headers entirely instead of sending 'undefined' as a string. Also ensure the body is not JSON.stringified when it's FormData.",
+    "In js/api.js, fix the importData method to properly handle FormData: do not set Content-Type header (let browser auto-set with boundary), and do not JSON.stringify the body. The method signature should accept (id, formData) and pass formData directly as body.",
+    "In js/api.js, add the following missing M6 API methods to the API object: syncQdrant(id) => POST /sessions/{id}/m6/sync-qdrant, deleteQdrantPaper(id, payload) => DELETE /sessions/{id}/m6/qdrant/paper with JSON body {doi, title}, markInaccessible(id, paperId, documentation) => POST /sessions/{id}/m6/mark-inaccessible with body {paper_id, documentation}, exportLinks(id) => GET /sessions/{id}/m6/export-links (returns CSV text, needs special response handling), getM6Papers(id) => GET /sessions/{id}/m6/papers.",
+    "In js/components/renderer.js, fix the M4_STEP2_WAITING_IMPORT file upload handler (around line 720) to include the Authorization header from localStorage when making the raw fetch call to /sessions/{id}/import-data. Currently it uses raw fetch without auth token."
+  ],
+  "acceptance_criteria": [
+    "js/api.js exports API.syncQdrant, API.deleteQdrantPaper, API.markInaccessible, API.exportLinks, and API.getM6Papers methods",
+    "API.importData correctly sends FormData without Content-Type header and without JSON stringifying the body",
+    "apiFetch properly handles cases where Content-Type should be omitted for multipart uploads",
+    "The file upload in renderer.js includes Authorization: Bearer token header",
+    "API.exportLinks handles text/csv response (not JSON)"
+  ],
+  "verification": [
+    "Open js/api.js and verify all 5 new M6 methods exist and have correct endpoints/HTTP methods",
+    "Verify apiFetch has logic to skip Content-Type for FormData bodies",
+    "Verify renderer.js import-data fetch includes Authorization header"
+  ],
+  "blocked_reason": null,
+  "findings": "All changes verified with node --check. apiFetch now detects FormData via instanceof check and skips Content-Type header automatically. Added responseType:'text' option for non-JSON responses (used by exportLinks). The renderer.js raw fetch retains its pattern but now includes Authorization header."
+}

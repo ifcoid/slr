@@ -1,0 +1,26 @@
+{
+  "project_type": "Vanilla JavaScript SPA (ES Modules) - Agentic SLR Orchestrator Frontend",
+  "language": "JavaScript (ES2020+), HTML5, CSS3",
+  "build_system": "None - static files served directly, no build step",
+  "test_framework": "None - no test infrastructure present",
+  "build_command": "N/A - static site, no build step",
+  "test_command": "N/A - no tests exist",
+  "verification_instructions": "1. Open index.html in a browser to verify no JS console errors. 2. Verify all new API methods exist in api.js. 3. Verify new UI components render correctly by checking HTML structure.",
+  "snapshot_or_generated_files": null,
+  "setup_instructions": "No setup required - static HTML/CSS/JS project",
+  "environment_constraints": "No build tools needed. Files are served statically. Uses CDN for marked.js and Google Fonts.",
+  "contribution_requirements": "Follow existing code patterns: ES modules, glass-panel design system, existing naming conventions",
+  "key_patterns": "1. api.js: Universal apiFetch wrapper handles auth token injection and 401 redirect. API object exports all methods. 2. Components use ES module imports. 3. renderer.js handles all status-specific UI rendering with wrapCard helper. 4. UI uses glass-panel design, inline styles for dynamic content, modals via hidden class toggle. 5. File upload in renderer.js bypasses apiFetch and uses raw fetch (BUG: missing auth header). 6. Multipart uploads should NOT set Content-Type header (let browser set boundary).",
+  "relevant_files": [
+    "js/api.js",
+    "js/components/renderer.js",
+    "js/components/setup.js",
+    "js/components/tracker.js",
+    "js/main.js",
+    "js/ui.js",
+    "index.html",
+    "css/style.css",
+    "api/openapi.json"
+  ],
+  "directory_structure": "Root: index.html (SPA), css/style.css, js/main.js (entry), js/api.js (API client), js/ui.js (utilities), js/components/ (auth.js, health.js, renderer.js, session.js, setup.js, tracker.js), api/openapi.json (spec)"
+}

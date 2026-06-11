@@ -1,0 +1,25 @@
+{
+  "id": "FEAT-003",
+  "type": "feat",
+  "description": "Add Embed Config form to Settings modal and add QA Calibration UI rendering for M7_STEP3_QA_CALIBRATION_WAITING_APPROVAL and M7_STEP3_QA_CALIBRATION_LOW_KAPPA statuses in renderer.js",
+  "status": "completed",
+  "steps": [
+    "In index.html, add an Embed Config form section inside the modal-settings div (after the GitHub Pages section). The form should have fields for: endpoint (text input, placeholder 'https://your-embed-server/v1'), api_key (password input, placeholder 'API Key for embedding'), model (text input, placeholder 'BAAI/bge-m3'). Add a submit button labeled 'Simpan Embed Config'. Give the form id='form-embed-config'.",
+    "In js/components/setup.js, add initialization logic for the embed config form: (1) Load existing config via API.getEmbedConfig() when settings modal opens (similar to loadGitHubConfig pattern), (2) Populate the form fields with existing values, (3) Handle form submit to call API.updateEmbedConfig with the form values, (4) Show toast on success.",
+    "In js/components/renderer.js, add rendering for M7_STEP3_QA_CALIBRATION_WAITING_APPROVAL status: show the QA calibration results including pilot_results table (paper title, R1 score/category, R2 score/category, final category, disagreement flag), pilot_kappa value with color coding (green if >= 0.6, red otherwise), anchors display (3 examples: HIGH/MODERATE/LOW with descriptions), and calibration_passed status.",
+    "In js/components/renderer.js, add rendering for M7_STEP3_QA_CALIBRATION_LOW_KAPPA status: show a warning banner explaining low kappa, display the refinement_note from Brain, show attempts count vs max_attempts, and provide buttons: 'Retry Calibration' (calls reviseStep with target M7_STEP3_QA_CALIBRATION) and 'Force Proceed' (calls approveStep to skip calibration)."
+  ],
+  "acceptance_criteria": [
+    "Settings modal contains an Embed Config form with endpoint, api_key, and model fields",
+    "Embed Config form loads existing config when opened and saves on submit via API.updateEmbedConfig",
+    "Renderer handles M7_STEP3_QA_CALIBRATION_WAITING_APPROVAL showing pilot results, kappa, and anchors",
+    "Renderer handles M7_STEP3_QA_CALIBRATION_LOW_KAPPA showing warning, refinement note, and retry/force buttons"
+  ],
+  "verification": [
+    "Read index.html and verify form-embed-config exists with proper fields",
+    "Read setup.js and verify embed config load/save logic",
+    "Read renderer.js and verify both QA calibration status handlers exist with proper UI elements"
+  ],
+  "blocked_reason": null,
+  "findings": "Added import for setButtonLoading and showToast from ui.js in renderer.js since the LOW_KAPPA handler uses interactive buttons with loading states. Both functions were already exported from ui.js."
+}

@@ -1577,6 +1577,50 @@ export function renderApprovalContent(area, session, handleApproval) {
             </div>
             ` : ''}
 
+            ${(cal.r1_model || cal.r2_model || cal.brain_model) ? `
+            <div style="margin-bottom:15px;">
+                <h5 style="color:#93c5fd;margin-bottom:8px;">&#129302; Model yang Digunakan</h5>
+                <div style="background:rgba(255,255,255,0.05);border-radius:6px;border:1px solid rgba(255,255,255,0.1);overflow:hidden;">
+                    <table style="width:100%;border-collapse:collapse;font-size:0.85em;">
+                        <tbody>
+                            ${cal.r1_model ? `<tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+                                <td style="padding:8px 12px;color:#94a3b8;font-weight:500;width:100px;">Rater 1</td>
+                                <td style="padding:8px 12px;color:#e2e8f0;">${escHtml(cal.r1_model)}</td>
+                            </tr>` : ''}
+                            ${cal.r2_model ? `<tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+                                <td style="padding:8px 12px;color:#94a3b8;font-weight:500;width:100px;">Rater 2</td>
+                                <td style="padding:8px 12px;color:#e2e8f0;">${escHtml(cal.r2_model)}</td>
+                            </tr>` : ''}
+                            ${cal.brain_model ? `<tr>
+                                <td style="padding:8px 12px;color:#94a3b8;font-weight:500;width:100px;">Brain</td>
+                                <td style="padding:8px 12px;color:#e2e8f0;">${escHtml(cal.brain_model)}</td>
+                            </tr>` : ''}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            ` : ''}
+
+            ${cal.system_prompt ? `
+            <div style="margin-bottom:15px;">
+                <details style="background:rgba(255,255,255,0.02);padding:8px 12px;border-radius:6px;border:1px solid rgba(255,255,255,0.05);">
+                    <summary style="cursor:pointer;color:#93c5fd;font-weight:500;">&#9642; System Prompt yang Dikirim ke Rater</summary>
+                    <div style="margin-top:10px;background:rgba(0,0,0,0.3);padding:12px;border-radius:4px;border:1px solid rgba(255,255,255,0.05);max-height:400px;overflow-y:auto;">
+                        <pre style="white-space:pre-wrap;word-break:break-word;font-size:0.8em;color:#cbd5e1;margin:0;font-family:'Fira Code',monospace;">${escHtml(cal.system_prompt)}</pre>
+                    </div>
+                </details>
+            </div>
+            ` : ''}
+
+            ${cal.action_items ? `
+            <div style="margin-bottom:15px;">
+                <h5 style="color:#93c5fd;margin-bottom:8px;">&#127919; Langkah Selanjutnya</h5>
+                <div style="background:rgba(0,0,0,0.2);padding:12px 15px;border-radius:6px;border:1px solid rgba(255,255,255,0.05);">
+                    <div style="color:#cbd5e1;font-size:0.88em;line-height:1.6;white-space:pre-wrap;">${escHtml(cal.action_items)}</div>
+                </div>
+            </div>
+            ` : ''}
+
             <div style="display:flex;gap:10px;justify-content:center;">
                 <button class="btn btn-primary" id="btn-retry-calibration">&#128260; Retry Kalibrasi</button>
                 <button class="btn btn-secondary" id="btn-force-proceed" style="border-color:#eab308;color:#fef08a;">&#9889; Lanjutkan (Force Proceed)</button>

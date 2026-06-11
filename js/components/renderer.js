@@ -27,6 +27,8 @@ export function renderApprovalContent(area, session, handleApproval) {
                  .replace(/\n/g, '<br>');
     };
 
+    const escHtml = (s) => (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
     if (status === 'M1_WAITING_APPROVAL' && session.foundation) {
         const f = session.foundation;
         const fSection = (title, md, color) => `
@@ -746,18 +748,7 @@ export function renderApprovalContent(area, session, handleApproval) {
                         btn.textContent = "Mengunggah & Memproses...";
                         btn.disabled = true;
                         
-                        const res = await fetch(`${getBaseURL()}/sessions/${session.id}/import-data`, {
-                            method: 'POST',
-                            headers: {
-                                'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-                            },
-                            body: formData // Jangan set Content-Type, biarkan browser set multipart/form-data boundary
-                        });
-                        
-                        if (!res.ok) {
-                            const err = await res.json();
-                            throw new Error(err.error || 'Terjadi kesalahan saat mengunggah file.');
-                        }
+                        await API.importData(session.id, formData);
                         
                         window.location.reload();
                     } catch (error) {
@@ -1558,7 +1549,7 @@ export function renderApprovalContent(area, session, handleApproval) {
                 btnRetry.addEventListener('click', async () => {
                     setButtonLoading(btnRetry, true);
                     try {
-                        await API.reviseStep(session.id, 'Retry calibration with refined anchors', 'M7_STEP3_QA_CALIBRATION');
+                        await API.reviseStep(session.id, 'Retry calibration with refined anchors', 'M7_STEP3_QA_CALIBRATION_RETRY');
                         showToast('Kalibrasi ulang dimulai...');
                     } catch (err) {
                         showToast(err.message, 'error');
@@ -2468,14 +2459,14 @@ ${sens || 'Tidak tersedia'}
                         
                         let actionsHtml = '';
                         if (p.retrieved) {
-                            actionsHtml = `<button class="btn-inline-delete-qdrant" data-id="${p.id}" data-doi="${doiDisplay}" data-title="${(p.title || '').replace(/"/g, '&quot;')}" style="background: transparent; border: 1px solid #ef4444; color: #ef4444; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; white-space: nowrap;">Delete from Qdrant</button>`;
+                            actionsHtml = `<button class="btn-inline-delete-qdrant" data-id="${p.id}" data-doi="${doiDisplay}" data-title="${escHtml(p.title || '')}" style="background: transparent; border: 1px solid #ef4444; color: #ef4444; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; white-space: nowrap;">Delete from Qdrant</button>`;
                         } else if (!p.inaccessible) {
                             actionsHtml = `<button class="btn-inline-mark-inacc" data-id="${p.id}" style="background: transparent; border: 1px solid #eab308; color: #eab308; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; white-space: nowrap;">Mark Inaccessible</button>`;
                         }
                         
                         rows += `
                             <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);" onmouseover="this.style.background='rgba(255,255,255,0.03)'" onmouseout="this.style.background='transparent'">
-                                <td style="padding: 8px 12px; color: var(--text-primary, #e2e8f0); font-size: 0.85rem; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${(p.title || '').replace(/"/g, '&quot;')}">${p.title || '-'}</td>
+                                <td style="padding: 8px 12px; color: var(--text-primary, #e2e8f0); font-size: 0.85rem; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${escHtml(p.title || '')}">${escHtml(p.title) || '-'}</td>
                                 <td style="padding: 8px 12px; font-size: 0.8rem; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${doiHtml}</td>
                                 <td style="padding: 8px 12px; font-size: 0.8rem; color: #94a3b8;">${p.publisher || '-'}</td>
                                 <td style="padding: 8px 12px; text-align: center;">${retrievedBadge}</td>

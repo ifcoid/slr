@@ -30,12 +30,10 @@ async function apiFetch(endpoint, options = {}) {
             headers['Authorization'] = `Bearer ${token}`;
         }
 
-        const body = isFormData ? options.body : options.body;
-
         const response = await fetch(`${baseURL}${endpoint}`, {
             ...options,
             headers,
-            body
+            body: options.body
         });
 
         if (response.status === 401) {

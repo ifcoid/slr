@@ -1923,6 +1923,25 @@ ATURAN EDGES:
         const dec = session.synthesis_path_decision || {};
         const sr = session.synthesis_results || {};
         const fps = sr.forest_plot_script ? `<details style="margin-top:8px;"><summary style="cursor:pointer;color:#fbbf24;font-weight:bold;">Skrip Forest Plot (R/metafor)</summary><pre style="white-space:pre-wrap;font-size:0.78em;background:#0b1220;padding:10px;border-radius:6px;overflow-x:auto;">${(sr.forest_plot_script||'').replace(/</g,'&lt;')}</pre></details>` : '';
+
+        // xAI transparency section (purple left border, collapsible)
+        const decModel = dec.model_used || sr.model_used || '';
+        const decPrompt = dec.system_prompt || '';
+        const srPrompt = sr.system_prompt || '';
+        let xaiSection = '';
+        if (decModel || decPrompt || srPrompt) {
+            xaiSection = `
+            <details style="margin-top:12px; background:rgba(0,0,0,0.2); padding:10px; border-radius:8px; border-left:3px solid #a78bfa;">
+                <summary style="cursor:pointer; color:#a78bfa; font-weight:bold; font-size:0.85em;">🔍 xAI: Lihat Model & Prompt Synthesis (Kaidah xAI)</summary>
+                <div style="margin-top:10px; font-size:0.8em; color:#cbd5e1; max-height:350px; overflow-y:auto;">
+                    ${decModel ? `<p style="color:#fcd34d; margin-bottom:5px;"><strong>🧠 LLM Model:</strong> ${decModel}</p>` : ''}
+                    ${decPrompt ? `<div style="margin-bottom:12px;"><strong style="color:#a78bfa;">System Prompt (Path Decision Agent):</strong><pre style="white-space:pre-wrap; font-family:monospace; background:rgba(0,0,0,0.3); padding:8px; border-radius:4px; margin-top:5px;">${decPrompt.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre></div>` : ''}
+                    ${srPrompt ? `<div><strong style="color:#a78bfa;">System Prompt (Synthesis Agent):</strong><pre style="white-space:pre-wrap; font-family:monospace; background:rgba(0,0,0,0.3); padding:8px; border-radius:4px; margin-top:5px;">${srPrompt.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre></div>` : ''}
+                    ${!decPrompt && !srPrompt ? `<p style="color:#94a3b8; font-style:italic;">Data prompt tidak direkam pada sesi lama.</p>` : ''}
+                </div>
+            </details>`;
+        }
+
         html = wrapCard('Modul 8 L2 — Synthesis Path + Results', `
             <p><strong>Path:</strong> <span style="color:#6ee7b7;font-weight:bold;">${dec.verdict || sr.path || '-'}</span></p>
             <p style="font-size:0.85em;color:#94a3b8;"><strong>Kriteria:</strong> ${dec.criteria_check || '-'}</p>
@@ -1930,7 +1949,29 @@ ATURAN EDGES:
             <hr style="border-color:rgba(255,255,255,0.1);">
             <div style="font-size:0.9em;max-height:340px;overflow-y:auto;">${formatMarkdown(sr.markdown || '')}</div>
             ${fps}
+            ${xaiSection}
+            <div style="margin-top:12px; text-align:center;">
+                <button id="btn-dl-synthesis-md" class="btn btn-secondary" style="padding:8px 16px; font-size:0.9em;">⬇️ Download Markdown</button>
+            </div>
         `);
+        setTimeout(() => {
+            const btnDl = document.getElementById('btn-dl-synthesis-md');
+            if (btnDl) btnDl.addEventListener('click', () => {
+                let md = `# Modul 8 L2 — Synthesis Path + Results\n\n`;
+                md += `## Path Decision\n- **Verdict:** ${dec.verdict || sr.path || '-'}\n- **Kriteria:** ${dec.criteria_check || '-'}\n- **Rationale:** ${dec.rationale || ''}\n\n`;
+                if (decModel) md += `## Model (xAI)\n- **Model:** ${decModel}\n\n`;
+                md += `## Synthesis Results\n${sr.markdown || ''}\n\n`;
+                if (sr.forest_plot_script) md += `## Forest Plot Script (R/metafor)\n\`\`\`r\n${sr.forest_plot_script}\n\`\`\`\n`;
+                if (decPrompt) md += `## System Prompt (Path Decision)\n\`\`\`\n${decPrompt}\n\`\`\`\n\n`;
+                if (srPrompt) md += `## System Prompt (Synthesis)\n\`\`\`\n${srPrompt}\n\`\`\`\n`;
+                const blob = new Blob([md], {type: 'text/markdown'});
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = 'M8_L2_Synthesis_Results.md';
+                a.click();
+                URL.revokeObjectURL(a.href);
+            });
+        }, 100);
 
     } else if (status === 'M8_STEP3_WAITING_APPROVAL' && session.grade_evidence_table) {
         const g = session.grade_evidence_table;

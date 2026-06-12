@@ -195,10 +195,16 @@ async function fetchSessionStatus() {
             setTimeout(() => {
                 const btnRetry = document.getElementById('btn-retry-error');
                 if (btnRetry) {
-                    btnRetry.addEventListener('click', () => {
-                        API.approveStep(currentSessionId, { is_retry: true });
-                        showToast('Mencoba ulang...');
-                        fetchSessionStatus();
+                    btnRetry.addEventListener('click', async () => {
+                        setButtonLoading(btnRetry, true);
+                        try {
+                            await API.approveStep(currentSessionId, { is_retry: true });
+                            showToast('Mencoba ulang...');
+                            fetchSessionStatus();
+                        } catch(e) {
+                            showToast(e.message, 'error');
+                            setButtonLoading(btnRetry, false, '🔄 Coba Lagi (Retry)');
+                        }
                     });
                 }
             }, 0);

@@ -1735,9 +1735,9 @@ export function renderApprovalContent(area, session, handleApproval) {
                     try {
                         btnRecalcQA.disabled = true;
                         btnRecalcQA.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Recalculating...';
-                        const resp = await fetch(`/api/sessions/${session.id}/m7/recalculate-qa`, {
+                        const resp = await fetch(`${getBaseURL()}/sessions/${session.id}/m7/recalculate-qa`, {
                             method: 'POST',
-                            headers: { 'Authorization': 'Bearer ' + localStorage.getItem('token') }
+                            headers: { 'Authorization': 'Bearer ' + localStorage.getItem('auth_token') }
                         });
                         const data = await resp.json();
                         if (!resp.ok) throw new Error(data.error || 'Unknown error');

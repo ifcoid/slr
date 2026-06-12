@@ -2958,7 +2958,24 @@ window.showQAXAIModal = async (btn) => {
         });
         if (!res.ok) throw new Error("Gagal mengambil data ekstraksi");
         const data = await res.json();
-        const papers = (data.extractions || []).filter(p => p.qa_rated === true).sort((a, b) => Number(a.qa_total_score || 0) - Number(b.qa_total_score || 0));
+
+        // Helper: detect disagreement between R1 and R2
+        const isDisagreement = (p) => {
+            const r1 = (p.qa_r1_category || '').toUpperCase();
+            const r2 = (p.qa_r2_category || '').toUpperCase();
+            const r1Pass = r1 === 'HIGH' || r1 === 'MODERATE';
+            const r1Fail = r1 === 'LOW';
+            const r2Pass = r2 === 'HIGH' || r2 === 'MODERATE';
+            const r2Fail = r2 === 'LOW';
+            return (r1Pass && r2Fail) || (r1Fail && r2Pass);
+        };
+
+        const papers = (data.extractions || []).filter(p => p.qa_rated === true).sort((a, b) => {
+            const aDisagree = isDisagreement(a) ? 0 : 1;
+            const bDisagree = isDisagreement(b) ? 0 : 1;
+            if (aDisagree !== bDisagree) return aDisagree - bDisagree;
+            return Number(a.qa_total_score || 0) - Number(b.qa_total_score || 0);
+        });
 
         // Fetch QA system prompt for xAI transparency
         let qaPromptData = null;
@@ -2997,11 +3014,15 @@ window.showQAXAIModal = async (btn) => {
                             <div style="display:flex; flex-direction:column; gap:20px;">
                                 ${papers.map(p => {
                                     const paperId = p._id || p.DOI || p.doi || '';
+                                    const disagree = isDisagreement(p);
+                                    const cardBorder = disagree ? 'border: 2px solid #ef4444;' : 'border: 1px solid rgba(255,255,255,0.05);';
+                                    const cardBg = disagree ? 'background: rgba(239, 68, 68, 0.06);' : 'background: rgba(255,255,255,0.03);';
                                     return `
-                                    <div class="qa-paper-card" data-paper-id="${paperId}" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; overflow: hidden;">
+                                    <div class="qa-paper-card" data-paper-id="${paperId}" style="${cardBg} ${cardBorder} border-radius: 8px; overflow: hidden;">
                                         <div style="padding: 12px 15px; background: rgba(0,0,0,0.2); border-bottom: 1px solid rgba(255,255,255,0.05); font-weight: bold; color: #e2e8f0; display:flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
                                             <span>${p.Title || p.title || p.DOI || p.doi || 'Unknown Title'}</span>
                                             <div style="display:flex; align-items:center; gap:10px; flex-wrap: wrap;">
+                                                ${disagree ? `<span style="background: rgba(239, 68, 68, 0.15); color: #fca5a5; border: 1px solid #ef4444; padding: 3px 10px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; white-space: nowrap;">⚠️ Disagreement — Perlu Rate Ulang</span>` : ''}
                                                 <button class="btn-rerate-paper" data-paper-id="${paperId}" style="background: #f59e0b; border: none; color: #0f172a; padding: 4px 10px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 4px; transition: background 0.2s;" title="Rate ulang paper ini dengan model saat ini">🔄 Rate Ulang</button>
                                                 ${Number(p.qa_total_score || 0) === 0 ? `<button class="btn-delete-qdrant-xai" data-doi="${p.DOI || p.doi || '-'}" data-title="${p.Title || p.title || ''}" style="background: transparent; border: 1px solid #ef4444; color: #ef4444; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; display: flex; align-items: center; gap: 4px;" title="Hapus vektor di database jika PDF rusak/watermark">🗑️ Hapus Vektor (Fix PDF)</button>` : ''}
                                                 <span style="color:#38bdf8; font-size:0.9em;">Final: ${p.qa_final_category || '-'} (${p.qa_total_score || 0})</span>

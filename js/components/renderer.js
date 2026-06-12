@@ -1884,25 +1884,38 @@ ATURAN EDGES:
             <p style="margin-top:8px;"><strong>Heterogeneity:</strong> <span style="color:#93c5fd;">${d.heterogeneity_verdict || '-'}</span></p>
             <p style="font-size:0.88em;color:#cbd5e1;">${d.heterogeneity_narrative || ''}</p>
             <details style="margin-top:8px;"><summary style="cursor:pointer;color:#6ee7b7;font-weight:bold;">Lihat ${(d.figures||[]).length} figur (SVG)</summary>${figs}</details>
-            <button id="btn-enrich-metadata" class="btn" style="margin-top:10px;background:#0ea5e9;color:#fff;"><i class="fa fa-database"></i> Enrich Metadata (CrossRef)</button>
+            <button id="btn-enrich-metadata" class="btn" style="margin-top:10px;background:#0ea5e9;color:#fff;"><i class="fa fa-sync-alt"></i> Perkaya & Analisis Ulang (CrossRef)</button>
         `);
         setTimeout(() => {
             const btnEnrich = document.getElementById('btn-enrich-metadata');
             if (btnEnrich) btnEnrich.addEventListener('click', async () => {
-                if (!confirm('Enrich metadata dari CrossRef untuk paper yang belum lengkap?')) return;
+                if (!confirm('Enrich metadata dari CrossRef lalu analisis ulang otomatis?')) return;
                 try {
-                    btnEnrich.disabled = true; btnEnrich.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Enriching...';
+                    btnEnrich.disabled = true;
+                    btnEnrich.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Memperkaya metadata & menganalisis ulang...';
+
+                    // Step 1: Trigger enrichment (async di background)
                     const resp = await fetch(`${getBaseURL()}/sessions/${session.id}/m7/enrich-metadata`, {
                         method: 'POST',
                         headers: { 'Authorization': 'Bearer ' + localStorage.getItem('auth_token') }
                     });
                     if (!resp.ok) throw new Error((await resp.json()).error || resp.statusText);
-                    const result = await resp.json();
-                    alert(`Berhasil: ${result.enriched_count || 0} paper diperkaya metadata-nya.\n\nLihat log di Agent Real-Time Logs untuk detail.`);
+
+                    // Step 2: Wait for background enrichment to complete (poll or fixed delay)
+                    btnEnrich.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Menunggu enrichment selesai...';
+                    await new Promise(r => setTimeout(r, 10000)); // 10 detik buffer untuk background process
+
+                    // Step 3: Auto-trigger revision to re-run M8 Step 1
+                    btnEnrich.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Menganalisis ulang...';
+                    await API.reviseStep(session.id, 'Auto-retry setelah enrich metadata CrossRef', 'M8_STEP1_DESCRIPTIVE');
+
+                    // Step 4: Reload page to show fresh results
+                    window.location.reload();
+                } catch (err) {
+                    alert('Gagal: ' + err.message);
                     btnEnrich.disabled = false;
-                    btnEnrich.innerHTML = `✅ Selesai (${result.enriched_count || 0} enriched)`;
-                    btnEnrich.style.background = '#10b981';
-                } catch (err) { alert('Gagal: ' + err.message); btnEnrich.disabled = false; btnEnrich.innerHTML = '<i class="fa fa-database"></i> Enrich Metadata (CrossRef)'; }
+                    btnEnrich.innerHTML = '<i class="fa fa-sync-alt"></i> Perkaya & Analisis Ulang (CrossRef)';
+                }
             });
         }, 100);
 

@@ -1898,7 +1898,7 @@ ATURAN EDGES:
                     });
                     if (!resp.ok) throw new Error((await resp.json()).error || resp.statusText);
                     const result = await resp.json();
-                    alert(`Berhasil: ${result.enriched || 0} paper diperkaya metadata-nya.`);
+                    alert(`Berhasil: ${result.enriched_count || 0} paper diperkaya metadata-nya.`);
                     window.location.reload();
                 } catch (err) { alert('Gagal: ' + err.message); btnEnrich.disabled = false; btnEnrich.innerHTML = '<i class="fa fa-database"></i> Enrich Metadata (CrossRef)'; }
             });

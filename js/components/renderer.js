@@ -1818,6 +1818,14 @@ ${sens || 'Tidak tersedia'}
             </div>
             <p style="margin-top:10px;font-size:0.9em;"><strong>Heterogeneity:</strong> ${sp.heterogeneity_verdict || '-'} | <strong>Meta-analysis:</strong> <span style="color:#6ee7b7;">${sp.meta_feasibility || '-'}</span></p>
             ${sumMd.includes('ERROR') ? `<div style="margin-top: 12px;"><button id="btn-m7-retry-qa" class="btn" style="background:#fbbf24; color:#0f172a; width:100%; border:none; padding:10px; border-radius:6px; font-weight:bold; cursor:pointer;">🔄 Ulangi Penilaian QA untuk Studi yang ERROR</button></div>` : ''}
+            <details style="margin-top:12px; background:rgba(0,0,0,0.2); padding:10px; border-radius:8px; border-left:3px solid #a78bfa;">
+                <summary style="cursor:pointer; color:#a78bfa; font-weight:bold; font-size:0.85em;">🔍 xAI: Lihat Model & Prompt Synthesis Prep</summary>
+                <div style="margin-top:10px; font-size:0.8em; color:#cbd5e1; max-height:250px; overflow-y:auto;">
+                    ${sp.model_used ? `<p style="color:#fcd34d; margin-bottom:5px;"><strong>🧠 LLM Model:</strong> ${sp.model_used}</p>` : ''}
+                    <strong>System Prompt (Instruksi Agent):</strong><br>
+                    <pre style="white-space:pre-wrap; font-family:monospace; background:rgba(0,0,0,0.3); padding:8px; border-radius:4px; margin-top:5px;">${(sp.system_prompt || '').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>
+                </div>
+            </details>
             <p style="margin-top: 8px; font-size: 0.9em; color:#4ade80;"><em>Setujui untuk menutup Modul 7 dan lanjut ke Modul 8 (Synthesis).</em></p>
         `);
 

@@ -1829,6 +1829,53 @@ ${sens || 'Tidak tersedia'}
             <p style="margin-top: 8px; font-size: 0.9em; color:#4ade80;"><em>Setujui untuk menutup Modul 7 dan lanjut ke Modul 8 (Synthesis).</em></p>
         `);
 
+    } else if (status === 'M7_STEP5_WAITING_APPROVAL') {
+        const gs = session.graph_extraction_summary || {};
+        const totalGraphed = gs.total_graphed || 0;
+        const totalEligible = gs.total_eligible || 0;
+        const neo4jConnected = gs.neo4j_connected || false;
+        const neo4jStatus = neo4jConnected
+            ? '<span style="color:#4ade80;">● Connected</span>'
+            : '<span style="color:#f87171;">● Disconnected</span>';
+        const graphSysPrompt = `Anda adalah ahli neuro-symbolic AI yang bertugas membangun Knowledge Graph dari literatur ilmiah.
+Tugas Anda adalah membaca hasil ekstraksi sebuah paper, dan mengubahnya menjadi Nodes (simpul) dan Edges (relasi).
+
+ATURAN NODES:
+- Wajib sertakan minimal node Paper.
+  Node Paper: Label "Paper", ID (DOI atau Title yang di-slug), Props minimal {title, doi}.
+- Buat Nodes untuk Entitas penting: "Author", "Method", "Dataset", "Metric", "Conclusion".
+- Gunakan ID yang sangat konsisten untuk entitas yang sama (contoh: id="dataset-adni", label="Dataset", props={name: "ADNI"}).
+
+ATURAN EDGES:
+- Hubungkan Paper dengan entitas lain.
+- Tipe Relasi valid contohnya: WRITTEN_BY, USES_METHOD, USES_DATASET, EVALUATES_METRIC, CONCLUDES.
+- Tiap edge butuh source_id, target_id, source_label, target_label, type, dan props.`;
+
+        html = wrapCard('Modul 7 L5 — Knowledge Graph Extraction (Neo4j)', `
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+                <div style="background:rgba(0,0,0,0.2); padding:12px; border-radius:6px; text-align:center;">
+                    <div style="font-size:2em; font-weight:bold; color:#6ee7b7;">${totalGraphed}</div>
+                    <div style="font-size:0.85em; color:#9ca3af;">Paper berhasil di-graph</div>
+                </div>
+                <div style="background:rgba(0,0,0,0.2); padding:12px; border-radius:6px; text-align:center;">
+                    <div style="font-size:2em; font-weight:bold; color:#93c5fd;">${totalEligible}</div>
+                    <div style="font-size:0.85em; color:#9ca3af;">Total paper eligible</div>
+                </div>
+            </div>
+            <div style="background:rgba(0,0,0,0.2); padding:12px; border-radius:6px; margin-bottom:12px;">
+                <p style="margin:0 0 6px; font-size:0.9em;"><strong>Neo4j AuraDB Status:</strong> ${neo4jStatus}</p>
+                <p style="margin:0; font-size:0.85em; color:#cbd5e1;">Knowledge Graph dari ${totalGraphed} paper telah berhasil diekstrak dan disimpan ke Neo4j AuraDB. Graph berisi nodes (Paper, Author, Method, Dataset, Metric, Conclusion) dan edges (relasi antar entitas) yang siap untuk query dan visualisasi.</p>
+            </div>
+            <details style="margin-top:12px; background:rgba(0,0,0,0.2); padding:10px; border-radius:8px; border-left:3px solid #a78bfa;">
+                <summary style="cursor:pointer; color:#a78bfa; font-weight:bold; font-size:0.85em;">🔍 xAI: Lihat System Prompt Graph Extraction</summary>
+                <div style="margin-top:10px; font-size:0.8em; color:#cbd5e1; max-height:300px; overflow-y:auto;">
+                    <strong>System Prompt (Instruksi Agent untuk Graph Extraction):</strong><br>
+                    <pre style="white-space:pre-wrap; font-family:monospace; background:rgba(0,0,0,0.3); padding:8px; border-radius:4px; margin-top:5px;">${graphSysPrompt.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>
+                </div>
+            </details>
+            <p style="margin-top: 8px; font-size: 0.9em; color:#4ade80;"><em>Setujui untuk melanjutkan ke Modul 8 (Synthesis & GRADE).</em></p>
+        `);
+
     } else if (status === 'M8_STEP1_WAITING_APPROVAL' && session.descriptive_analysis) {
         const d = session.descriptive_analysis;
         const figs = (d.figures || []).map(f => `<div style="background:#fff;border-radius:6px;margin:8px 0;overflow:hidden;">${f.svg || ''}</div>${f.url ? `<div style="font-size:0.8em;margin:-4px 0 8px;"><a href="${f.url}" target="_blank" style="color:#60a5fa;">${f.name} ↗ (GitHub Pages)</a></div>` : ''}`).join('');

@@ -1884,7 +1884,25 @@ ATURAN EDGES:
             <p style="margin-top:8px;"><strong>Heterogeneity:</strong> <span style="color:#93c5fd;">${d.heterogeneity_verdict || '-'}</span></p>
             <p style="font-size:0.88em;color:#cbd5e1;">${d.heterogeneity_narrative || ''}</p>
             <details style="margin-top:8px;"><summary style="cursor:pointer;color:#6ee7b7;font-weight:bold;">Lihat ${(d.figures||[]).length} figur (SVG)</summary>${figs}</details>
+            <button id="btn-enrich-metadata" class="btn" style="margin-top:10px;background:#0ea5e9;color:#fff;"><i class="fa fa-database"></i> Enrich Metadata (CrossRef)</button>
         `);
+        setTimeout(() => {
+            const btnEnrich = document.getElementById('btn-enrich-metadata');
+            if (btnEnrich) btnEnrich.addEventListener('click', async () => {
+                if (!confirm('Enrich metadata dari CrossRef untuk paper yang belum lengkap?')) return;
+                try {
+                    btnEnrich.disabled = true; btnEnrich.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Enriching...';
+                    const resp = await fetch(`${getBaseURL()}/sessions/${session.id}/m7/enrich-metadata`, {
+                        method: 'POST',
+                        headers: { 'Authorization': 'Bearer ' + localStorage.getItem('auth_token') }
+                    });
+                    if (!resp.ok) throw new Error((await resp.json()).error || resp.statusText);
+                    const result = await resp.json();
+                    alert(`Berhasil: ${result.enriched || 0} paper diperkaya metadata-nya.`);
+                    window.location.reload();
+                } catch (err) { alert('Gagal: ' + err.message); btnEnrich.disabled = false; btnEnrich.innerHTML = '<i class="fa fa-database"></i> Enrich Metadata (CrossRef)'; }
+            });
+        }, 100);
 
     } else if (status === 'M8_STEP2_WAITING_APPROVAL' && session.synthesis_results) {
         const dec = session.synthesis_path_decision || {};

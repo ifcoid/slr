@@ -2959,6 +2959,15 @@ window.showQAXAIModal = async (btn) => {
         if (!res.ok) throw new Error("Gagal mengambil data ekstraksi");
         const data = await res.json();
         const papers = (data.extractions || []).filter(p => p.qa_rated === true).sort((a, b) => Number(a.qa_total_score || 0) - Number(b.qa_total_score || 0));
+
+        // Fetch QA system prompt for xAI transparency
+        let qaPromptData = null;
+        try {
+            const promptRes = await fetch(`${baseURL}/sessions/${sid}/m7/qa-prompt`, {
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token')}` }
+            });
+            if (promptRes.ok) qaPromptData = await promptRes.json();
+        } catch(e) { /* ignore prompt fetch error */ }
         
         const modalHtml = `
             <div id="qa-xai-modal" style="position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(15, 23, 42, 0.9); display: flex; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(8px);">
@@ -2973,13 +2982,27 @@ window.showQAXAIModal = async (btn) => {
                         </div>
                     </div>
                     <div style="padding: 20px; overflow-y: auto; flex: 1;">
+                        ${qaPromptData ? `
+                            <details style="margin-bottom: 20px; background: rgba(139, 92, 246, 0.08); border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 8px; padding: 0;">
+                                <summary style="padding: 12px 15px; cursor: pointer; color: #a78bfa; font-weight: bold; font-size: 0.9em; user-select: none;">📋 System Prompt Rater (xAI Transparency)</summary>
+                                <div style="padding: 12px 15px; border-top: 1px solid rgba(139, 92, 246, 0.2);">
+                                    <div style="margin-bottom: 8px; font-size: 0.8em; color: #94a3b8;">
+                                        <strong>Tool:</strong> ${qaPromptData.tool || '-'} | <strong>Kategorisasi:</strong> ${qaPromptData.categorization || '-'} | <strong>Threshold:</strong> ${qaPromptData.threshold || '-'}%
+                                    </div>
+                                    <pre style="background: rgba(0,0,0,0.3); padding: 12px; border-radius: 6px; font-size: 0.8em; color: #e2e8f0; white-space: pre-wrap; word-break: break-word; margin: 0; max-height: 300px; overflow-y: auto; border: 1px solid rgba(255,255,255,0.05);">${qaPromptData.system_prompt || 'Prompt tidak tersedia'}</pre>
+                                </div>
+                            </details>
+                        ` : ''}
                         ${papers.length === 0 ? '<p style="color:#94a3b8; text-align:center;">Tidak ada data QA yang tersedia.</p>' : `
                             <div style="display:flex; flex-direction:column; gap:20px;">
-                                ${papers.map(p => `
-                                    <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; overflow: hidden;">
-                                        <div style="padding: 12px 15px; background: rgba(0,0,0,0.2); border-bottom: 1px solid rgba(255,255,255,0.05); font-weight: bold; color: #e2e8f0; display:flex; justify-content: space-between; align-items: center;">
+                                ${papers.map(p => {
+                                    const paperId = p._id || p.DOI || p.doi || '';
+                                    return `
+                                    <div class="qa-paper-card" data-paper-id="${paperId}" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; overflow: hidden;">
+                                        <div style="padding: 12px 15px; background: rgba(0,0,0,0.2); border-bottom: 1px solid rgba(255,255,255,0.05); font-weight: bold; color: #e2e8f0; display:flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
                                             <span>${p.Title || p.title || p.DOI || p.doi || 'Unknown Title'}</span>
-                                            <div style="display:flex; align-items:center; gap:15px;">
+                                            <div style="display:flex; align-items:center; gap:10px; flex-wrap: wrap;">
+                                                <button class="btn-rerate-paper" data-paper-id="${paperId}" style="background: #f59e0b; border: none; color: #0f172a; padding: 4px 10px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 4px; transition: background 0.2s;" title="Rate ulang paper ini dengan model saat ini">🔄 Rate Ulang</button>
                                                 ${Number(p.qa_total_score || 0) === 0 ? `<button class="btn-delete-qdrant-xai" data-doi="${p.DOI || p.doi || '-'}" data-title="${p.Title || p.title || ''}" style="background: transparent; border: 1px solid #ef4444; color: #ef4444; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; display: flex; align-items: center; gap: 4px;" title="Hapus vektor di database jika PDF rusak/watermark">🗑️ Hapus Vektor (Fix PDF)</button>` : ''}
                                                 <span style="color:#38bdf8; font-size:0.9em;">Final: ${p.qa_final_category || '-'} (${p.qa_total_score || 0})</span>
                                             </div>
@@ -3017,7 +3040,7 @@ window.showQAXAIModal = async (btn) => {
                                             </div>
                                         </div>
                                     </div>
-                                `).join('')}
+                                `}).join('')}
                             </div>
                         `}
                     </div>
@@ -3028,7 +3051,78 @@ window.showQAXAIModal = async (btn) => {
         modalContainer.innerHTML = modalHtml;
         document.body.appendChild(modalContainer);
 
+        // Handle re-rate button clicks
         modalContainer.addEventListener('click', async (e) => {
+            const rerateBtn = e.target.closest('.btn-rerate-paper');
+            if (rerateBtn) {
+                const paperId = rerateBtn.getAttribute('data-paper-id');
+                if (!paperId) return;
+                if (!confirm("Rate ulang paper ini dengan model rater saat ini? Proses ini membutuhkan waktu ~30 detik.")) return;
+                
+                const originalText = rerateBtn.innerHTML;
+                rerateBtn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Rating...';
+                rerateBtn.disabled = true;
+                rerateBtn.style.opacity = '0.7';
+                
+                try {
+                    const token = localStorage.getItem('auth_token');
+                    const rerateRes = await fetch(`${baseURL}/sessions/${sid}/m7/rerate-paper`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ paper_id: paperId })
+                    });
+                    if (!rerateRes.ok) {
+                        const errData = await rerateRes.json().catch(() => ({}));
+                        throw new Error(errData.error || "Gagal melakukan re-rating");
+                    }
+                    const result = await rerateRes.json();
+                    
+                    // Update the card in-place
+                    const card = rerateBtn.closest('.qa-paper-card');
+                    if (card) {
+                        const finalSpan = card.querySelector('span[style*="color:#38bdf8"]');
+                        if (finalSpan) finalSpan.textContent = `Final: ${result.final_category} (${result.final_score})`;
+                        
+                        // Update rater sections
+                        const raterDivs = card.querySelectorAll('div[style*="padding: 15px"]');
+                        if (raterDivs[0]) {
+                            const h4_r1 = raterDivs[0].querySelector('h4');
+                            if (h4_r1) h4_r1.innerHTML = `<span>Rater 1</span> <span style="font-size:0.8em; color:#94a3b8; font-weight:normal;">${result.r1_category} (${result.r1_score})</span> <span style="font-size:0.7em; background:rgba(56,189,248,0.1); color:#38bdf8; padding:2px 6px; border-radius:4px; border:1px solid rgba(56,189,248,0.2);">${result.r1_model}</span>`;
+                            const divs_r1 = raterDivs[0].querySelectorAll('div[style*="margin-bottom"]');
+                            if (divs_r1[0]) divs_r1[0].querySelector('div:last-child').textContent = result.r1_reasoning || '-';
+                            const evidence_r1 = raterDivs[0].querySelector('div[style*="border-left"]');
+                            if (evidence_r1) evidence_r1.textContent = result.r1_evidence || '-';
+                        }
+                        if (raterDivs[1]) {
+                            const h4_r2 = raterDivs[1].querySelector('h4');
+                            if (h4_r2) h4_r2.innerHTML = `<span>Rater 2</span> <span style="font-size:0.8em; color:#94a3b8; font-weight:normal;">${result.r2_category} (${result.r2_score})</span> <span style="font-size:0.7em; background:rgba(56,189,248,0.1); color:#38bdf8; padding:2px 6px; border-radius:4px; border:1px solid rgba(56,189,248,0.2);">${result.r2_model}</span>`;
+                            const divs_r2 = raterDivs[1].querySelectorAll('div[style*="margin-bottom"]');
+                            if (divs_r2[0]) divs_r2[0].querySelector('div:last-child').textContent = result.r2_reasoning || '-';
+                            const evidence_r2 = raterDivs[1].querySelector('div[style*="border-left"]');
+                            if (evidence_r2) evidence_r2.textContent = result.r2_evidence || '-';
+                        }
+                    }
+                    
+                    rerateBtn.innerHTML = '✅ Selesai!';
+                    rerateBtn.style.background = '#34d399';
+                    setTimeout(() => {
+                        rerateBtn.innerHTML = originalText;
+                        rerateBtn.disabled = false;
+                        rerateBtn.style.opacity = '1';
+                        rerateBtn.style.background = '#f59e0b';
+                    }, 3000);
+                } catch (err) {
+                    alert("Re-rating gagal: " + err.message);
+                    rerateBtn.innerHTML = originalText;
+                    rerateBtn.disabled = false;
+                    rerateBtn.style.opacity = '1';
+                }
+                return;
+            }
+
             const target = e.target.closest('.btn-delete-qdrant-xai');
             if (target) {
                 const paperDoi = target.getAttribute('data-doi');

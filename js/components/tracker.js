@@ -1,7 +1,7 @@
 // js/components/tracker.js
 import { API, getBaseURL } from '../api.js';
 import { showToast, toggleHidden, setButtonLoading } from '../ui.js';
-import { renderApprovalContent } from './renderer.js';
+import { renderApprovalContent, appendXAISection } from './renderer.js';
 
 let pollingInterval = null;
 let currentSessionId = null;
@@ -355,6 +355,8 @@ function renderApprovalUI(session) {
                 }
             }, 0);
         }
+        // Universal xAI Transparency Section
+        appendXAISection(area, session);
     }
     
     // Only add Revise form if this is an approval step (not a data-input step)

@@ -194,5 +194,8 @@ export const API = {
         responseType: 'text'
     }),
 
-    getM6Papers: (id) => apiFetch(`/sessions/${id}/m6/papers`)
+    getM6Papers: (id) => apiFetch(`/sessions/${id}/m6/papers`),
+
+    // xAI Audit Log
+    getXAILog: (id, step) => apiFetch(`/sessions/${id}/xai-log${step ? `?step=${step}` : ''}`)
 };

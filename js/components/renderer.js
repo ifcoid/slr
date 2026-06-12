@@ -2965,6 +2965,69 @@ ${sens || 'Tidak tersedia'}
     return false;
 }
 
+// Universal xAI Transparency Section: appended after renderApprovalContent for any WAITING_APPROVAL step.
+export function appendXAISection(area, session) {
+    const status = session.status || '';
+    if (!status.includes('WAITING_APPROVAL') && !status.includes('LOW_KAPPA')) return;
+
+    // Derive the step that produced the current WAITING state
+    const currentStep = status.replace('_WAITING_APPROVAL', '').replace('_LOW_KAPPA', '');
+
+    const details = document.createElement('details');
+    details.style.cssText = 'margin-top: 1.5rem; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 1rem;';
+    details.innerHTML = `
+        <summary style="cursor: pointer; color: #a78bfa; font-weight: 600; font-size: 0.95em; user-select: none;">
+            &#x1f9e0; xAI Transparency Log (Step: ${currentStep})
+        </summary>
+        <div class="xai-log-content" style="margin-top: 0.75rem; color: #cbd5e1; font-size: 0.88em;">
+            <p style="color: #64748b;"><em>Memuat log xAI...</em></p>
+        </div>
+    `;
+    area.appendChild(details);
+
+    details.addEventListener('toggle', async function handler() {
+        if (!details.open) return;
+        details.removeEventListener('toggle', handler);
+        const container = details.querySelector('.xai-log-content');
+        try {
+            const data = await API.getXAILog(session.id, currentStep);
+            const entries = data.xai_log || [];
+            if (entries.length === 0) {
+                container.innerHTML = '<p style="color: #64748b;"><em>Belum ada catatan interaksi LLM untuk step ini.</em></p>';
+                return;
+            }
+            let html = '';
+            entries.forEach((entry, idx) => {
+                const ts = entry.timestamp ? new Date(entry.timestamp).toLocaleString() : '-';
+                const sysTrunc = (entry.system_prompt || '').length > 300
+                    ? entry.system_prompt.substring(0, 300) + '...'
+                    : (entry.system_prompt || '(kosong)');
+                html += `
+                    <div style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; padding: 0.75rem; margin-bottom: 0.75rem;">
+                        <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 0.5rem;">
+                            <span style="color: #60a5fa;"><strong>Model:</strong> ${entry.model_name || '-'}</span>
+                            <span style="color: #34d399;"><strong>Agent:</strong> ${entry.agent_func || '-'}</span>
+                            <span style="color: #94a3b8;"><strong>Waktu:</strong> ${ts}</span>
+                            <span style="color: #fbbf24;"><strong>Durasi:</strong> ${entry.duration_ms || 0}ms</span>
+                        </div>
+                        <details style="margin-top: 0.4rem;">
+                            <summary style="cursor: pointer; color: #94a3b8; font-size: 0.85em;">System Prompt</summary>
+                            <pre style="background: rgba(0,0,0,0.4); padding: 0.5rem; border-radius: 4px; font-size: 0.8em; white-space: pre-wrap; word-break: break-word; max-height: 200px; overflow-y: auto; color: #e2e8f0; margin-top: 0.3rem;">${(entry.system_prompt || '').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>
+                        </details>
+                        <details style="margin-top: 0.4rem;">
+                            <summary style="cursor: pointer; color: #94a3b8; font-size: 0.85em;">User Prompt (preview)</summary>
+                            <pre style="background: rgba(0,0,0,0.4); padding: 0.5rem; border-radius: 4px; font-size: 0.8em; white-space: pre-wrap; word-break: break-word; max-height: 200px; overflow-y: auto; color: #e2e8f0; margin-top: 0.3rem;">${(entry.user_prompt_preview || '').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>
+                        </details>
+                    </div>
+                `;
+            });
+            container.innerHTML = `<p style="color:#64748b; margin-bottom:0.5rem;">Total ${entries.length} interaksi LLM tercatat.</p>` + html;
+        } catch (err) {
+            container.innerHTML = `<p style="color: #ef4444;"><em>Gagal memuat log xAI: ${err.message}</em></p>`;
+        }
+    });
+}
+
 window.showQAXAIModal = async (btn) => {
     if (btn) {
         btn.disabled = true;

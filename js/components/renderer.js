@@ -1898,8 +1898,10 @@ ATURAN EDGES:
                     });
                     if (!resp.ok) throw new Error((await resp.json()).error || resp.statusText);
                     const result = await resp.json();
-                    alert(`Berhasil: ${result.enriched_count || 0} paper diperkaya metadata-nya.`);
-                    window.location.reload();
+                    alert(`Berhasil: ${result.enriched_count || 0} paper diperkaya metadata-nya.\n\nLihat log di Agent Real-Time Logs untuk detail.`);
+                    btnEnrich.disabled = false;
+                    btnEnrich.innerHTML = `✅ Selesai (${result.enriched_count || 0} enriched)`;
+                    btnEnrich.style.background = '#10b981';
                 } catch (err) { alert('Gagal: ' + err.message); btnEnrich.disabled = false; btnEnrich.innerHTML = '<i class="fa fa-database"></i> Enrich Metadata (CrossRef)'; }
             });
         }, 100);

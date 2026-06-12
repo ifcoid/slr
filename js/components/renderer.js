@@ -2036,7 +2036,14 @@ ${sens || 'Tidak tersedia'}
         setTimeout(() => {
             const btnApprove = document.getElementById('btn-generic-approve');
             if (btnApprove) {
-                btnApprove.addEventListener('click', () => handleApproval({}));
+                btnApprove.addEventListener('click', async () => {
+                    setButtonLoading(btnApprove, true);
+                    try {
+                        await handleApproval({});
+                    } catch(e) {
+                        setButtonLoading(btnApprove, false, 'Setuju & Lanjut');
+                    }
+                });
             }
 
             const btnEmbedSave = document.getElementById('btn-embed-save');
@@ -2098,7 +2105,12 @@ ${sens || 'Tidak tersedia'}
                         }
                     } else {
                         // Jika tidak ada form (semua sudah disepakati)
-                        handleApproval({});
+                        setButtonLoading(btnM5Approve, true);
+                        try {
+                            await handleApproval({});
+                        } catch(e) {
+                            setButtonLoading(btnM5Approve, false, 'Simpan Keputusan & Lanjutkan');
+                        }
                     }
                 });
             }

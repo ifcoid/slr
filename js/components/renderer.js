@@ -2149,7 +2149,9 @@ ATURAN EDGES:
             if (btnThes) btnThes.addEventListener('click', () => {
                 const thesData = (session.bibliometric_data && session.bibliometric_data.thesaurus_keywords) || '';
                 if (!thesData) { alert('Thesaurus belum tersedia. Jalankan Step 1 dulu.'); return; }
-                const blob = new Blob([thesData], {type: 'text/plain'});
+                const header = 'label\treplace by';
+                const content = thesData.trimStart().startsWith('label\treplace by') ? thesData : header + '\n' + thesData;
+                const blob = new Blob([content], {type: 'text/plain'});
                 const a = document.createElement('a');
                 a.href = URL.createObjectURL(blob);
                 a.download = 'thesaurus_vosviewer.txt';

@@ -2050,8 +2050,12 @@ ATURAN EDGES:
             <div style="margin-top:12px; text-align:center;">
                 <button id="btn-dl-interp-md" class="btn btn-secondary" style="padding:8px 16px; font-size:0.9em;">⬇️ Download Laporan Lengkap (Markdown)</button>
             </div>
-            <p style="margin-top: 10px; font-size: 0.9em; color:#4ade80;"><em>Setujui untuk menutup Modul 8 dan lanjut ke Modul 9 (Manuscript), atau jalankan Bibliometric SLNA (opsional) dulu.</em></p>
-            <button id="btn-run-slna" class="btn" style="margin-top:8px;background:#8b5cf6;color:#fff;">🔗 Jalankan Bibliometric SLNA (opsional)</button>
+            <div style="margin-top: 12px; background: rgba(139, 92, 246, 0.1); border: 1px solid rgba(139, 92, 246, 0.4); border-radius: 8px; padding: 12px 16px;">
+                <p style="margin: 0 0 8px 0; font-size: 0.9em; color: #a78bfa; font-weight: bold;">📊 Rekomendasi: Jalankan Bibliometric SLNA</p>
+                <p style="margin: 0 0 10px 0; font-size: 0.85em; color: #cbd5e1; line-height: 1.5;">Sangat disarankan menjalankan analisis Bibliometric/SLNA (Science Landscape Network Analysis) sebelum lanjut ke Modul 9. SLNA memberikan validasi lintas-metode (triangulasi) terhadap temuan sintesis naratif Anda, memperkuat argumen di bagian Discussion, serta mengidentifikasi research gaps berbasis peta jejaring kolaborasi ilmiah.</p>
+                <button id="btn-run-slna" class="btn" style="background:#8b5cf6;color:#fff;width:100%;padding:10px;font-weight:bold;font-size:0.95em;">📊 Jalankan Bibliometric SLNA (Sangat Direkomendasikan)</button>
+            </div>
+            <p style="margin-top: 10px; font-size: 0.85em; color:#94a3b8;"><em>Atau klik "Setuju & Lanjut" untuk langsung ke Modul 9 (Manuscript) tanpa SLNA.</em></p>
         `);
         setTimeout(() => {
             const btnDl = document.getElementById('btn-dl-interp-md');
@@ -2071,12 +2075,12 @@ ATURAN EDGES:
             });
             const b = document.getElementById('btn-run-slna');
             if (b) b.addEventListener('click', async () => {
-                if (!confirm('Jalankan modul Bibliometric/SLNA (opsional) sebelum Manuscript?')) return;
+                if (!confirm('Jalankan Bibliometric SLNA untuk memperkuat triangulasi temuan Anda?')) return;
                 try {
-                    b.disabled = true; b.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Memulai...';
+                    b.disabled = true; b.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Memulai SLNA...';
                     await API.reviseStep(session.id, 'Run Bibliometric SLNA', 'M8B_INIT');
                     window.location.reload();
-                } catch (err) { alert('Gagal: ' + err.message); b.disabled = false; b.textContent = '🔗 Jalankan Bibliometric SLNA (opsional)'; }
+                } catch (err) { alert('Gagal: ' + err.message); b.disabled = false; b.textContent = '📊 Jalankan Bibliometric SLNA (Sangat Direkomendasikan)'; }
             });
         }, 100);
 

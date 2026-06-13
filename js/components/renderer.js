@@ -2099,11 +2099,11 @@ ATURAN EDGES:
             <div style="font-size:0.88em;overflow-x:auto;">${formatMarkdown(v.table_markdown || '')}</div>
             <hr style="border-color:rgba(255,255,255,0.1);">
             <div style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.3);border-radius:6px;padding:12px;margin-bottom:12px;">
-                <button id="btn-download-bibtex" class="btn" style="background:#8b5cf6;color:#fff;font-weight:bold;margin-bottom:10px;">📥 Download BibTeX (untuk VOSviewer)</button>
+                <button id="btn-download-bibtex" class="btn" style="background:#8b5cf6;color:#fff;font-weight:bold;margin-bottom:10px;">📥 Download RIS (untuk VOSviewer)</button>
                 <div style="font-size:0.82em;color:#a7f3d0;">
                     <strong>Langkah-langkah:</strong><br>
-                    1. Klik tombol "Download BibTeX" di atas untuk mendapatkan file .bib<br>
-                    2. Buka VOSviewer &rarr; Create Map &rarr; Bibliographic data &rarr; Read from reference manager files &rarr; pilih file .bib<br>
+                    1. Klik tombol "Download RIS" di atas untuk mendapatkan file .ris<br>
+                    2. Buka VOSviewer &rarr; Create Map &rarr; Bibliographic data &rarr; Read from reference manager files &rarr; pilih file .ris<br>
                     3. Terapkan thesaurus dari Step 1 (copy ke file .txt, load di VOSviewer)<br>
                     4. Set 9-parameter sesuai tabel di atas<br>
                     5. Generate network &rarr; catat hasilnya (nodes, edges, clusters)<br>
@@ -2119,9 +2119,9 @@ ATURAN EDGES:
             if (btnBib) btnBib.addEventListener('click', async () => {
                 const originalText = btnBib.innerHTML;
                 btnBib.disabled = true;
-                btnBib.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Mengunduh BibTeX...';
+                btnBib.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Mengunduh RIS...';
                 try {
-                    const url = `${getBaseURL()}/sessions/${session.id}/m8b/export-bibtex`;
+                    const url = `${getBaseURL()}/sessions/${session.id}/m8b/export-ris`;
                     const token = localStorage.getItem('auth_token');
                     const resp = await fetch(url, { headers: { 'Authorization': 'Bearer ' + (token || '') } });
                     if (!resp.ok) throw new Error('Download failed: ' + resp.statusText);
@@ -2129,12 +2129,12 @@ ATURAN EDGES:
                     const blobUrl = URL.createObjectURL(blob);
                     const dl = document.createElement('a');
                     dl.href = blobUrl;
-                    dl.download = 'slr_papers.bib';
+                    dl.download = 'slr_papers.ris';
                     document.body.appendChild(dl);
                     dl.click();
                     document.body.removeChild(dl);
                     URL.revokeObjectURL(blobUrl);
-                    btnBib.innerHTML = '✅ BibTeX Terunduh';
+                    btnBib.innerHTML = '✅ RIS Terunduh';
                     btnBib.style.background = '#10b981';
                 } catch (err) {
                     alert('Download gagal: ' + err.message);

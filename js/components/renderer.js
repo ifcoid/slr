@@ -2100,8 +2100,9 @@ ATURAN EDGES:
             <hr style="border-color:rgba(255,255,255,0.1);">
             <div style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.3);border-radius:6px;padding:12px;margin-bottom:12px;">
                 <div style="display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap;">
-                    <button id="btn-download-bibtex" class="btn" style="background:#8b5cf6;color:#fff;font-weight:bold;">📥 Download RIS (untuk VOSviewer)</button>
-                    <button id="btn-download-thesaurus" class="btn" style="background:#0ea5e9;color:#fff;font-weight:bold;">📥 Download Thesaurus (.txt)</button>
+                    <button id="btn-enrich-scopus-kw" class="btn" style="background:#2563eb;color:#fff;font-weight:bold;">&#x1F52C; Enrich Keywords (Scopus)</button>
+                    <button id="btn-download-bibtex" class="btn" style="background:#8b5cf6;color:#fff;font-weight:bold;">&#x1F4E5; Download RIS (untuk VOSviewer)</button>
+                    <button id="btn-download-thesaurus" class="btn" style="background:#0ea5e9;color:#fff;font-weight:bold;">&#x1F4E5; Download Thesaurus (.txt)</button>
                 </div>
                 <div style="font-size:0.82em;color:#a7f3d0;">
                     <strong>Langkah-langkah:</strong><br>
@@ -2118,6 +2119,30 @@ ATURAN EDGES:
             <button id="btn-vos-submit" class="btn btn-success" style="margin-top:8px;">Submit Hasil VOSviewer → Interpretasi</button>
         `);
         setTimeout(() => {
+            const btnScopus = document.getElementById('btn-enrich-scopus-kw');
+            if (btnScopus) btnScopus.addEventListener('click', async () => {
+                const originalText = btnScopus.innerHTML;
+                btnScopus.disabled = true;
+                btnScopus.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Mengambil keywords dari Scopus...';
+                try {
+                    const url = `${getBaseURL()}/sessions/${session.id}/m8b/enrich-scopus-keywords`;
+                    const token = localStorage.getItem('auth_token');
+                    const resp = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Authorization': 'Bearer ' + (token || '') }
+                    });
+                    if (!resp.ok) {
+                        const errData = await resp.json().catch(() => ({}));
+                        throw new Error(errData.error || resp.statusText);
+                    }
+                    btnScopus.innerHTML = '&#x2705; Sedang berjalan... lihat log';
+                    btnScopus.style.background = '#10b981';
+                } catch (err) {
+                    alert('Gagal: ' + err.message);
+                    btnScopus.innerHTML = originalText;
+                    btnScopus.disabled = false;
+                }
+            });
             const btnBib = document.getElementById('btn-download-bibtex');
             if (btnBib) btnBib.addEventListener('click', async () => {
                 const originalText = btnBib.innerHTML;

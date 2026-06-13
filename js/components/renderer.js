@@ -2099,12 +2099,15 @@ ATURAN EDGES:
             <div style="font-size:0.88em;overflow-x:auto;">${formatMarkdown(v.table_markdown || '')}</div>
             <hr style="border-color:rgba(255,255,255,0.1);">
             <div style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.3);border-radius:6px;padding:12px;margin-bottom:12px;">
-                <button id="btn-download-bibtex" class="btn" style="background:#8b5cf6;color:#fff;font-weight:bold;margin-bottom:10px;">📥 Download RIS (untuk VOSviewer)</button>
+                <div style="display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap;">
+                    <button id="btn-download-bibtex" class="btn" style="background:#8b5cf6;color:#fff;font-weight:bold;">📥 Download RIS (untuk VOSviewer)</button>
+                    <button id="btn-download-thesaurus" class="btn" style="background:#0ea5e9;color:#fff;font-weight:bold;">📥 Download Thesaurus (.txt)</button>
+                </div>
                 <div style="font-size:0.82em;color:#a7f3d0;">
                     <strong>Langkah-langkah:</strong><br>
                     1. Klik tombol "Download RIS" di atas untuk mendapatkan file .ris<br>
                     2. Buka VOSviewer &rarr; Create Map &rarr; Bibliographic data &rarr; Read from reference manager files &rarr; pilih file .ris<br>
-                    3. Terapkan thesaurus dari Step 1 (copy ke file .txt, load di VOSviewer)<br>
+                    3. Klik "Download Thesaurus" → simpan file .txt → di VOSviewer klik "Thesaurus" → load file<br>
                     4. Set 9-parameter sesuai tabel di atas<br>
                     5. Generate network &rarr; catat hasilnya (nodes, edges, clusters)<br>
                     6. Paste ringkasan hasil di kotak input di bawah
@@ -2141,6 +2144,22 @@ ATURAN EDGES:
                     btnBib.innerHTML = originalText;
                     btnBib.disabled = false;
                 }
+            });
+            const btnThes = document.getElementById('btn-download-thesaurus');
+            if (btnThes) btnThes.addEventListener('click', () => {
+                const thesData = (session.bibliometric_data && session.bibliometric_data.thesaurus_keywords) || '';
+                if (!thesData) { alert('Thesaurus belum tersedia. Jalankan Step 1 dulu.'); return; }
+                const blob = new Blob([thesData], {type: 'text/plain'});
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = 'thesaurus_vosviewer.txt';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(a.href);
+                btnThes.innerHTML = '✅ Thesaurus Terunduh';
+                btnThes.style.background = '#10b981';
+                btnThes.disabled = true;
             });
             const btn = document.getElementById('btn-vos-submit');
             if (btn) btn.addEventListener('click', async () => {

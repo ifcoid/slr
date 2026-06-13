@@ -2099,19 +2099,30 @@ ATURAN EDGES:
             <div style="font-size:0.88em;overflow-x:auto;">${formatMarkdown(v.table_markdown || '')}</div>
             <hr style="border-color:rgba(255,255,255,0.1);">
             <div style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.3);border-radius:6px;padding:12px;margin-bottom:12px;">
-                <div style="display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap;">
-                    <button id="btn-enrich-scopus-kw" class="btn" style="background:#2563eb;color:#fff;font-weight:bold;">&#x1F52C; Enrich Keywords (Scopus)</button>
-                    <button id="btn-download-bibtex" class="btn" style="background:#8b5cf6;color:#fff;font-weight:bold;">&#x1F4E5; Download RIS (untuk VOSviewer)</button>
-                    <button id="btn-download-thesaurus" class="btn" style="background:#0ea5e9;color:#fff;font-weight:bold;">&#x1F4E5; Download Thesaurus (.txt)</button>
+                <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:15px;">
+                    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+                        <button id="btn-enrich-scopus-kw" class="btn" style="background:#2563eb;color:#fff;font-weight:bold;white-space:nowrap;">&#x1F52C; Enrich Keywords (Scopus)</button>
+                        <span style="font-size:0.8em;color:#94a3b8;flex:1;">Ambil author keywords dari Scopus API (perlu API key di Pengaturan). Jalan di background, lihat progress di log.</span>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+                        <button id="btn-download-bibtex" class="btn" style="background:#8b5cf6;color:#fff;font-weight:bold;white-space:nowrap;">&#x1F4E5; Download RIS (untuk VOSviewer)</button>
+                        <span style="font-size:0.8em;color:#94a3b8;flex:1;">Download file .ris berisi semua paper + keywords. Import file ini ke VOSviewer.</span>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+                        <button id="btn-download-thesaurus" class="btn" style="background:#0ea5e9;color:#fff;font-weight:bold;white-space:nowrap;">&#x1F4E5; Download Thesaurus (.txt)</button>
+                        <span style="font-size:0.8em;color:#94a3b8;flex:1;">Download file thesaurus untuk merge sinonim keyword di VOSviewer. Load saat setup mapping.</span>
+                    </div>
                 </div>
                 <div style="font-size:0.82em;color:#a7f3d0;">
                     <strong>Langkah-langkah:</strong><br>
-                    1. Klik tombol "Download RIS" di atas untuk mendapatkan file .ris<br>
-                    2. Buka VOSviewer &rarr; Create Map &rarr; Bibliographic data &rarr; Read from reference manager files &rarr; pilih file .ris<br>
-                    3. Klik "Download Thesaurus" → simpan file .txt → di VOSviewer klik "Thesaurus" → load file<br>
-                    4. Set 9-parameter sesuai tabel di atas<br>
-                    5. Generate network &rarr; catat hasilnya (nodes, edges, clusters)<br>
-                    6. Paste ringkasan hasil di kotak input di bawah
+                    0. (Opsional) Klik "Enrich Keywords (Scopus)" &rarr; tunggu selesai di log. Memperkaya keywords agar hasil VOSviewer lebih akurat.<br>
+                    1. Klik "Download RIS" &rarr; simpan file slr_papers.ris<br>
+                    2. Buka VOSviewer &rarr; Create Map &rarr; Bibliographic data &rarr; Read from reference manager files &rarr; Tab RIS &rarr; pilih file .ris<br>
+                    3. Klik "Download Thesaurus" &rarr; simpan file .txt &rarr; di VOSviewer klik tombol "Thesaurus..." di kiri bawah &rarr; load file<br>
+                    4. Set 9-parameter sesuai tabel di atas (Type of analysis, Unit of analysis, Counting method, dll)<br>
+                    5. Klik "Next" &rarr; atur threshold minimum occurrences &rarr; Generate network<br>
+                    6. Catat hasilnya (total nodes, edges, clusters, top-3 clusters + label, bridge nodes, temporal trend)<br>
+                    7. Paste ringkasan hasil di kotak input di bawah
                 </div>
             </div>
             <label style="font-size:0.85em;">Paste hasil VOSviewer (nodes, edges, total clusters, top-3 clusters+label, bridge nodes, temporal trend):</label>

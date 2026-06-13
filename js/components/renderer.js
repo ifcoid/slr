@@ -2116,29 +2116,31 @@ ATURAN EDGES:
         `);
         setTimeout(() => {
             const btnBib = document.getElementById('btn-download-bibtex');
-            if (btnBib) btnBib.addEventListener('click', () => {
-                const url = `${getBaseURL()}/sessions/${session.id}/m8b/export-bibtex`;
-                const token = localStorage.getItem('auth_token');
-                const a = document.createElement('a');
-                a.href = url + (token ? '?token=' + encodeURIComponent(token) : '');
-                a.target = '_blank';
-                // Use fetch for auth header support
-                fetch(url, { headers: { 'Authorization': 'Bearer ' + (token || '') } })
-                    .then(resp => {
-                        if (!resp.ok) throw new Error('Download failed');
-                        return resp.blob();
-                    })
-                    .then(blob => {
-                        const blobUrl = URL.createObjectURL(blob);
-                        const dl = document.createElement('a');
-                        dl.href = blobUrl;
-                        dl.download = 'slr_papers.bib';
-                        document.body.appendChild(dl);
-                        dl.click();
-                        document.body.removeChild(dl);
-                        URL.revokeObjectURL(blobUrl);
-                    })
-                    .catch(err => alert('Download gagal: ' + err.message));
+            if (btnBib) btnBib.addEventListener('click', async () => {
+                const originalText = btnBib.innerHTML;
+                btnBib.disabled = true;
+                btnBib.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Mengunduh BibTeX...';
+                try {
+                    const url = `${getBaseURL()}/sessions/${session.id}/m8b/export-bibtex`;
+                    const token = localStorage.getItem('auth_token');
+                    const resp = await fetch(url, { headers: { 'Authorization': 'Bearer ' + (token || '') } });
+                    if (!resp.ok) throw new Error('Download failed: ' + resp.statusText);
+                    const blob = await resp.blob();
+                    const blobUrl = URL.createObjectURL(blob);
+                    const dl = document.createElement('a');
+                    dl.href = blobUrl;
+                    dl.download = 'slr_papers.bib';
+                    document.body.appendChild(dl);
+                    dl.click();
+                    document.body.removeChild(dl);
+                    URL.revokeObjectURL(blobUrl);
+                    btnBib.innerHTML = '✅ BibTeX Terunduh';
+                    btnBib.style.background = '#10b981';
+                } catch (err) {
+                    alert('Download gagal: ' + err.message);
+                    btnBib.innerHTML = originalText;
+                    btnBib.disabled = false;
+                }
             });
             const btn = document.getElementById('btn-vos-submit');
             if (btn) btn.addEventListener('click', async () => {

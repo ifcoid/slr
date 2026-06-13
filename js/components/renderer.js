@@ -2101,8 +2101,9 @@ ATURAN EDGES:
             <div style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.3);border-radius:6px;padding:12px;margin-bottom:12px;">
                 <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:15px;">
                     <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-                        <button id="btn-enrich-scopus-kw" class="btn" style="background:#2563eb;color:#fff;font-weight:bold;white-space:nowrap;">&#x1F52C; Enrich Keywords (Scopus)</button>
-                        <span style="font-size:0.8em;color:#94a3b8;flex:1;">Ambil author keywords dari Scopus API (perlu API key di Pengaturan). Jalan di background, lihat progress di log.</span>
+                        <label for="input-scopus-csv" class="btn" style="background:#2563eb;color:#fff;font-weight:bold;white-space:nowrap;cursor:pointer;margin:0;">&#x1F4E4; Upload Scopus CSV (untuk Keywords)</label>
+                        <input type="file" id="input-scopus-csv" accept=".csv" style="display:none;">
+                        <span id="scopus-csv-status" style="font-size:0.8em;color:#94a3b8;flex:1;">Export CSV dari Scopus &rarr; upload di sini &rarr; keywords otomatis tersimpan</span>
                     </div>
                     <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
                         <button id="btn-download-bibtex" class="btn" style="background:#8b5cf6;color:#fff;font-weight:bold;white-space:nowrap;">&#x1F4E5; Download RIS (untuk VOSviewer)</button>
@@ -2115,7 +2116,7 @@ ATURAN EDGES:
                 </div>
                 <div style="font-size:0.82em;color:#a7f3d0;">
                     <strong>Langkah-langkah:</strong><br>
-                    0. (Opsional) Klik "Enrich Keywords (Scopus)" &rarr; tunggu selesai di log. Memperkaya keywords agar hasil VOSviewer lebih akurat.<br>
+                    0. (Opsional) Upload file CSV dari Scopus &rarr; keywords otomatis tersimpan ke database<br>
                     1. Klik "Download RIS" &rarr; simpan file slr_papers.ris<br>
                     2. Buka VOSviewer &rarr; Create Map &rarr; Bibliographic data &rarr; Read from reference manager files &rarr; Tab RIS &rarr; pilih file .ris<br>
                     3. Klik "Download Thesaurus" &rarr; simpan file .txt &rarr; di VOSviewer klik tombol "Thesaurus..." di kiri bawah &rarr; load file<br>
@@ -2130,29 +2131,42 @@ ATURAN EDGES:
             <button id="btn-vos-submit" class="btn btn-success" style="margin-top:8px;">Submit Hasil VOSviewer → Interpretasi</button>
         `);
         setTimeout(() => {
-            const btnScopus = document.getElementById('btn-enrich-scopus-kw');
-            if (btnScopus) btnScopus.addEventListener('click', async () => {
-                const originalText = btnScopus.innerHTML;
-                btnScopus.disabled = true;
-                btnScopus.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Mengambil keywords dari Scopus...';
+            const inputCSV = document.getElementById('input-scopus-csv');
+            const csvStatus = document.getElementById('scopus-csv-status');
+            if (inputCSV) inputCSV.addEventListener('change', async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const label = inputCSV.previousElementSibling;
+                const originalText = label.innerHTML;
+                label.style.opacity = '0.6';
+                label.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Mengupload...';
+                csvStatus.textContent = 'Mengupload dan memproses CSV...';
                 try {
-                    const url = `${getBaseURL()}/sessions/${session.id}/m8b/enrich-scopus-keywords`;
+                    const url = `${getBaseURL()}/sessions/${session.id}/m8b/upload-scopus-csv`;
                     const token = localStorage.getItem('auth_token');
+                    const formData = new FormData();
+                    formData.append('file', file);
                     const resp = await fetch(url, {
                         method: 'POST',
-                        headers: { 'Authorization': 'Bearer ' + (token || '') }
+                        headers: { 'Authorization': 'Bearer ' + (token || '') },
+                        body: formData
                     });
                     if (!resp.ok) {
                         const errData = await resp.json().catch(() => ({}));
                         throw new Error(errData.error || resp.statusText);
                     }
-                    btnScopus.innerHTML = '&#x2705; Sedang berjalan... lihat log';
-                    btnScopus.style.background = '#10b981';
+                    const data = await resp.json();
+                    label.innerHTML = '&#x2705; CSV Terupload';
+                    label.style.background = '#10b981';
+                    label.style.opacity = '1';
+                    csvStatus.innerHTML = `<strong style="color:#6ee7b7;">&#x2705; ${data.matched} paper matched, ${data.skipped} skipped</strong>`;
                 } catch (err) {
-                    alert('Gagal: ' + err.message);
-                    btnScopus.innerHTML = originalText;
-                    btnScopus.disabled = false;
+                    alert('Gagal upload CSV: ' + err.message);
+                    label.innerHTML = originalText;
+                    label.style.opacity = '1';
+                    csvStatus.textContent = 'Export CSV dari Scopus → upload di sini → keywords otomatis tersimpan';
                 }
+                inputCSV.value = '';
             });
             const btnBib = document.getElementById('btn-download-bibtex');
             if (btnBib) btnBib.addEventListener('click', async () => {

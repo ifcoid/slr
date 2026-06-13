@@ -599,7 +599,7 @@ export function renderApprovalContent(area, session, handleApproval) {
                         
                         await API.updateSession(session.id, { 
                                 data_mining_log: newDataMiningLog,
-                                status: 'M4_STEP1_EVALUATION'
+                                status: 'M4_STEP1_EVALUATE'
                         });
                         
                         window.location.reload();

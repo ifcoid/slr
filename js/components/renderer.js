@@ -2106,6 +2106,16 @@ ATURAN EDGES:
                         <span id="scopus-csv-status" style="font-size:0.8em;color:#94a3b8;flex:1;">Export CSV dari Scopus &rarr; upload di sini &rarr; keywords otomatis tersimpan</span>
                     </div>
                     <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+                        <label for="input-ieee-csv" class="btn" style="background:#f59e0b;color:#fff;font-weight:bold;white-space:nowrap;cursor:pointer;margin:0;">&#x1F4E4; Upload IEEE CSV</label>
+                        <input type="file" id="input-ieee-csv" accept=".csv" style="display:none;">
+                        <span id="ieee-csv-status" style="font-size:0.8em;color:#94a3b8;flex:1;">Export CSV dari IEEE Xplore &rarr; upload di sini &rarr; keywords (Author Keywords + IEEE Terms) tersimpan</span>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+                        <label for="input-pubmed-txt" class="btn" style="background:#ec4899;color:#fff;font-weight:bold;white-space:nowrap;cursor:pointer;margin:0;">&#x1F4E4; Upload PubMed TXT</label>
+                        <input type="file" id="input-pubmed-txt" accept=".txt" style="display:none;">
+                        <span id="pubmed-txt-status" style="font-size:0.8em;color:#94a3b8;flex:1;">Export MEDLINE format dari PubMed &rarr; upload di sini &rarr; keywords (OT + MeSH) tersimpan</span>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
                         <button id="btn-download-bibtex" class="btn" style="background:#8b5cf6;color:#fff;font-weight:bold;white-space:nowrap;">&#x1F4E5; Download RIS (untuk VOSviewer)</button>
                         <span style="font-size:0.8em;color:#94a3b8;flex:1;">Download file .ris berisi semua paper + keywords. Import file ini ke VOSviewer.</span>
                     </div>
@@ -2116,7 +2126,7 @@ ATURAN EDGES:
                 </div>
                 <div style="font-size:0.82em;color:#a7f3d0;">
                     <strong>Langkah-langkah:</strong><br>
-                    0. (Opsional) Upload file CSV dari Scopus &rarr; keywords otomatis tersimpan ke database<br>
+                    0. (Opsional) Upload file CSV dari Scopus / IEEE Xplore, atau TXT dari PubMed &rarr; keywords otomatis tersimpan ke database<br>
                     1. Klik "Download RIS" &rarr; simpan file slr_papers.ris<br>
                     2. Buka VOSviewer &rarr; Create Map &rarr; Bibliographic data &rarr; Read from reference manager files &rarr; Tab RIS &rarr; pilih file .ris<br>
                     3. Klik "Download Thesaurus" &rarr; simpan file .txt &rarr; di VOSviewer klik tombol "Thesaurus..." di kiri bawah &rarr; load file<br>
@@ -2167,6 +2177,82 @@ ATURAN EDGES:
                     csvStatus.textContent = 'Export CSV dari Scopus → upload di sini → keywords otomatis tersimpan';
                 }
                 inputCSV.value = '';
+            });
+            // IEEE CSV upload listener
+            const inputIEEE = document.getElementById('input-ieee-csv');
+            const ieeeStatus = document.getElementById('ieee-csv-status');
+            if (inputIEEE) inputIEEE.addEventListener('change', async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const label = inputIEEE.previousElementSibling;
+                const originalText = label.innerHTML;
+                label.style.opacity = '0.6';
+                label.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Mengupload...';
+                ieeeStatus.textContent = 'Mengupload dan memproses IEEE CSV...';
+                try {
+                    const url = `${getBaseURL()}/sessions/${session.id}/m8b/upload-ieee-csv`;
+                    const token = localStorage.getItem('auth_token');
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    const resp = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Authorization': 'Bearer ' + (token || '') },
+                        body: formData
+                    });
+                    if (!resp.ok) {
+                        const errData = await resp.json().catch(() => ({}));
+                        throw new Error(errData.error || resp.statusText);
+                    }
+                    const data = await resp.json();
+                    label.innerHTML = '&#x2705; IEEE CSV Terupload';
+                    label.style.background = '#10b981';
+                    label.style.opacity = '1';
+                    ieeeStatus.innerHTML = `<strong style="color:#6ee7b7;">&#x2705; ${data.matched} paper matched, ${data.skipped} skipped</strong>`;
+                } catch (err) {
+                    alert('Gagal upload IEEE CSV: ' + err.message);
+                    label.innerHTML = originalText;
+                    label.style.opacity = '1';
+                    ieeeStatus.textContent = 'Export CSV dari IEEE Xplore \u2192 upload di sini \u2192 keywords tersimpan';
+                }
+                inputIEEE.value = '';
+            });
+            // PubMed TXT upload listener
+            const inputPubMed = document.getElementById('input-pubmed-txt');
+            const pubmedStatus = document.getElementById('pubmed-txt-status');
+            if (inputPubMed) inputPubMed.addEventListener('change', async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const label = inputPubMed.previousElementSibling;
+                const originalText = label.innerHTML;
+                label.style.opacity = '0.6';
+                label.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Mengupload...';
+                pubmedStatus.textContent = 'Mengupload dan memproses PubMed TXT...';
+                try {
+                    const url = `${getBaseURL()}/sessions/${session.id}/m8b/upload-pubmed-txt`;
+                    const token = localStorage.getItem('auth_token');
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    const resp = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Authorization': 'Bearer ' + (token || '') },
+                        body: formData
+                    });
+                    if (!resp.ok) {
+                        const errData = await resp.json().catch(() => ({}));
+                        throw new Error(errData.error || resp.statusText);
+                    }
+                    const data = await resp.json();
+                    label.innerHTML = '&#x2705; PubMed TXT Terupload';
+                    label.style.background = '#10b981';
+                    label.style.opacity = '1';
+                    pubmedStatus.innerHTML = `<strong style="color:#6ee7b7;">&#x2705; ${data.matched} paper matched, ${data.skipped} skipped</strong>`;
+                } catch (err) {
+                    alert('Gagal upload PubMed TXT: ' + err.message);
+                    label.innerHTML = originalText;
+                    label.style.opacity = '1';
+                    pubmedStatus.textContent = 'Export MEDLINE format dari PubMed \u2192 upload di sini \u2192 keywords tersimpan';
+                }
+                inputPubMed.value = '';
             });
             const btnBib = document.getElementById('btn-download-bibtex');
             if (btnBib) btnBib.addEventListener('click', async () => {

@@ -170,6 +170,39 @@ export function initSetup() {
         });
     }
 
+    // ===== Scopus Config =====
+    const loadScopusConfig = async () => {
+        try {
+            const res = await API.getScopusConfig();
+            const c = res.config || {};
+            const keyEl = document.getElementById('scopus-cfg-key');
+            if (keyEl) keyEl.placeholder = res.key_set ? '(key tersimpan — kosongkan = tetap)' : 'Scopus API Key';
+        } catch (e) { console.warn('Gagal memuat Scopus config:', e.message); }
+    };
+
+    const formScopus = document.getElementById('form-scopus-config');
+    if (formScopus) {
+        formScopus.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const val = (id) => (document.getElementById(id) || {}).value || '';
+            const payload = {
+                api_key: val('scopus-cfg-key'),
+            };
+            const btn = e.target.querySelector('button[type="submit"]');
+            setButtonLoading(btn, true);
+            try {
+                await API.updateScopusConfig(payload);
+                showToast('Scopus config berhasil disimpan!');
+                document.getElementById('scopus-cfg-key').value = '';
+                await loadScopusConfig();
+            } catch (error) {
+                showToast(error.message, 'error');
+            } finally {
+                setButtonLoading(btn, false, 'Simpan Scopus Config');
+            }
+        });
+    }
+
     const formGitHub = document.getElementById('form-github-config');
     if (formGitHub) {
         formGitHub.addEventListener('submit', async (e) => {
@@ -201,6 +234,7 @@ export function initSetup() {
             loadRolesIntoForm();
             loadGitHubConfig();
             loadEmbedConfig();
+            loadScopusConfig();
         });
     }
 

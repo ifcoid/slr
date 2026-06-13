@@ -171,6 +171,13 @@ export const API = {
         body: JSON.stringify(cfg)
     }),
 
+    getScopusConfig: () => apiFetch('/scopus/config'),
+
+    updateScopusConfig: (cfg) => apiFetch('/scopus/config', {
+        method: 'PUT',
+        body: JSON.stringify(cfg)
+    }),
+
     checkLLMHealth: () => apiFetch('/llm/health'),
 
     resetModul7: (id) => apiFetch(`/sessions/${id}/reset-m7`, { method: 'POST' }),

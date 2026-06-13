@@ -2098,11 +2098,48 @@ ATURAN EDGES:
             <p style="font-size:0.85em;color:#94a3b8;">Jalankan VOSviewer manual: Map based on bibliographic data → terapkan thesaurus → set 9 parameter (tabel) → generate Network/Overlay/Density → export SVG/PNG. Lalu paste ringkasan hasilnya di bawah.</p>
             <div style="font-size:0.88em;overflow-x:auto;">${formatMarkdown(v.table_markdown || '')}</div>
             <hr style="border-color:rgba(255,255,255,0.1);">
+            <div style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.3);border-radius:6px;padding:12px;margin-bottom:12px;">
+                <button id="btn-download-bibtex" class="btn" style="background:#8b5cf6;color:#fff;font-weight:bold;margin-bottom:10px;">📥 Download BibTeX (untuk VOSviewer)</button>
+                <div style="font-size:0.82em;color:#a7f3d0;">
+                    <strong>Langkah-langkah:</strong><br>
+                    1. Klik tombol "Download BibTeX" di atas untuk mendapatkan file .bib<br>
+                    2. Buka VOSviewer &rarr; Create Map &rarr; Bibliographic data &rarr; Read from reference manager files &rarr; pilih file .bib<br>
+                    3. Terapkan thesaurus dari Step 1 (copy ke file .txt, load di VOSviewer)<br>
+                    4. Set 9-parameter sesuai tabel di atas<br>
+                    5. Generate network &rarr; catat hasilnya (nodes, edges, clusters)<br>
+                    6. Paste ringkasan hasil di kotak input di bawah
+                </div>
+            </div>
             <label style="font-size:0.85em;">Paste hasil VOSviewer (nodes, edges, total clusters, top-3 clusters+label, bridge nodes, temporal trend):</label>
             <textarea id="vos-input" rows="6" style="width:100%;margin-top:6px;background:#222;color:#fff;border:1px solid #555;border-radius:4px;padding:8px;" placeholder="Total nodes: ...&#10;Total edges: ...&#10;Clusters: ...&#10;Top-3 clusters: ...&#10;Bridge nodes: ...&#10;Temporal: ..."></textarea>
             <button id="btn-vos-submit" class="btn btn-success" style="margin-top:8px;">Submit Hasil VOSviewer → Interpretasi</button>
         `);
         setTimeout(() => {
+            const btnBib = document.getElementById('btn-download-bibtex');
+            if (btnBib) btnBib.addEventListener('click', () => {
+                const url = `${getBaseURL()}/sessions/${session.id}/m8b/export-bibtex`;
+                const token = localStorage.getItem('auth_token');
+                const a = document.createElement('a');
+                a.href = url + (token ? '?token=' + encodeURIComponent(token) : '');
+                a.target = '_blank';
+                // Use fetch for auth header support
+                fetch(url, { headers: { 'Authorization': 'Bearer ' + (token || '') } })
+                    .then(resp => {
+                        if (!resp.ok) throw new Error('Download failed');
+                        return resp.blob();
+                    })
+                    .then(blob => {
+                        const blobUrl = URL.createObjectURL(blob);
+                        const dl = document.createElement('a');
+                        dl.href = blobUrl;
+                        dl.download = 'slr_papers.bib';
+                        document.body.appendChild(dl);
+                        dl.click();
+                        document.body.removeChild(dl);
+                        URL.revokeObjectURL(blobUrl);
+                    })
+                    .catch(err => alert('Download gagal: ' + err.message));
+            });
             const btn = document.getElementById('btn-vos-submit');
             if (btn) btn.addEventListener('click', async () => {
                 const data = (document.getElementById('vos-input').value || '').trim();

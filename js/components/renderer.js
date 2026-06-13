@@ -2024,15 +2024,51 @@ ATURAN EDGES:
     } else if (status === 'M8_STEP4_WAITING_APPROVAL') {
         const sumMd = (session.modul8_summary && session.modul8_summary.markdown) || 'Menunggu data...';
         const ip = (session.interpretation_package && session.interpretation_package.markdown) || '';
+        const ipModel = (session.interpretation_package && session.interpretation_package.model_used) || '';
+        const ipPrompt = (session.interpretation_package && session.interpretation_package.system_prompt) || '';
+
+        // xAI transparency section (purple left border, collapsible)
+        let xaiSection = '';
+        if (ipModel || ipPrompt) {
+            xaiSection = `
+            <details style="margin-top:12px; background:rgba(0,0,0,0.2); padding:10px; border-radius:8px; border-left:3px solid #a78bfa;">
+                <summary style="cursor:pointer; color:#a78bfa; font-weight:bold; font-size:0.85em;">🔍 xAI: Lihat Model & Prompt Interpretation (Kaidah xAI)</summary>
+                <div style="margin-top:10px; font-size:0.8em; color:#cbd5e1; max-height:350px; overflow-y:auto;">
+                    ${ipModel ? `<p style="color:#fcd34d; margin-bottom:5px;"><strong>🧠 LLM Model:</strong> ${ipModel}</p>` : ''}
+                    ${ipPrompt ? `<div><strong style="color:#a78bfa;">System Prompt (Interpretation Agent):</strong><pre style="white-space:pre-wrap; font-family:monospace; background:rgba(0,0,0,0.3); padding:8px; border-radius:4px; margin-top:5px;">${ipPrompt.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre></div>` : ''}
+                    ${!ipPrompt ? `<p style="color:#94a3b8; font-style:italic;">Data prompt tidak direkam pada sesi lama.</p>` : ''}
+                </div>
+            </details>`;
+        }
+
         html = wrapCard('Modul 8 L4 — Interpretation Package & Summary', `
             <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 6px; font-size: 0.9em; max-height: 320px; overflow-y: auto;">
                 ${formatMarkdown(sumMd)}
             </div>
             ${ip ? `<details style="margin-top:10px;"><summary style="cursor:pointer;color:#6ee7b7;font-weight:bold;">Interpretation Package (untuk Modul 9)</summary><div style="font-size:0.88em;margin-top:8px;max-height:300px;overflow-y:auto;">${formatMarkdown(ip)}</div></details>` : ''}
+            ${xaiSection}
+            <div style="margin-top:12px; text-align:center;">
+                <button id="btn-dl-interp-md" class="btn btn-secondary" style="padding:8px 16px; font-size:0.9em;">⬇️ Download Laporan Lengkap (Markdown)</button>
+            </div>
             <p style="margin-top: 10px; font-size: 0.9em; color:#4ade80;"><em>Setujui untuk menutup Modul 8 dan lanjut ke Modul 9 (Manuscript), atau jalankan Bibliometric SLNA (opsional) dulu.</em></p>
             <button id="btn-run-slna" class="btn" style="margin-top:8px;background:#8b5cf6;color:#fff;">🔗 Jalankan Bibliometric SLNA (opsional)</button>
         `);
         setTimeout(() => {
+            const btnDl = document.getElementById('btn-dl-interp-md');
+            if (btnDl) btnDl.addEventListener('click', () => {
+                let md = `# Modul 8 L4 — Interpretation Package & Summary\n\n`;
+                md += `## Modul 8 Summary\n${sumMd}\n\n`;
+                md += `## Interpretation Package\n${ip}\n\n`;
+                md += `## xAI: Model & Prompt\n`;
+                md += `- Model: ${ipModel || '-'}\n`;
+                md += `- System Prompt: ${ipPrompt || '-'}\n`;
+                const blob = new Blob([md], {type: 'text/markdown'});
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = 'M8_L4_Interpretation_Package.md';
+                a.click();
+                URL.revokeObjectURL(a.href);
+            });
             const b = document.getElementById('btn-run-slna');
             if (b) b.addEventListener('click', async () => {
                 if (!confirm('Jalankan modul Bibliometric/SLNA (opsional) sebelum Manuscript?')) return;
@@ -2042,7 +2078,7 @@ ATURAN EDGES:
                     window.location.reload();
                 } catch (err) { alert('Gagal: ' + err.message); b.disabled = false; b.textContent = '🔗 Jalankan Bibliometric SLNA (opsional)'; }
             });
-        }, 0);
+        }, 100);
 
     } else if (status === 'M8B_STEP1_WAITING_APPROVAL' && session.bibliometric_data) {
         const b = session.bibliometric_data;

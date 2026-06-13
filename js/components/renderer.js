@@ -1975,12 +1975,51 @@ ATURAN EDGES:
 
     } else if (status === 'M8_STEP3_WAITING_APPROVAL' && session.grade_evidence_table) {
         const g = session.grade_evidence_table;
+
+        // xAI transparency section (purple left border, collapsible)
+        const gradeModel = g.model_used || '';
+        const gradePrompt = g.system_prompt || '';
+        let xaiSection = '';
+        if (gradeModel || gradePrompt) {
+            xaiSection = `
+            <details style="margin-top:12px; background:rgba(0,0,0,0.2); padding:10px; border-radius:8px; border-left:3px solid #a78bfa;">
+                <summary style="cursor:pointer; color:#a78bfa; font-weight:bold; font-size:0.85em;">🔍 xAI: Lihat Model & Prompt GRADE (Kaidah xAI)</summary>
+                <div style="margin-top:10px; font-size:0.8em; color:#cbd5e1; max-height:350px; overflow-y:auto;">
+                    ${gradeModel ? `<p style="color:#fcd34d; margin-bottom:5px;"><strong>🧠 LLM Model:</strong> ${gradeModel}</p>` : ''}
+                    ${gradePrompt ? `<div><strong style="color:#a78bfa;">System Prompt (GRADE Agent):</strong><pre style="white-space:pre-wrap; font-family:monospace; background:rgba(0,0,0,0.3); padding:8px; border-radius:4px; margin-top:5px;">${gradePrompt.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre></div>` : ''}
+                    ${!gradePrompt ? `<p style="color:#94a3b8; font-style:italic;">Data prompt tidak direkam pada sesi lama.</p>` : ''}
+                </div>
+            </details>`;
+        }
+
         html = wrapCard('Modul 8 L3 — GRADE Evidence + Robustness', `
             <div style="font-size:0.88em;overflow-x:auto;">${formatMarkdown(g.table_markdown || '')}</div>
             <p style="margin-top:8px;"><strong>Robustness:</strong> <span style="color:#93c5fd;">${g.robustness_verdict || '-'}</span></p>
             <p style="font-size:0.88em;color:#cbd5e1;">${g.robustness_summary || ''}</p>
             <details style="margin-top:8px;"><summary style="cursor:pointer;color:#6ee7b7;">Confidence statements</summary><div style="font-size:0.88em;margin-top:6px;">${formatMarkdown(g.confidence_statements || '')}</div></details>
+            ${xaiSection}
+            <div style="margin-top:12px; text-align:center;">
+                <button id="btn-dl-grade-md" class="btn btn-secondary" style="padding:8px 16px; font-size:0.9em;">⬇️ Download Laporan GRADE (Markdown)</button>
+            </div>
         `);
+        setTimeout(() => {
+            const btnDl = document.getElementById('btn-dl-grade-md');
+            if (btnDl) btnDl.addEventListener('click', () => {
+                let md = `# Modul 8 L3 — GRADE Evidence + Robustness\n\n`;
+                md += `## GRADE Evidence Table\n${g.table_markdown || ''}\n\n`;
+                md += `## Robustness Verdict: ${g.robustness_verdict || '-'}\n${g.robustness_summary || ''}\n\n`;
+                md += `## Confidence Statements\n${g.confidence_statements || ''}\n\n`;
+                md += `## xAI: Model & Prompt\n`;
+                md += `- Model: ${g.model_used || '-'}\n`;
+                md += `- System Prompt: ${g.system_prompt || '-'}\n`;
+                const blob = new Blob([md], {type: 'text/markdown'});
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = 'M8_L3_GRADE_Evidence.md';
+                a.click();
+                URL.revokeObjectURL(a.href);
+            });
+        }, 100);
 
     } else if (status === 'M8_STEP4_WAITING_APPROVAL') {
         const sumMd = (session.modul8_summary && session.modul8_summary.markdown) || 'Menunggu data...';

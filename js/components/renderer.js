@@ -2332,6 +2332,9 @@ ATURAN EDGES:
         const ms = session.manuscript;
         const sec = (t, c) => `<details style="margin-top:8px;"><summary style="cursor:pointer;color:#93c5fd;font-weight:bold;">${t} (${(c || '').length} char)</summary><div style="font-size:0.88em;margin-top:6px;max-height:340px;overflow:auto;">${formatMarkdown(c || '(kosong)')}</div></details>`;
         html = wrapCard('Modul 9 — Draft Grup A (Methods · Results · Discussion · Future Research)', `
+            <div style="background:rgba(139,92,246,0.08);border:1px solid rgba(139,92,246,0.3);border-radius:6px;padding:10px 12px;margin-bottom:12px;font-size:0.82em;color:#a78bfa;">
+                <strong>🧠 xAI Info:</strong> Hasil ditulis oleh model Brain (lihat Pengaturan → Model Routing). Proses: 3-pass per section (Draft → Verification → Style Cleanup). Jika output tidak ada \\cite{}, kemungkinan model kurang capable — ganti Brain ke GPT-4o/Claude Sonnet/Gemini Pro.
+            </div>
             ${sec('Methods', ms.methods)}${sec('Results', ms.results)}${sec('Discussion', ms.discussion)}${sec('Future Research', ms.future_research)}
             <p style="margin-top:10px;font-size:0.9em;color:#4ade80;"><em>Approve untuk lanjut menulis Introduction/Conclusions/Abstract/Title; atau revisi untuk tulis ulang grup ini.</em></p>
         `);
@@ -2340,6 +2343,9 @@ ATURAN EDGES:
         const ms = session.manuscript;
         const sec = (t, c) => `<details style="margin-top:8px;"><summary style="cursor:pointer;color:#93c5fd;font-weight:bold;">${t} (${(c || '').length} char)</summary><div style="font-size:0.88em;margin-top:6px;max-height:340px;overflow:auto;">${formatMarkdown(c || '(kosong)')}</div></details>`;
         html = wrapCard('Modul 9 — Draft Grup B (Introduction · Conclusions · Abstract · Title)', `
+            <div style="background:rgba(139,92,246,0.08);border:1px solid rgba(139,92,246,0.3);border-radius:6px;padding:10px 12px;margin-bottom:12px;font-size:0.82em;color:#a78bfa;">
+                <strong>🧠 xAI Info:</strong> Hasil ditulis oleh model Brain (lihat Pengaturan → Model Routing). Proses: 3-pass per section (Draft → Verification → Style Cleanup). Jika output tidak ada \\cite{}, kemungkinan model kurang capable — ganti Brain ke GPT-4o/Claude Sonnet/Gemini Pro.
+            </div>
             ${sec('Introduction', ms.introduction)}${sec('Conclusions', ms.conclusions)}${sec('Abstract', ms.abstract)}${sec('Title (alternatif)', ms.title)}
             <p style="margin-top:10px;font-size:0.9em;color:#4ade80;"><em>Approve untuk compile akhir (references Crossref + audit + PRISMA + .tex).</em></p>
         `);

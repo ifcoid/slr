@@ -2348,24 +2348,117 @@ ATURAN EDGES:
         const ms = session.manuscript;
         html = wrapCard('Modul 9 — Compile Final (manuscript_final + .tex + .bib)', `
             <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
-                <button id="dl-final" class="btn" style="background:#10b981;color:#fff;">⬇️ manuscript_final.md</button>
-                <button id="dl-tex" class="btn" style="background:#3b82f6;color:#fff;">⬇️ .tex</button>
-                <button id="dl-bib" class="btn" style="background:#8b5cf6;color:#fff;">⬇️ reference.bib</button>
+                <button id="dl-tex" class="btn" style="background:#3b82f6;color:#fff;font-weight:bold;">📥 Download LaTeX (.tex)</button>
+                <button id="dl-bib" class="btn" style="background:#8b5cf6;color:#fff;font-weight:bold;">📥 Download BibTeX (.bib)</button>
+                <button id="dl-final" class="btn" style="background:#10b981;color:#fff;font-weight:bold;">📥 Download Markdown (.md)</button>
             </div>
             <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 6px; font-size: 0.88em; max-height: 360px; overflow-y: auto;">${formatMarkdown(ms.final || 'Menunggu data...')}</div>
-            <details style="margin-top:8px;"><summary style="cursor:pointer;color:#6ee7b7;font-weight:bold;">Coherence Audit</summary><div style="font-size:0.85em;margin-top:6px;max-height:300px;overflow:auto;">${formatMarkdown(ms.coherence_audit || '')}</div></details>
-            <details style="margin-top:6px;"><summary style="cursor:pointer;color:#6ee7b7;font-weight:bold;">PRISMA 2020 Checklist</summary><div style="font-size:0.85em;margin-top:6px;max-height:300px;overflow:auto;">${formatMarkdown(ms.prisma_checklist || '')}</div></details>
+            <details style="margin-top:10px;border:1px solid rgba(99,102,241,0.3);border-radius:6px;padding:8px;">
+                <summary style="cursor:pointer;color:#a5b4fc;font-weight:bold;">🧠 xAI: 3-Pass Compilation Pipeline</summary>
+                <div style="font-size:0.85em;margin-top:8px;color:#cbd5e1;line-height:1.6;">
+                    <p><strong>Pass 1 — Draft Generation:</strong> AI generates each manuscript section (Methods, Results, Discussion, Future Research) independently based on extracted data, synthesis results, and research questions.</p>
+                    <p style="margin-top:6px;"><strong>Pass 2 — Integration & Coherence:</strong> All sections are merged into a single document. A coherence audit checks logical flow, citation consistency, and cross-reference integrity across sections.</p>
+                    <p style="margin-top:6px;"><strong>Pass 3 — Final Compilation:</strong> The integrated manuscript is compiled into LaTeX (.tex) with proper academic formatting, BibTeX (.bib) references are generated from Crossref metadata, and a PRISMA 2020 checklist is produced for transparency reporting.</p>
+                </div>
+            </details>
+            <details style="margin-top:8px;border:1px solid rgba(110,231,183,0.3);border-radius:6px;padding:8px;">
+                <summary style="cursor:pointer;color:#6ee7b7;font-weight:bold;">✅ Coherence Audit</summary>
+                <div style="font-size:0.85em;margin-top:6px;max-height:300px;overflow:auto;">${formatMarkdown(ms.coherence_audit || '(Belum tersedia)')}</div>
+            </details>
+            <details style="margin-top:6px;border:1px solid rgba(110,231,183,0.3);border-radius:6px;padding:8px;">
+                <summary style="cursor:pointer;color:#6ee7b7;font-weight:bold;">📋 PRISMA 2020 Checklist</summary>
+                <div style="font-size:0.85em;margin-top:6px;max-height:300px;overflow:auto;">${formatMarkdown(ms.prisma_checklist || '(Belum tersedia)')}</div>
+            </details>
             <p style="margin-top:10px;font-size:0.9em;color:#4ade80;"><em>Approve untuk menutup pipeline (COMPLETED).</em></p>
         `);
         setTimeout(() => {
-            const dl = (name, content) => {
-                const b = new Blob([content || ''], { type: 'text/plain;charset=utf-8' });
-                const u = URL.createObjectURL(b);
-                const a = document.createElement('a'); a.href = u; a.download = name; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(u);
-            };
-            const bf = document.getElementById('dl-final'); if (bf) bf.addEventListener('click', () => dl('manuscript_final.md', ms.final));
-            const bt = document.getElementById('dl-tex'); if (bt) bt.addEventListener('click', () => dl('manuscript_final.tex', ms.latex));
-            const bb = document.getElementById('dl-bib'); if (bb) bb.addEventListener('click', () => dl('reference.bib', ms.bibtex));
+            const token = localStorage.getItem('auth_token');
+            const baseUrl = getBaseURL();
+
+            // Download .tex via API
+            const btnTex = document.getElementById('dl-tex');
+            if (btnTex) btnTex.addEventListener('click', async () => {
+                const originalText = btnTex.innerHTML;
+                btnTex.disabled = true;
+                btnTex.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Mengunduh .tex...';
+                try {
+                    const resp = await fetch(`${baseUrl}/sessions/${session.id}/manuscript/download-tex`, {
+                        headers: { 'Authorization': 'Bearer ' + (token || '') }
+                    });
+                    if (!resp.ok) throw new Error('Download failed: ' + resp.statusText);
+                    const blob = await resp.blob();
+                    const blobUrl = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = blobUrl;
+                    a.download = 'manuscript_final.tex';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(blobUrl);
+                    btnTex.innerHTML = '✅ LaTeX Terunduh';
+                    btnTex.style.background = '#10b981';
+                } catch (err) {
+                    alert('Download .tex gagal: ' + err.message);
+                    btnTex.innerHTML = originalText;
+                    btnTex.disabled = false;
+                }
+            });
+
+            // Download .bib via API
+            const btnBib = document.getElementById('dl-bib');
+            if (btnBib) btnBib.addEventListener('click', async () => {
+                const originalText = btnBib.innerHTML;
+                btnBib.disabled = true;
+                btnBib.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Mengunduh .bib...';
+                try {
+                    const resp = await fetch(`${baseUrl}/sessions/${session.id}/manuscript/download-bib`, {
+                        headers: { 'Authorization': 'Bearer ' + (token || '') }
+                    });
+                    if (!resp.ok) throw new Error('Download failed: ' + resp.statusText);
+                    const blob = await resp.blob();
+                    const blobUrl = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = blobUrl;
+                    a.download = 'reference.bib';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(blobUrl);
+                    btnBib.innerHTML = '✅ BibTeX Terunduh';
+                    btnBib.style.background = '#10b981';
+                } catch (err) {
+                    alert('Download .bib gagal: ' + err.message);
+                    btnBib.innerHTML = originalText;
+                    btnBib.disabled = false;
+                }
+            });
+
+            // Download .md (from local manuscript data as blob)
+            const btnFinal = document.getElementById('dl-final');
+            if (btnFinal) btnFinal.addEventListener('click', async () => {
+                const originalText = btnFinal.innerHTML;
+                btnFinal.disabled = true;
+                btnFinal.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Mengunduh .md...';
+                try {
+                    const content = ms.final || '';
+                    if (!content) throw new Error('Manuscript final belum tersedia');
+                    const blob = new Blob([content], { type: 'text/markdown;charset=utf-8' });
+                    const blobUrl = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = blobUrl;
+                    a.download = 'manuscript_final.md';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(blobUrl);
+                    btnFinal.innerHTML = '✅ Markdown Terunduh';
+                    btnFinal.style.background = '#059669';
+                } catch (err) {
+                    alert('Download .md gagal: ' + err.message);
+                    btnFinal.innerHTML = originalText;
+                    btnFinal.disabled = false;
+                }
+            });
         }, 0);
     }
 

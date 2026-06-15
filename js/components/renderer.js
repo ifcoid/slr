@@ -798,7 +798,29 @@ export function renderApprovalContent(area, session, handleApproval) {
                 <div>
                     <h5 style="color: #a78bfa; margin-top: 0;">Deduplication</h5>
                     <p>Total Unique: <span style="color: #4ade80;">${dedup.total_unique || 0}</span></p>
-                    <p>Duplicates Removed: <span style="color: #fca5a5;">${dedup.total_duplicates || 0}</span></p>
+                    <p>Duplicates Removed: <span style="color: #fca5a5;">${dedup.total_duplicates || 0}</span> (Primary/DOI: ${dedup.primary_match || 0}, Secondary/Title: ${dedup.secondary_match || 0})</p>
+                    ${dedup.per_database_total && Object.keys(dedup.per_database_total).length > 0 ? `
+                    <table style="width: 100%; margin-top: 10px; background: rgba(0,0,0,0.2); border-radius: 6px; border-collapse: collapse; font-size: 0.9em;">
+                        <thead>
+                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+                                <th style="padding: 8px 10px; text-align: left; color: #d1d5db;">Database</th>
+                                <th style="padding: 8px 10px; text-align: center; color: #d1d5db;">Total</th>
+                                <th style="padding: 8px 10px; text-align: center; color: #d1d5db;">Unik</th>
+                                <th style="padding: 8px 10px; text-align: center; color: #d1d5db;">Duplikat</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${Object.keys(dedup.per_database_total).map(db => `
+                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                <td style="padding: 6px 10px; color: #e2e8f0;">${db}</td>
+                                <td style="padding: 6px 10px; text-align: center; color: #d1d5db;">${dedup.per_database_total[db] || 0}</td>
+                                <td style="padding: 6px 10px; text-align: center; color: #4ade80;">${(dedup.per_database_unique && dedup.per_database_unique[db]) || 0}</td>
+                                <td style="padding: 6px 10px; text-align: center; color: #fca5a5;">${(dedup.per_database_dups && dedup.per_database_dups[db]) || 0}</td>
+                            </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                    ` : ''}
                 </div>
             </div>
             <hr style="border-color: rgba(255,255,255,0.1); margin: 15px 0;">

@@ -3450,9 +3450,10 @@ ATURAN EDGES:
                         const res = await API.syncQdrant(session.id);
                         const msg = `Qdrant sync complete! Synced: ${res.synced_count}`;
                         alert(msg);
-                        await loadPapersTable();
-                        btnSync.disabled = false;
-                        btnSync.innerHTML = '🔄 Sinkronisasi dengan Qdrant DB';
+                        // Reload agar header card (Total/Vectorized/Inaccessible/%) ikut ter-refresh
+                        // dari acquisition_log yang baru — bukan hanya tabel modal. Tanpa ini header
+                        // menampilkan angka basi (mis. 16.8% padahal DB sudah 14.95%).
+                        window.location.reload();
                     } catch(e) {
                         alert('Sync failed: ' + e.message);
                         btnSync.disabled = false;

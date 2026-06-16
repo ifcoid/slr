@@ -1353,7 +1353,8 @@ export function renderApprovalContent(area, session, handleApproval) {
             if (btnScope) {
                 btnScope.addEventListener('click', async () => {
                     const rules = (document.getElementById('audit-scope-rules')?.value || '').trim();
-                    if (!confirm('Aturan scope ini akan diterapkan SERAGAM ke seluruh 124 INCLUDE dan menjalankan audit ulang (memakai LLM). Lanjutkan?')) return;
+                    const cov = (session.pico_audit_log && session.pico_audit_log.coverage) ? ` (cakupan ${session.pico_audit_log.coverage})` : '';
+                    if (!confirm(`Aturan scope ini akan diterapkan SERAGAM ke seluruh paper INCLUDE${cov} dan menjalankan audit ulang (memakai LLM). Lanjutkan?`)) return;
                     try {
                         btnScope.disabled = true;
                         btnScope.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Menyimpan & audit ulang...';

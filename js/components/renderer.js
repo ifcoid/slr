@@ -1285,15 +1285,73 @@ export function renderApprovalContent(area, session, handleApproval) {
         if (session.modul5_summary && session.modul5_summary.markdown) {
             summaryMd = session.modul5_summary.markdown;
         }
-        
+
+        // PICO-consistency audit correction panel: papers flagged as false-INCLUDE that
+        // still await a decision. Module 5 cannot close until all are resolved.
+        const slipped = (session.pico_audit_log && session.pico_audit_log.slipped) || [];
+        const pendingSlip = slipped.filter(s => !s.actioned);
+        let auditPanel = '';
+        if (pendingSlip.length > 0) {
+            let items = '';
+            pendingSlip.forEach((s, i) => {
+                items += `
+                <div class="pico-audit-form" data-paperid="${s.paper_id}" style="margin-bottom:10px; padding:12px; background:rgba(0,0,0,0.4); border-radius:4px; border:1px solid rgba(239,68,68,0.4);">
+                    <div style="font-weight:bold; color:#fcd34d; font-size:0.9em;">${i + 1}. [${s.reason_code || '?'}] ${s.title || '(tanpa judul)'}</div>
+                    <div style="font-size:0.85em; color:#cbd5e1; margin:6px 0;">Alasan audit: ${s.reason || ''}</div>
+                    <div style="display:flex; gap:15px; margin-bottom:8px; flex-wrap:wrap;">
+                        <label style="cursor:pointer;"><input type="radio" name="pa_${s.paper_id}" value="EXCLUDE"> <strong style="color:#fca5a5">EXCLUDE (terima audit)</strong></label>
+                        <label style="cursor:pointer;"><input type="radio" name="pa_${s.paper_id}" value="KEEP"> <strong style="color:#4ade80">KEEP INCLUDE (tolak audit)</strong></label>
+                    </div>
+                    <textarea class="pa-note" placeholder="Catatan/justifikasi (WAJIB bila KEEP)..." style="width:100%; padding:8px; border-radius:4px; background:rgba(255,255,255,0.05); color:white; border:1px solid rgba(255,255,255,0.1); resize:vertical; min-height:48px;"></textarea>
+                </div>`;
+            });
+            auditPanel = `
+            <div style="background:rgba(239,68,68,0.08); padding:15px; border-radius:6px; border-left:3px solid #ef4444; margin-bottom:15px;">
+                <h5 style="color:#fca5a5; margin:0 0 8px 0;">⚠ Koreksi PICO Audit — ${pendingSlip.length} paper kemungkinan salah-INCLUDE</h5>
+                <p style="font-size:0.85em; color:#cbd5e1; margin:0 0 12px 0;">Audit konsistensi PICO (cakupan ${(session.pico_audit_log && session.pico_audit_log.coverage) || 'penuh'}) menandai paper berikut sebagai kemungkinan salah-INCLUDE. <strong>Modul 5 tidak dapat ditutup sampai semua diputuskan.</strong> EXCLUDE = terima audit (paper dikeluarkan); KEEP = pertahankan INCLUDE dengan justifikasi.</p>
+                ${items}
+                <button id="btn-pico-audit-save" class="btn btn-success" style="margin-top:6px;">💾 Simpan Koreksi Audit & Hitung Ulang</button>
+            </div>`;
+        }
+
         html = wrapCard('Screening Selesai (Modul 5 Summary)', `
+            ${auditPanel}
             <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 6px; font-size: 0.9em; max-height: 400px; overflow-y: auto;">
                 ${formatMarkdown(summaryMd)}
             </div>
-            <p style="margin-top: 15px; font-size: 0.9em; color: #4ade80;">
-                <em>Semua paper telah diproses melalui kriteria Inklusi/Eksklusi. Tahap Modul 5 selesai. Silakan lanjut ke Modul 6 untuk mencari Full-Text PDF.</em>
-            </p>
+            ${pendingSlip.length === 0 ? `<p style="margin-top: 15px; font-size: 0.9em; color: #4ade80;">
+                <em>Semua paper telah diproses melalui kriteria Inklusi/Eksklusi dan lolos audit konsistensi PICO. Tahap Modul 5 selesai. Silakan lanjut ke Modul 6 untuk mencari Full-Text PDF.</em>
+            </p>` : ''}
         `);
+
+        if (pendingSlip.length > 0) {
+            setTimeout(() => {
+                const btn = document.getElementById('btn-pico-audit-save');
+                if (!btn) return;
+                btn.addEventListener('click', async () => {
+                    const forms = document.querySelectorAll('.pico-audit-form');
+                    const resolutions = [];
+                    for (const f of forms) {
+                        const pid = f.getAttribute('data-paperid');
+                        const rb = f.querySelector(`input[name="pa_${pid}"]:checked`);
+                        const note = (f.querySelector('.pa-note').value || '').trim();
+                        if (!rb) { alert('Pilih EXCLUDE atau KEEP untuk SEMUA paper audit.'); return; }
+                        if (rb.value === 'KEEP' && !note) { alert('Justifikasi WAJIB diisi untuk paper yang dipertahankan (KEEP).'); return; }
+                        resolutions.push({ paper_id: pid, decision: rb.value, note });
+                    }
+                    try {
+                        btn.disabled = true;
+                        btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Menyimpan & menghitung ulang...';
+                        await API.resolvePICOAudit(session.id, { resolutions });
+                        window.location.reload();
+                    } catch (err) {
+                        alert('Gagal menyimpan koreksi audit: ' + err.message);
+                        btn.disabled = false;
+                        btn.innerHTML = '💾 Simpan Koreksi Audit & Hitung Ulang';
+                    }
+                });
+            }, 0);
+        }
 
     } else if (status === 'M6_STEP2_WAITING_RESOLUTION') {
         const lastLog = session.fulltext_screening_log ? session.fulltext_screening_log[session.fulltext_screening_log.length - 1] : null;
@@ -2589,8 +2647,17 @@ ATURAN EDGES:
             extraBtn += ` <button id="btn-reimport" class="btn btn-warning">Ulangi Import CSV</button>`;
         }
         
+        let picoHaltMsg = '';
         if (status === 'M5_STEP4_WAITING_APPROVAL') {
             extraBtn = `<button id="btn-m5-retry-step4" class="btn btn-warning" style="margin-right: 0.5rem;">Ulangi Pembuatan Rangkuman (Retry LLM)</button>`;
+            // Hide the generic "Setuju & Lanjut" while PICO-audit corrections are pending;
+            // closing is gated server-side, this keeps the UI honest.
+            const paPending = ((session.pico_audit_log && session.pico_audit_log.slipped) || []).some(s => !s.actioned);
+            if (paPending) {
+                isHalted = true;
+                isDanger = true;
+                picoHaltMsg = 'PICO audit menandai paper salah-INCLUDE. Selesaikan panel "Koreksi PICO Audit" di atas (EXCLUDE/KEEP) sebelum Modul 5 ditutup.';
+            }
         }
 
         if (status === 'M6_STEP2_WAITING_EMBED') {
@@ -2623,7 +2690,9 @@ ATURAN EDGES:
         }
 
         let warningText = 'Apakah Anda setuju dengan hasil di atas?';
-        if (isHalted) {
+        if (picoHaltMsg) {
+            warningText = picoHaltMsg;
+        } else if (isHalted) {
             warningText = status === 'M4_STEP2_WAITING_APPROVAL' ? 'Anda diwajibkan untuk mengulangi import CSV.' : 'Perhatian: Ada indikasi kegagalan AI. Anda bisa mengulangi batch atau melanjutkannya.';
         }
         

@@ -116,6 +116,11 @@ export const API = {
         body: JSON.stringify(payload)
     }),
 
+    resolvePICOAudit: (id, payload) => apiFetch(`/sessions/${id}/pico-audit/resolve`, {
+        method: 'POST',
+        body: JSON.stringify(payload)
+    }),
+
     reimportData: (id) => apiFetch(`/sessions/${id}/reimport`, {
         method: 'PUT'
     }),

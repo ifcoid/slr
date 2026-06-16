@@ -2650,6 +2650,7 @@ ATURAN EDGES:
         let picoHaltMsg = '';
         if (status === 'M5_STEP4_WAITING_APPROVAL') {
             extraBtn = `<button id="btn-m5-retry-step4" class="btn btn-warning" style="margin-right: 0.5rem;">Ulangi Pembuatan Rangkuman (Retry LLM)</button>`;
+            extraBtn += `<button id="btn-m5-reaudit" class="btn btn-warning" style="margin-right: 0.5rem;">🔁 Audit Ulang (PICO, cakupan penuh)</button>`;
             // Hide the generic "Setuju & Lanjut" while PICO-audit corrections are pending;
             // closing is gated server-side, this keeps the UI honest.
             const paPending = ((session.pico_audit_log && session.pico_audit_log.slipped) || []).some(s => !s.actioned);
@@ -2857,6 +2858,24 @@ ATURAN EDGES:
                             alert("Gagal retry Step 4: " + err.message);
                             btnM5RetryStep4.disabled = false;
                             btnM5RetryStep4.textContent = 'Ulangi Pembuatan Rangkuman (Retry LLM)';
+                        }
+                    }
+                });
+            }
+
+            const btnM5Reaudit = document.getElementById('btn-m5-reaudit');
+            if (btnM5Reaudit) {
+                btnM5Reaudit.addEventListener('click', async () => {
+                    if (confirm("Audit ulang akan menjalankan kembali PICO-consistency audit atas SEMUA paper INCLUDE saat ini (memakai LLM, cakupan penuh). Lanjutkan?")) {
+                        try {
+                            btnM5Reaudit.disabled = true;
+                            btnM5Reaudit.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Mengaudit ulang...';
+                            await API.rerunPICOAudit(session.id);
+                            window.location.reload();
+                        } catch (err) {
+                            alert("Gagal audit ulang: " + err.message);
+                            btnM5Reaudit.disabled = false;
+                            btnM5Reaudit.innerHTML = '🔁 Audit Ulang (PICO, cakupan penuh)';
                         }
                     }
                 });

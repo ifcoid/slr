@@ -125,6 +125,11 @@ export const API = {
         method: 'POST'
     }),
 
+    saveAuditScope: (id, rules) => apiFetch(`/sessions/${id}/pico-audit/scope`, {
+        method: 'POST',
+        body: JSON.stringify({ rules })
+    }),
+
     reimportData: (id) => apiFetch(`/sessions/${id}/reimport`, {
         method: 'PUT'
     }),

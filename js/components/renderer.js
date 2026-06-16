@@ -1328,8 +1328,18 @@ export function renderApprovalContent(area, session, handleApproval) {
             </div>`;
         }
 
+        // HITL: revisi aturan scope PICO (klarifikasi batas) lalu audit ulang konsisten.
+        const scopeEditor = `
+            <details style="margin-bottom:15px; background:rgba(59,130,246,0.06); padding:12px; border-radius:6px; border-left:3px solid #3b82f6;">
+                <summary style="cursor:pointer; color:#93c5fd; font-weight:bold;">⚙ Revisi Aturan Scope PICO (untuk audit konsisten)</summary>
+                <p style="font-size:0.83em; color:#cbd5e1; margin:8px 0;">Tulis klarifikasi batas kriteria yang akan diterapkan SERAGAM ke seluruh paper saat audit ulang (mis. "Klasifikasi penyakit klinis dari sinyal otak DIHITUNG sebagai decoding"; "Denoising/super-resolution/harmonisasi DIKECUALIKAN"). Aturan ini milik sesi Anda — sistem tidak meng-hardcode kriteria apa pun.</p>
+                <textarea id="audit-scope-rules" placeholder="Satu aturan per baris..." style="width:100%; min-height:90px; padding:8px; border-radius:4px; background:rgba(255,255,255,0.05); color:white; border:1px solid rgba(255,255,255,0.1); resize:vertical;">${(session.audit_scope_rules || '').replace(/</g, '&lt;')}</textarea>
+                <button id="btn-audit-scope-save" class="btn btn-primary" style="margin-top:8px;">💾 Simpan Aturan & Audit Ulang Konsisten</button>
+            </details>`;
+
         html = wrapCard('Screening Selesai (Modul 5 Summary)', `
             ${auditPanel}
+            ${scopeEditor}
             <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 6px; font-size: 0.9em; max-height: 400px; overflow-y: auto;">
                 ${formatMarkdown(summaryMd)}
             </div>
@@ -1337,6 +1347,26 @@ export function renderApprovalContent(area, session, handleApproval) {
                 <em>Semua paper telah diproses melalui kriteria Inklusi/Eksklusi dan lolos audit konsistensi PICO. Tahap Modul 5 selesai. Silakan lanjut ke Modul 6 untuk mencari Full-Text PDF.</em>
             </p>` : ''}
         `);
+
+        setTimeout(() => {
+            const btnScope = document.getElementById('btn-audit-scope-save');
+            if (btnScope) {
+                btnScope.addEventListener('click', async () => {
+                    const rules = (document.getElementById('audit-scope-rules')?.value || '').trim();
+                    if (!confirm('Aturan scope ini akan diterapkan SERAGAM ke seluruh 124 INCLUDE dan menjalankan audit ulang (memakai LLM). Lanjutkan?')) return;
+                    try {
+                        btnScope.disabled = true;
+                        btnScope.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Menyimpan & audit ulang...';
+                        await API.saveAuditScope(session.id, rules);
+                        window.location.reload();
+                    } catch (err) {
+                        alert('Gagal menyimpan aturan scope: ' + err.message);
+                        btnScope.disabled = false;
+                        btnScope.innerHTML = '💾 Simpan Aturan & Audit Ulang Konsisten';
+                    }
+                });
+            }
+        }, 0);
 
         if (pendingSlip.length > 0) {
             setTimeout(() => {

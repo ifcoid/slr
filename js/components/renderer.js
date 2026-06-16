@@ -2542,7 +2542,16 @@ ATURAN EDGES:
             extraBtn = `<button id="btn-m5-approve" class="btn btn-success">${btnText}</button>
                         <button id="btn-m5-retry-batch" class="btn btn-danger">⚠️ Ulangi Batch Ini (Hapus & Eksekusi Ulang)</button>`;
         }
-        
+
+        // Backward escape hatch: re-open Module 5 screening from any downstream module
+        // gate (M6-M9) to resolve UNCERTAIN records or change inclusion decisions. This
+        // invalidates the M6-M9 artifacts (manuscript dibuang; diregenerasi otomatis
+        // setelah skrining ditutup ulang).
+        const _mNum = parseInt((status.match(/^M(\d+)/) || [])[1], 10);
+        if (_mNum >= 6 && _mNum <= 9 && status.includes('WAITING')) {
+            extraBtn += ` <button id="btn-back-to-m5" class="btn btn-danger" style="margin-left:0.5rem;">↩ Kembali ke Modul 5 (Resolusi Skrining)</button>`;
+        }
+
         let warningText = 'Apakah Anda setuju dengan hasil di atas?';
         if (isHalted) {
             warningText = status === 'M4_STEP2_WAITING_APPROVAL' ? 'Anda diwajibkan untuk mengulangi import CSV.' : 'Perhatian: Ada indikasi kegagalan AI. Anda bisa mengulangi batch atau melanjutkannya.';
@@ -2636,6 +2645,25 @@ ATURAN EDGES:
                         } catch(e) {
                             setButtonLoading(btnM5Approve, false, 'Simpan Keputusan & Lanjutkan');
                         }
+                    }
+                });
+            }
+
+            const btnBackToM5 = document.getElementById('btn-back-to-m5');
+            if (btnBackToM5) {
+                btnBackToM5.addEventListener('click', async () => {
+                    if (!confirm("Kembali ke Modul 5 akan MEMBATALKAN hasil Modul 6-9 (termasuk draft manuskrip) dan mengharuskan regenerasi setelah skrining diselesaikan. Lanjutkan?")) return;
+                    const reason = prompt("Alasan kembali ke Modul 5 (mis. menyelesaikan record UNCERTAIN agar PRISMA lengkap, atau mengubah keputusan inklusi):", "Menyelesaikan record UNCERTAIN agar PRISMA lengkap.");
+                    if (reason === null) return;
+                    try {
+                        btnBackToM5.disabled = true;
+                        btnBackToM5.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Memproses...';
+                        await API.reviseStep(session.id, reason, 'M5_STEP3_WAITING_RESOLUTION');
+                        window.location.reload();
+                    } catch (err) {
+                        alert("Gagal kembali ke Modul 5: " + err.message);
+                        btnBackToM5.disabled = false;
+                        btnBackToM5.innerHTML = '↩ Kembali ke Modul 5 (Resolusi Skrining)';
                     }
                 });
             }

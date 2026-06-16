@@ -3249,10 +3249,11 @@ ATURAN EDGES:
             `;
                 
                 contentHtml += `
-                <div class="action-buttons" style="display: flex; gap: 10px; margin-bottom: 20px;">
+                <div class="action-buttons" style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
                     <button id="btn-m6-sync" class="btn" style="background: #8b5cf6; color: white;">🔄 Sinkronisasi dengan Qdrant DB</button>
                     <button id="btn-m6-export-csv" class="btn" style="background: #14b8a6; color: white;">⬇️ Export CSV</button>
                     <button id="btn-m6-details" class="btn" style="background: #64748b; color: white;">📋 Status PDF & Vektor (Modal)</button>
+                    <button id="btn-m6-approve" class="btn btn-success" style="margin-left: auto;">✅ Setuju &amp; Lanjut → Full-text Screening (M6.2)</button>
                 </div>
                 <div id="m6-papers-container" style="margin-top: 10px;">
                     <div id="m6-papers-loading" style="text-align: center; padding: 20px; color: #94a3b8;">
@@ -3441,6 +3442,23 @@ ATURAN EDGES:
             }
             
             // --- Sync Qdrant button ---
+            // Approve → maju ke Modul 6.2 (full-text screening). Backend menangani
+            // M6_STEP1_WAITING_SYNC -> M6_STEP2_FULLTEXT_SCREENING. Gate inaccessible
+            // bersifat advisory (tidak hard-block), jadi tombol selalu tersedia.
+            const btnM6Approve = document.getElementById('btn-m6-approve');
+            if (btnM6Approve) {
+                btnM6Approve.addEventListener('click', async () => {
+                    if (!confirm('Lanjut ke Modul 6.2 (Full-text Screening)? Pastikan vektorisasi Qdrant sudah disinkronkan. Paper yang masih "Inaccessible" akan dicatat sebagai PRISMA "reports not retrieved".')) return;
+                    try {
+                        setButtonLoading(btnM6Approve, true, 'Memproses...');
+                        await handleApproval({});
+                    } catch (e) {
+                        setButtonLoading(btnM6Approve, false, '✅ Setuju & Lanjut → Full-text Screening (M6.2)');
+                        alert('Gagal lanjut: ' + e.message);
+                    }
+                });
+            }
+
             const btnSync = document.getElementById('btn-m6-sync');
             if (btnSync) {
                 btnSync.addEventListener('click', async () => {

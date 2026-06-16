@@ -1294,10 +1294,24 @@ export function renderApprovalContent(area, session, handleApproval) {
         if (pendingSlip.length > 0) {
             let items = '';
             pendingSlip.forEach((s, i) => {
+                // xAI provenance: every signal that flagged this paper (rule/LLM + evidence).
+                const flags = Array.isArray(s.flags) ? s.flags : [];
+                const srcLabel = (src) => ({
+                    'rule:reviewer-exclude': '⚖ Aturan: reviewer EXCLUDE',
+                    'rule:strict-exclude': '⚖ Aturan: interpretasi STRICT EXCLUDE',
+                    'rule:keyword': '🔤 Aturan: kata-pemicu eksklusi',
+                    'llm-audit': '🧠 LLM audit'
+                }[src] || src);
+                const flagsHtml = flags.length
+                    ? `<ul style="margin:6px 0 8px 0; padding-left:18px; font-size:0.82em; color:#cbd5e1;">` +
+                        flags.map(f => `<li><strong style="color:#fcd34d;">${srcLabel(f.source)}:</strong> ${f.detail || ''}</li>`).join('') +
+                      `</ul>`
+                    : `<div style="font-size:0.85em; color:#cbd5e1; margin:6px 0;">Alasan audit: ${s.reason || ''}</div>`;
                 items += `
                 <div class="pico-audit-form" data-paperid="${s.paper_id}" style="margin-bottom:10px; padding:12px; background:rgba(0,0,0,0.4); border-radius:4px; border:1px solid rgba(239,68,68,0.4);">
                     <div style="font-weight:bold; color:#fcd34d; font-size:0.9em;">${i + 1}. [${s.reason_code || '?'}] ${s.title || '(tanpa judul)'}</div>
-                    <div style="font-size:0.85em; color:#cbd5e1; margin:6px 0;">Alasan audit: ${s.reason || ''}</div>
+                    <div style="font-size:0.78em; color:#94a3b8; margin:4px 0;">Ditandai oleh ${flags.length || 1} sinyal (xAI):</div>
+                    ${flagsHtml}
                     <div style="display:flex; gap:15px; margin-bottom:8px; flex-wrap:wrap;">
                         <label style="cursor:pointer;"><input type="radio" name="pa_${s.paper_id}" value="EXCLUDE"> <strong style="color:#fca5a5">EXCLUDE (terima audit)</strong></label>
                         <label style="cursor:pointer;"><input type="radio" name="pa_${s.paper_id}" value="KEEP"> <strong style="color:#4ade80">KEEP INCLUDE (tolak audit)</strong></label>

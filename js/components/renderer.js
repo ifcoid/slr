@@ -1113,9 +1113,14 @@ export function renderApprovalContent(area, session, handleApproval) {
                     let dHtml = `
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                         <h5 style="color: #fca5a5; margin: 0;">Menunggu Keputusan Anda (${data.disagreements.length} cases)</h5>
-                        <button id="btn-download-m5s3-disagreements" class="btn" style="padding: 4px 10px; font-size: 0.8em; background: #b91c1c; color: white; border: none; border-radius: 4px; cursor: pointer;" title="Download Hasil Disagreements JSON">
-                            <i class="fa fa-download"></i> Download JSON
-                        </button>
+                        <div style="display: flex; gap: 8px;">
+                            <button id="btn-download-m5s3-md" class="btn" style="padding: 4px 10px; font-size: 0.8em; background: #15803d; color: white; border: none; border-radius: 4px; cursor: pointer;" title="Download daftar kasus + kriteria sebagai Markdown (untuk dinilai pihak lain)">
+                                <i class="fa fa-download"></i> Download .md
+                            </button>
+                            <button id="btn-download-m5s3-disagreements" class="btn" style="padding: 4px 10px; font-size: 0.8em; background: #b91c1c; color: white; border: none; border-radius: 4px; cursor: pointer;" title="Download Hasil Disagreements JSON">
+                                <i class="fa fa-download"></i> Download JSON
+                            </button>
+                        </div>
                     </div>`;
                     data.disagreements.forEach((d, i) => {
                         const pid = typeof d._id === 'object' ? (d._id.$oid || d._id) : d._id;
@@ -1165,7 +1170,70 @@ export function renderApprovalContent(area, session, handleApproval) {
                         `;
                     });
                     container.innerHTML = dHtml;
-                    
+
+                    // Build a self-contained Markdown of all pending cases + the screening
+                    // criteria, so a third party can review and advise using only this file.
+                    const buildM5ResolutionMarkdown = (sess, cases) => {
+                        const v = (o, ...keys) => {
+                            for (const k of keys) {
+                                if (o && o[k] !== undefined && o[k] !== null && String(o[k]).trim() !== '') return o[k];
+                            }
+                            return '';
+                        };
+                        const L = [];
+                        L.push(`# Resolusi Skrining Title/Abstract — Sesi ${sess.id}`, '');
+                        L.push(`Total kasus menunggu keputusan: **${cases.length}**`, '');
+                        L.push('Tahap: Modul 5 (Title/Abstract Screening). Untuk SETIAP kasus, tentukan **INCLUDE** atau **EXCLUDE** beserta alasan singkat pada bagian "Rekomendasi penilai".', '');
+                        L.push('> R1 = reviewer liberal, R2 = reviewer ketat. "AI Arbitrator" hanya memberi saran, bukan keputusan akhir (keputusan tetap di tangan penilai manusia / PRISMA HITL).', '');
+                        if (sess.screener_briefing && sess.screener_briefing.briefing_doc) {
+                            L.push('## Kriteria Skrining (acuan keputusan)', '');
+                            L.push(String(sess.screener_briefing.briefing_doc).trim(), '');
+                        }
+                        L.push('---', '');
+                        cases.forEach((d, i) => {
+                            L.push(`## Kasus ${i + 1}: ${v(d, 'Title', 'title') || '(tanpa judul)'}`, '');
+                            const authors = v(d, 'Authors', 'authors'), year = v(d, 'Year', 'year');
+                            const journal = v(d, 'Journal', 'journal'), doi = v(d, 'DOI', 'doi');
+                            if (authors) L.push(`- Penulis: ${authors}`);
+                            if (year) L.push(`- Tahun: ${year}`);
+                            if (journal) L.push(`- Jurnal: ${journal}`);
+                            if (doi) L.push(`- DOI: ${doi}`);
+                            L.push('', '**Abstract:**', '', String(v(d, 'Abstract', 'abstract') || '(tidak tersedia)').trim(), '');
+                            const r1rc = v(d, 'Screener_1_Reason_Code');
+                            L.push(`**Reviewer 1 (R1): ${v(d, 'Screener_1_Decision') || 'UNCERTAIN'}${r1rc ? ' — ' + r1rc : ''}**`);
+                            const n1 = v(d, 'Screener_1_Notes'); if (n1) L.push('', String(n1).trim());
+                            L.push('');
+                            const r2rc = v(d, 'Screener_2_Reason_Code');
+                            L.push(`**Reviewer 2 (R2): ${v(d, 'Screener_2_Decision') || 'UNCERTAIN'}${r2rc ? ' — ' + r2rc : ''}**`);
+                            const n2 = v(d, 'Screener_2_Notes'); if (n2) L.push('', String(n2).trim());
+                            L.push('');
+                            const cr = d.Conflict_Resolution;
+                            if (cr) {
+                                if (typeof cr === 'object') {
+                                    L.push(`**Saran AI Arbitrator:** ${cr.advice || ''}`);
+                                    if (cr.analysis) L.push('', String(cr.analysis).trim());
+                                } else {
+                                    L.push('**Saran AI Arbitrator:**', '', String(cr).trim());
+                                }
+                                L.push('');
+                            }
+                            L.push('**Rekomendasi penilai (pilih satu): INCLUDE / EXCLUDE**', '', '**Alasan:**', '', '---', '');
+                        });
+                        return L.join('\n');
+                    };
+
+                    const downloadText = (text, filename, mime) => {
+                        const blob = new Blob([text], { type: mime });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = filename;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                    };
+
                     // Attach event listener for briefing download if it exists
                     setTimeout(() => {
                         const btnDownloadBriefing = document.getElementById('btn-download-briefing-m5s3');
@@ -1185,20 +1253,22 @@ export function renderApprovalContent(area, session, handleApproval) {
                             });
                         }
 
+                        const btnDownloadM5S3Md = document.getElementById('btn-download-m5s3-md');
+                        if (btnDownloadM5S3Md) {
+                            btnDownloadM5S3Md.addEventListener('click', (e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                const md = buildM5ResolutionMarkdown(session, data.disagreements);
+                                downloadText(md, `Resolusi_Skrining_${session.id}.md`, 'text/markdown');
+                            });
+                        }
+
                         const btnDownloadM5S3 = document.getElementById('btn-download-m5s3-disagreements');
                         if (btnDownloadM5S3) {
                             btnDownloadM5S3.addEventListener('click', (e) => {
                                 e.preventDefault();
                                 e.stopPropagation();
-                                const blob = new Blob([JSON.stringify(data.disagreements, null, 2)], { type: 'application/json' });
-                                const url = URL.createObjectURL(blob);
-                                const a = document.createElement('a');
-                                a.href = url;
-                                a.download = `Menunggu_Keputusan_${session.id}.json`;
-                                document.body.appendChild(a);
-                                a.click();
-                                document.body.removeChild(a);
-                                URL.revokeObjectURL(url);
+                                downloadText(JSON.stringify(data.disagreements, null, 2), `Menunggu_Keputusan_${session.id}.json`, 'application/json');
                             });
                         }
                     }, 100);

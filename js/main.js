@@ -65,25 +65,35 @@ function initConnectionCheck() {
     const btnSettings = document.getElementById('btn-conn-settings');
     const checkingEl = document.getElementById('connection-checking');
 
-    // Auto-retry every 3 seconds while modal is visible
-    let autoRetryInterval = setInterval(async () => {
-        const modal = document.getElementById('modal-connection');
-        if (modal && modal.classList.contains('hidden')) {
-            clearInterval(autoRetryInterval);
-            return;
-        }
-        const connected = await checkBackendConnection();
-        if (connected) {
-            clearInterval(autoRetryInterval);
-            hideConnectionModal();
-            showToast('Backend terhubung!', 'success');
-            const btnSettingsHeader = document.getElementById('btn-settings');
-            if (btnSettingsHeader) {
-                btnSettingsHeader.style.color = '#10b981';
-                btnSettingsHeader.innerHTML = '⚙️ Configured';
+    // Primary: observe the WebSocket LED indicator.
+    // When it turns green, the backend is definitely alive — dismiss modal.
+    const led = document.getElementById('ws-led');
+    if (led) {
+        const observer = new MutationObserver(() => {
+            if (led.classList.contains('led-green')) {
+                hideConnectionModal();
+                observer.disconnect();
+            }
+        });
+        observer.observe(led, { attributes: true, attributeFilter: ['class'] });
+    }
+
+    // Secondary: also observe if any API call succeeds (session polling etc.)
+    // We hook into the global fetch to detect any successful response from our backend.
+    const baseURL = getBaseURL();
+    const originalFetch = window.fetch;
+    window.fetch = async function(...args) {
+        const response = await originalFetch.apply(this, args);
+        // If any request to our backend gets an HTTP response, backend is alive
+        const url = typeof args[0] === 'string' ? args[0] : (args[0]?.url || '');
+        if (url.startsWith(baseURL)) {
+            const modal = document.getElementById('modal-connection');
+            if (modal && !modal.classList.contains('hidden')) {
+                hideConnectionModal();
             }
         }
-    }, 3000);
+        return response;
+    };
 
     btnRetry.addEventListener('click', async () => {
         btnRetry.disabled = true;

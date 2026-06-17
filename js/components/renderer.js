@@ -1626,6 +1626,7 @@ export function renderApprovalContent(area, session, handleApproval) {
             <p><strong>Pengecekan Kualitas (Cross-check):</strong> AI kedua (Reviewer 2) telah mengambil sampel acak ${l.verified_sample || 0} paper untuk diperiksa ulang. <br>
             <strong>Tingkat Perbedaan Pemahaman:</strong> <a href="#" onclick="window.showExtractionModal(true); return false;" style="color:${rateColor};font-weight:bold;text-decoration:underline;cursor:pointer;" title="Klik untuk memfilter dan HANYA melihat paper yang rancu/kuning di Tabel Ekstraksi">${rate}%</a></p>
             <p><strong>Temuan Kerancuan:</strong> Terdapat ${l.ambiguous_count || 0} isian data (seperti metodologi, hasil, atau variabel lainnya) yang ditandai ambigu/membingungkan oleh Reviewer 2. Isian yang ambigu ini akan ditandai dengan <strong>warna kuning</strong> pada Tabel Ekstraksi di bawah.</p>
+            ${(l.failed_count || 0) > 0 ? `<p style="padding:8px 12px;background:rgba(239,68,68,0.12);border-left:3px solid #ef4444;border-radius:6px;color:#fca5a5;"><strong>⚠️ ${l.failed_count} paper gagal/kosong</strong> (ERROR / hasil kosong / tanpa full-text). Klik <strong>🔁 Ekstrak Ulang Paper Gagal/Kosong</strong> di bawah untuk mengulang HANYA paper ini (paper baik dipertahankan, hemat kuota).</p>` : ''}
             <p style="font-size:0.85em;color:#94a3b8;">${l.nr_note || ''}</p>
             <div style="margin-top: 15px; text-align: center; display: flex; gap: 10px; justify-content: center;">
                 <button class="btn btn-secondary" onclick="window.showExtractionModal()" style="width:100%;">📊 Lihat Tabel Ekstraksi</button>
@@ -2721,7 +2722,8 @@ ATURAN EDGES:
         }
 
         if (status === 'M7_STEP2_WAITING_APPROVAL') {
-            extraBtn = `<button id="btn-m7-revise" class="btn btn-warning" style="margin-right: 0.5rem;">⚠️ Refine Protocol & Ekstrak Ulang (Revisi)</button>`;
+            extraBtn = `<button id="btn-m7-reextract-failed" class="btn btn-secondary" style="margin-right: 0.5rem;">🔁 Ekstrak Ulang Paper Gagal/Kosong</button>`
+                + `<button id="btn-m7-revise" class="btn btn-warning" style="margin-right: 0.5rem;">⚠️ Refine Protocol & Ekstrak Ulang (Revisi)</button>`;
         }
         
         if (status === 'M5_STEP3_WAITING_RESOLUTION') {
@@ -2938,6 +2940,26 @@ ATURAN EDGES:
                         alert("Gagal kembali ke Modul 5: " + err.message);
                         btnBackToM5.disabled = false;
                         btnBackToM5.innerHTML = '↩ Kembali ke Modul 5 (Resolusi Skrining)';
+                    }
+                });
+            }
+
+            // Self-heal hemat: re-extract HANYA paper gagal/kosong (ERROR/EMPTY_RESULT/
+            // NO_FULLTEXT_RAG/coverage kosong) — paper baik dipertahankan (tanpa re-approve
+            // framework, tanpa 13 menit re-extract semua, hemat kuota LLM).
+            const btnM7ReextractFailed = document.getElementById('btn-m7-reextract-failed');
+            if (btnM7ReextractFailed) {
+                btnM7ReextractFailed.addEventListener('click', async () => {
+                    if (!confirm("Ekstrak ulang HANYA paper yang gagal/kosong (ERROR / hasil kosong / tanpa full-text)? Paper yang sudah baik dipertahankan.")) return;
+                    try {
+                        btnM7ReextractFailed.disabled = true;
+                        btnM7ReextractFailed.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Memproses...';
+                        await API.reviseStep(session.id, 'Re-extract paper gagal/kosong', 'M7_STEP2_REEXTRACT_FAILED');
+                        window.location.reload();
+                    } catch (err) {
+                        alert("Gagal re-extract: " + err.message);
+                        btnM7ReextractFailed.disabled = false;
+                        btnM7ReextractFailed.textContent = '🔁 Ekstrak Ulang Paper Gagal/Kosong';
                     }
                 });
             }

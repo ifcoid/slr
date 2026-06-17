@@ -2789,11 +2789,12 @@ ATURAN EDGES:
                             <p style="color:#94a3b8;font-size:0.8em;margin-top:6px;">AI mengusulkan kode + alasannya; Anda tinggal terima atau ubah, lalu Simpan.</p>`;
                         document.getElementById('btn-ai-suggest').addEventListener('click', async () => {
                             const btnAI = document.getElementById('btn-ai-suggest');
-                            btnAI.disabled = true; btnAI.textContent = '🤖 Meminta saran AI...';
-                            try {
-                                const sr = await API.suggestRecodes(session.id);
+                            if (btnAI.disabled) return;                 // anti dobel-klik
+                            btnAI.disabled = true; btnAI.textContent = '🤖 Memulai...';
+                            const resetBtn = () => { btnAI.disabled = false; btnAI.textContent = '🤖 Sarankan Kode (AI)'; };
+                            const applyAndFinish = (suggestions, model) => {
                                 const map = {};
-                                (sr.suggestions || []).forEach(s => { map[s.paper_id] = s; });
+                                (suggestions || []).forEach(s => { map[s.paper_id] = s; });
                                 let n = 0;
                                 document.querySelectorAll('#recode-container [data-paperid]').forEach(div => {
                                     const s = map[div.getAttribute('data-paperid')];
@@ -2801,11 +2802,27 @@ ATURAN EDGES:
                                     const sel = div.querySelector('.recode-sel');
                                     if (s.suggested_code && [...sel.options].some(o => o.value === s.suggested_code)) { sel.value = s.suggested_code; n++; }
                                     const rat = div.querySelector('.recode-rationale');
-                                    if (rat) rat.textContent = s.suggested_code ? `🤖 Saran: ${s.suggested_code} — ${s.rationale || ''}` : '';
+                                    if (rat) rat.textContent = s.suggested_code ? `🤖 Saran (via ${s.model || model || 'AI'}): ${s.suggested_code} — ${s.rationale || ''}` : '';
                                 });
-                                if (!n) alert('AI tidak mengembalikan saran (cek role/kuota Auditor di Konfigurasi LLM).');
-                            } catch (e) { alert('Gagal minta saran AI: ' + e.message); }
-                            finally { btnAI.disabled = false; btnAI.textContent = '🤖 Sarankan Kode (AI)'; }
+                                if (n) showToast(`✅ ${n} saran diterapkan${model ? ' via ' + model : ''}. Tinjau lalu Simpan.`);
+                                else showToast('AI tidak mengembalikan saran (cek role/kuota Auditor).', 'error');
+                                resetBtn();
+                            };
+                            try {
+                                const start = await API.suggestRecodes(session.id);
+                                if (start && start.started === false) { showToast('Tidak ada paper EXCLUDE untuk dianalisis.', 'error'); resetBtn(); return; }
+                                const total = (start && start.total) || 0;
+                                showToast(`🤖 AI menganalisis ${total} paper — lihat progres di Live Log.`);
+                                const poll = async () => {
+                                    try {
+                                        const r = await API.getRecodeResult(session.id);
+                                        if (!r.found) { setTimeout(poll, 2000); return; }
+                                        if (!r.done) { btnAI.textContent = `🤖 ${r.progress || 0}/${r.total || total}...`; setTimeout(poll, 2000); return; }
+                                        applyAndFinish(r.suggestions, r.model);
+                                    } catch (e) { showToast('Gagal cek hasil AI: ' + e.message, 'error'); resetBtn(); }
+                                };
+                                setTimeout(poll, 1500);
+                            } catch (e) { showToast('Gagal mulai saran AI: ' + e.message, 'error'); resetBtn(); }
                         });
                         document.getElementById('btn-save-recode').addEventListener('click', async () => {
                             const recodes = [];

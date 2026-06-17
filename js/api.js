@@ -228,6 +228,8 @@ export const API = {
         method: 'POST'
     }),
 
+    getRecodeResult: (id) => apiFetch(`/sessions/${id}/m6/suggest-recodes/result`),
+
     // xAI Audit Log
     getXAILog: (id, step) => apiFetch(`/sessions/${id}/xai-log${step ? `?step=${step}` : ''}`)
 };

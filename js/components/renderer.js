@@ -2780,8 +2780,33 @@ ATURAN EDGES:
                                 <div style="color:#e5e7eb;"><strong>${i + 1}.</strong> ${esc(p.title) || '(tanpa judul)'} <span style="color:#64748b;font-size:0.85em;">${esc(p.doi)}</span></div>
                                 <div style="color:#94a3b8;font-size:0.9em;margin:3px 0;">Bukti: ${esc(p.evidence) || '(tak ada)'}</div>
                                 <label style="color:#cbd5e1;">Kode: <select class="recode-sel" style="background:#0f172a;color:#fff;border:1px solid #334155;border-radius:4px;padding:3px;">${opts}</select></label>
+                                <div class="recode-rationale" style="color:#fcd34d;font-size:0.82em;margin-top:4px;"></div>
                             </div>`;
-                        }).join('') + `<button id="btn-save-recode" class="btn btn-success" style="margin-top:10px;">💾 Simpan Re-code & Susun Ulang</button>`;
+                        }).join('') + `<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
+                                <button id="btn-ai-suggest" class="btn" style="background:#8b5cf6;color:#fff;">🤖 Sarankan Kode (AI)</button>
+                                <button id="btn-save-recode" class="btn btn-success">💾 Simpan Re-code & Susun Ulang</button>
+                            </div>
+                            <p style="color:#94a3b8;font-size:0.8em;margin-top:6px;">AI mengusulkan kode + alasannya; Anda tinggal terima atau ubah, lalu Simpan.</p>`;
+                        document.getElementById('btn-ai-suggest').addEventListener('click', async () => {
+                            const btnAI = document.getElementById('btn-ai-suggest');
+                            btnAI.disabled = true; btnAI.textContent = '🤖 Meminta saran AI...';
+                            try {
+                                const sr = await API.suggestRecodes(session.id);
+                                const map = {};
+                                (sr.suggestions || []).forEach(s => { map[s.paper_id] = s; });
+                                let n = 0;
+                                document.querySelectorAll('#recode-container [data-paperid]').forEach(div => {
+                                    const s = map[div.getAttribute('data-paperid')];
+                                    if (!s) return;
+                                    const sel = div.querySelector('.recode-sel');
+                                    if (s.suggested_code && [...sel.options].some(o => o.value === s.suggested_code)) { sel.value = s.suggested_code; n++; }
+                                    const rat = div.querySelector('.recode-rationale');
+                                    if (rat) rat.textContent = s.suggested_code ? `🤖 Saran: ${s.suggested_code} — ${s.rationale || ''}` : '';
+                                });
+                                if (!n) alert('AI tidak mengembalikan saran (cek role/kuota Auditor di Konfigurasi LLM).');
+                            } catch (e) { alert('Gagal minta saran AI: ' + e.message); }
+                            finally { btnAI.disabled = false; btnAI.textContent = '🤖 Sarankan Kode (AI)'; }
+                        });
                         document.getElementById('btn-save-recode').addEventListener('click', async () => {
                             const recodes = [];
                             document.querySelectorAll('#recode-container [data-paperid]').forEach(div => {

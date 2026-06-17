@@ -224,6 +224,10 @@ export const API = {
         body: JSON.stringify({ recodes })
     }),
 
+    suggestRecodes: (id) => apiFetch(`/sessions/${id}/m6/suggest-recodes`, {
+        method: 'POST'
+    }),
+
     // xAI Audit Log
     getXAILog: (id, step) => apiFetch(`/sessions/${id}/xai-log${step ? `?step=${step}` : ''}`)
 };

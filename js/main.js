@@ -10,33 +10,36 @@ import { API, getBaseURL } from './api.js';
 // --- Backend Connection Check ---
 async function checkBackendConnection() {
     const baseURL = getBaseURL();
-    try {
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 5000);
-        const response = await fetch(`${baseURL}/../health`, {
-            method: 'GET',
-            signal: controller.signal
-        });
-        clearTimeout(timeout);
-        return response.ok;
-    } catch (e) {
-        // Try the LLM health endpoint as fallback
+    // Strategy: try to reach the backend with a lightweight request.
+    // ANY HTTP response (even 401, 404, 405) means the server is alive.
+    // Only network errors (connection refused, timeout, CORS block) mean it's truly down.
+    const endpoints = [
+        { url: `${baseURL}/llm/health`, method: 'GET' },
+        { url: `${baseURL}/auth/login`, method: 'POST' },
+    ];
+    
+    for (const ep of endpoints) {
         try {
-            const controller2 = new AbortController();
-            const timeout2 = setTimeout(() => controller2.abort(), 5000);
-            const response2 = await fetch(`${baseURL}/llm/health`, {
-                method: 'GET',
-                signal: controller2.signal,
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 5000);
+            const response = await fetch(ep.url, {
+                method: ep.method,
+                signal: controller.signal,
                 headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('auth_token') || ''}`
-                }
+                    'Authorization': `Bearer ${localStorage.getItem('auth_token') || ''}`,
+                    'Content-Type': 'application/json'
+                },
+                body: ep.method === 'POST' ? '{}' : undefined
             });
-            clearTimeout(timeout2);
-            return response2.ok || response2.status === 401; // 401 means backend is alive but needs auth
-        } catch (e2) {
-            return false;
+            clearTimeout(timeout);
+            // Any HTTP response means the backend is alive
+            return true;
+        } catch (e) {
+            // Network error — try next endpoint
+            continue;
         }
     }
+    return false;
 }
 
 function showConnectionModal(errorDetail) {
@@ -61,6 +64,26 @@ function initConnectionCheck() {
     const btnRetry = document.getElementById('btn-conn-retry');
     const btnSettings = document.getElementById('btn-conn-settings');
     const checkingEl = document.getElementById('connection-checking');
+
+    // Auto-retry every 3 seconds while modal is visible
+    let autoRetryInterval = setInterval(async () => {
+        const modal = document.getElementById('modal-connection');
+        if (modal && modal.classList.contains('hidden')) {
+            clearInterval(autoRetryInterval);
+            return;
+        }
+        const connected = await checkBackendConnection();
+        if (connected) {
+            clearInterval(autoRetryInterval);
+            hideConnectionModal();
+            showToast('Backend terhubung!', 'success');
+            const btnSettingsHeader = document.getElementById('btn-settings');
+            if (btnSettingsHeader) {
+                btnSettingsHeader.style.color = '#10b981';
+                btnSettingsHeader.innerHTML = '⚙️ Configured';
+            }
+        }
+    }, 3000);
 
     btnRetry.addEventListener('click', async () => {
         btnRetry.disabled = true;

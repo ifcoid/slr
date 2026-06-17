@@ -217,6 +217,13 @@ export const API = {
 
     getM6Papers: (id) => apiFetch(`/sessions/${id}/m6/papers`),
 
+    getExcludedFulltext: (id) => apiFetch(`/sessions/${id}/m6/excluded-fulltext`),
+
+    recodeExclusions: (id, recodes) => apiFetch(`/sessions/${id}/m6/recode-exclusions`, {
+        method: 'POST',
+        body: JSON.stringify({ recodes })
+    }),
+
     // xAI Audit Log
     getXAILog: (id, step) => apiFetch(`/sessions/${id}/xai-log${step ? `?step=${step}` : ''}`)
 };

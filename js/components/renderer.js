@@ -1534,6 +1534,14 @@ export function renderApprovalContent(area, session, handleApproval) {
             </div>
             ${ready ? `<details style="margin-top:12px;"><summary style="cursor:pointer;color:#6ee7b7;font-weight:bold;">Extraction Readiness Checklist</summary><div style="font-size:0.88em;margin-top:8px;">${formatMarkdown(ready)}</div></details>` : ''}
             ${inacc ? `<details style="margin-top:8px;"><summary style="cursor:pointer;color:#fca5a5;font-weight:bold;">Inaccessible Impact</summary><div style="font-size:0.88em;margin-top:8px;">${formatMarkdown(inacc)}</div></details>` : ''}
+            <details id="recode-panel" style="margin-top:8px;">
+                <summary style="cursor:pointer;color:#fcd34d;font-weight:bold;">🏷️ Re-code Alasan Eksklusi (rapikan tabel PRISMA)</summary>
+                <div style="font-size:0.85em;margin-top:8px;">
+                    <p style="color:#cbd5e1;margin:0 0 8px 0;">Ganti kode kabur (mis. "OTHER") ke kode spesifik berdasar bukti tiap paper. Menyimpan akan <strong>menyusun ulang</strong> ringkasan Modul 6 dengan kode baru.</p>
+                    <button id="btn-load-recode" class="btn" style="background:#6366f1;color:#fff;">Muat Daftar Eksklusi</button>
+                    <div id="recode-container" style="margin-top:10px;"></div>
+                </div>
+            </details>
             <p style="margin-top: 12px; font-size: 0.9em; color:#4ade80;"><em>Setujui untuk menutup Modul 6 dan lanjut ke Modul 7 (Data Extraction).</em></p>
         `);
 
@@ -2753,6 +2761,45 @@ ATURAN EDGES:
         `);
         
         setTimeout(() => {
+            // HITL re-code alasan eksklusi full-text (M6_STEP3) — rapikan tabel PRISMA.
+            const btnLoadRecode = document.getElementById('btn-load-recode');
+            if (btnLoadRecode) {
+                btnLoadRecode.addEventListener('click', async () => {
+                    btnLoadRecode.disabled = true; btnLoadRecode.textContent = 'Memuat...';
+                    try {
+                        const data = await API.getExcludedFulltext(session.id);
+                        const codes = (data.reason_codes && data.reason_codes.length) ? data.reason_codes
+                            : ['P-NOMATCH','I-NOMATCH','C-NOMATCH','O-NOMATCH','S-NOMATCH','STUDY-DESIGN','DATE-NOMATCH','LANGUAGE','DUPLICATE','OTHER'];
+                        const papers = data.papers || [];
+                        const cont = document.getElementById('recode-container');
+                        if (!papers.length) { cont.innerHTML = '<span style="color:#4ade80;">Tidak ada paper EXCLUDE tahap full-text.</span>'; return; }
+                        const esc = (s) => (s || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                        cont.innerHTML = papers.map((p, i) => {
+                            const opts = codes.map(c => `<option value="${c}" ${c === p.reason_code ? 'selected' : ''}>${c}</option>`).join('');
+                            return `<div data-paperid="${p.paper_id}" style="padding:8px;border-bottom:1px solid rgba(255,255,255,0.08);">
+                                <div style="color:#e5e7eb;"><strong>${i + 1}.</strong> ${esc(p.title) || '(tanpa judul)'} <span style="color:#64748b;font-size:0.85em;">${esc(p.doi)}</span></div>
+                                <div style="color:#94a3b8;font-size:0.9em;margin:3px 0;">Bukti: ${esc(p.evidence) || '(tak ada)'}</div>
+                                <label style="color:#cbd5e1;">Kode: <select class="recode-sel" style="background:#0f172a;color:#fff;border:1px solid #334155;border-radius:4px;padding:3px;">${opts}</select></label>
+                            </div>`;
+                        }).join('') + `<button id="btn-save-recode" class="btn btn-success" style="margin-top:10px;">💾 Simpan Re-code & Susun Ulang</button>`;
+                        document.getElementById('btn-save-recode').addEventListener('click', async () => {
+                            const recodes = [];
+                            document.querySelectorAll('#recode-container [data-paperid]').forEach(div => {
+                                recodes.push({ paper_id: div.getAttribute('data-paperid'), reason_code: div.querySelector('.recode-sel').value });
+                            });
+                            const btnS = document.getElementById('btn-save-recode');
+                            btnS.disabled = true; btnS.textContent = 'Menyimpan...';
+                            try {
+                                await API.recodeExclusions(session.id, recodes);
+                                alert('Re-code disimpan. Menyusun ulang ringkasan Modul 6...');
+                                window.location.reload();
+                            } catch (e) { alert('Gagal menyimpan: ' + e.message); btnS.disabled = false; btnS.textContent = '💾 Simpan Re-code & Susun Ulang'; }
+                        });
+                    } catch (e) { alert('Gagal memuat: ' + e.message); }
+                    finally { btnLoadRecode.disabled = false; btnLoadRecode.textContent = 'Muat Daftar Eksklusi'; }
+                });
+            }
+
             const btnApprove = document.getElementById('btn-generic-approve');
             if (btnApprove) {
                 btnApprove.addEventListener('click', async () => {

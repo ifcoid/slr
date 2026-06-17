@@ -5,9 +5,124 @@ import { initSession } from './components/session.js';
 import { startTracking } from './components/tracker.js';
 import { initHealthDashboard } from './components/health.js';
 import { toggleHidden, openModal, closeModal, showToast } from './ui.js';
-import { API } from './api.js';
+import { API, getBaseURL } from './api.js';
 
-document.addEventListener('DOMContentLoaded', () => {
+// --- Backend Connection Check ---
+async function checkBackendConnection() {
+    const baseURL = getBaseURL();
+    // Strategy: try to reach the backend with a lightweight request.
+    // ANY HTTP response (even 401, 404, 405) means the server is alive.
+    // Only network errors (connection refused, timeout, CORS block) mean it's truly down.
+    const endpoints = [
+        { url: `${baseURL}/llm/health`, method: 'GET' },
+        { url: `${baseURL}/auth/login`, method: 'POST' },
+    ];
+    
+    for (const ep of endpoints) {
+        try {
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 5000);
+            const response = await fetch(ep.url, {
+                method: ep.method,
+                signal: controller.signal,
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('auth_token') || ''}`,
+                    'Content-Type': 'application/json'
+                },
+                body: ep.method === 'POST' ? '{}' : undefined
+            });
+            clearTimeout(timeout);
+            // Any HTTP response means the backend is alive
+            return true;
+        } catch (e) {
+            // Network error — try next endpoint
+            continue;
+        }
+    }
+    return false;
+}
+
+function showConnectionModal(errorDetail) {
+    const modal = document.getElementById('modal-connection');
+    const errorEl = document.getElementById('connection-error-detail');
+    if (errorDetail) {
+        const baseURL = getBaseURL();
+        errorEl.innerHTML = `Detail: Tidak dapat terhubung ke <a href="${baseURL}" target="_blank" style="color: #60a5fa; text-decoration: underline;">${baseURL}</a>`;
+        errorEl.style.display = 'block';
+    } else {
+        errorEl.style.display = 'none';
+    }
+    modal.classList.remove('hidden');
+}
+
+function hideConnectionModal() {
+    const modal = document.getElementById('modal-connection');
+    modal.classList.add('hidden');
+}
+
+function initConnectionCheck() {
+    const btnRetry = document.getElementById('btn-conn-retry');
+    const btnSettings = document.getElementById('btn-conn-settings');
+    const checkingEl = document.getElementById('connection-checking');
+
+    // Primary: observe the WebSocket LED indicator.
+    // When it turns green, the backend is definitely alive — dismiss modal.
+    const led = document.getElementById('ws-led');
+    if (led) {
+        const observer = new MutationObserver(() => {
+            if (led.classList.contains('led-green')) {
+                hideConnectionModal();
+                observer.disconnect();
+            }
+        });
+        observer.observe(led, { attributes: true, attributeFilter: ['class'] });
+    }
+
+    // Secondary: also observe if any API call succeeds (session polling etc.)
+    // We hook into the global fetch to detect any successful response from our backend.
+    const baseURL = getBaseURL();
+    const originalFetch = window.fetch;
+    window.fetch = async function(...args) {
+        const response = await originalFetch.apply(this, args);
+        // If any request to our backend gets an HTTP response, backend is alive
+        const url = typeof args[0] === 'string' ? args[0] : (args[0]?.url || '');
+        if (url.startsWith(baseURL)) {
+            const modal = document.getElementById('modal-connection');
+            if (modal && !modal.classList.contains('hidden')) {
+                hideConnectionModal();
+            }
+        }
+        return response;
+    };
+
+    btnRetry.addEventListener('click', async () => {
+        btnRetry.disabled = true;
+        checkingEl.classList.remove('hidden');
+
+        const connected = await checkBackendConnection();
+        checkingEl.classList.add('hidden');
+        btnRetry.disabled = false;
+
+        if (connected) {
+            hideConnectionModal();
+            showToast('Backend terhubung!', 'success');
+            // Update settings button to show connected state
+            const btnSettingsHeader = document.getElementById('btn-settings');
+            if (btnSettingsHeader) {
+                btnSettingsHeader.style.color = '#10b981';
+                btnSettingsHeader.innerHTML = '⚙️ Configured';
+            }
+        } else {
+            showToast('Backend masih tidak terhubung', 'error');
+        }
+    });
+
+    btnSettings.addEventListener('click', () => {
+        openModal('modal-settings');
+    });
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
     // 0. Init Auth
     initAuth();
 
@@ -16,6 +131,9 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Initialize Health Dashboard
     initHealthDashboard();
+
+    // Initialize connection check modal buttons
+    initConnectionCheck();
 
     const btnSettings = document.getElementById('btn-settings');
     if (!localStorage.getItem('apiBaseURL')) {
@@ -30,6 +148,13 @@ document.addEventListener('DOMContentLoaded', () => {
             btnSettings.style.color = '#10b981';
             btnSettings.innerHTML = '⚙️ Configured';
         }
+    }
+
+    // Backend connectivity check on page load
+    const connected = await checkBackendConnection();
+    if (!connected) {
+        const baseURL = getBaseURL();
+        showConnectionModal(`Tidak dapat terhubung ke ${baseURL}`);
     }
 
     if (!localStorage.getItem('auth_token')) {

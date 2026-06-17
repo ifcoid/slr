@@ -5,9 +5,90 @@ import { initSession } from './components/session.js';
 import { startTracking } from './components/tracker.js';
 import { initHealthDashboard } from './components/health.js';
 import { toggleHidden, openModal, closeModal, showToast } from './ui.js';
-import { API } from './api.js';
+import { API, getBaseURL } from './api.js';
 
-document.addEventListener('DOMContentLoaded', () => {
+// --- Backend Connection Check ---
+async function checkBackendConnection() {
+    const baseURL = getBaseURL();
+    try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 5000);
+        const response = await fetch(`${baseURL}/../health`, {
+            method: 'GET',
+            signal: controller.signal
+        });
+        clearTimeout(timeout);
+        return response.ok;
+    } catch (e) {
+        // Try the LLM health endpoint as fallback
+        try {
+            const controller2 = new AbortController();
+            const timeout2 = setTimeout(() => controller2.abort(), 5000);
+            const response2 = await fetch(`${baseURL}/llm/health`, {
+                method: 'GET',
+                signal: controller2.signal,
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('auth_token') || ''}`
+                }
+            });
+            clearTimeout(timeout2);
+            return response2.ok || response2.status === 401; // 401 means backend is alive but needs auth
+        } catch (e2) {
+            return false;
+        }
+    }
+}
+
+function showConnectionModal(errorDetail) {
+    const modal = document.getElementById('modal-connection');
+    const errorEl = document.getElementById('connection-error-detail');
+    if (errorDetail) {
+        errorEl.textContent = `Detail: ${errorDetail}`;
+        errorEl.style.display = 'block';
+    } else {
+        errorEl.style.display = 'none';
+    }
+    modal.classList.remove('hidden');
+}
+
+function hideConnectionModal() {
+    const modal = document.getElementById('modal-connection');
+    modal.classList.add('hidden');
+}
+
+function initConnectionCheck() {
+    const btnRetry = document.getElementById('btn-conn-retry');
+    const btnSettings = document.getElementById('btn-conn-settings');
+    const checkingEl = document.getElementById('connection-checking');
+
+    btnRetry.addEventListener('click', async () => {
+        btnRetry.disabled = true;
+        checkingEl.classList.remove('hidden');
+
+        const connected = await checkBackendConnection();
+        checkingEl.classList.add('hidden');
+        btnRetry.disabled = false;
+
+        if (connected) {
+            hideConnectionModal();
+            showToast('Backend terhubung!', 'success');
+            // Update settings button to show connected state
+            const btnSettingsHeader = document.getElementById('btn-settings');
+            if (btnSettingsHeader) {
+                btnSettingsHeader.style.color = '#10b981';
+                btnSettingsHeader.innerHTML = '⚙️ Configured';
+            }
+        } else {
+            showToast('Backend masih tidak terhubung', 'error');
+        }
+    });
+
+    btnSettings.addEventListener('click', () => {
+        openModal('modal-settings');
+    });
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
     // 0. Init Auth
     initAuth();
 
@@ -16,6 +97,9 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Initialize Health Dashboard
     initHealthDashboard();
+
+    // Initialize connection check modal buttons
+    initConnectionCheck();
 
     const btnSettings = document.getElementById('btn-settings');
     if (!localStorage.getItem('apiBaseURL')) {
@@ -30,6 +114,13 @@ document.addEventListener('DOMContentLoaded', () => {
             btnSettings.style.color = '#10b981';
             btnSettings.innerHTML = '⚙️ Configured';
         }
+    }
+
+    // Backend connectivity check on page load
+    const connected = await checkBackendConnection();
+    if (!connected) {
+        const baseURL = getBaseURL();
+        showConnectionModal(`Tidak dapat terhubung ke ${baseURL}`);
     }
 
     if (!localStorage.getItem('auth_token')) {

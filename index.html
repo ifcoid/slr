@@ -285,6 +285,37 @@
         </div>
     </div>
 
+    <!-- Backend Connection Check Modal (Blocking) -->
+    <div id="modal-connection" class="modal-overlay hidden" style="z-index: 9999;">
+        <div class="glass-panel modal-content" style="max-width: 460px; text-align: center;">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">🔌</div>
+            <h2 style="color: #ef4444; margin-bottom: 0.5rem;">Backend Tidak Terhubung</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 1.5rem; line-height: 1.7;">
+                Aplikasi tidak dapat menghubungi server backend.<br>
+                Pastikan Anda sudah:
+            </p>
+            <div style="text-align: left; background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 8px; padding: 1rem 1.25rem; margin-bottom: 1.5rem;">
+                <ol style="margin: 0; padding-left: 1.2rem; color: var(--text-secondary); line-height: 2;">
+                    <li>Menjalankan binary backend (<code>nsa</code>) terlebih dahulu</li>
+                    <li>Mengatur URL API yang benar di menu <strong>Settings</strong></li>
+                </ol>
+            </div>
+            <p id="connection-error-detail" style="color: #f87171; font-size: 0.85em; margin-bottom: 1rem; display: none;"></p>
+            <div style="display: flex; gap: 12px; justify-content: center;">
+                <button id="btn-conn-settings" class="btn btn-secondary" style="border-color: rgba(59, 130, 246, 0.5); color: #60a5fa;">
+                    ⚙️ Buka Settings
+                </button>
+                <button id="btn-conn-retry" class="btn btn-primary">
+                    🔄 Coba Lagi
+                </button>
+            </div>
+            <div id="connection-checking" class="hidden" style="margin-top: 1rem; color: var(--text-secondary); font-size: 0.9em;">
+                <span class="spinner" style="width: 16px; height: 16px; border-width: 2px; display: inline-block; vertical-align: middle; margin-right: 8px;"></span>
+                Memeriksa koneksi...
+            </div>
+        </div>
+    </div>
+
     <!-- Notification Toast -->
     <div id="toast-container" class="toast-container"></div>
 

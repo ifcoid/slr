@@ -43,7 +43,8 @@ function showConnectionModal(errorDetail) {
     const modal = document.getElementById('modal-connection');
     const errorEl = document.getElementById('connection-error-detail');
     if (errorDetail) {
-        errorEl.textContent = `Detail: ${errorDetail}`;
+        const baseURL = getBaseURL();
+        errorEl.innerHTML = `Detail: Tidak dapat terhubung ke <a href="${baseURL}" target="_blank" style="color: #60a5fa; text-decoration: underline;">${baseURL}</a>`;
         errorEl.style.display = 'block';
     } else {
         errorEl.style.display = 'none';

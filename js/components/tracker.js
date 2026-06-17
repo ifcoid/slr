@@ -84,15 +84,19 @@ function setWSStatus(status, text) {
 function connectWebSocket(id) {
     if (ws) ws.close();
     setWSStatus('connecting');
-    
+
     // Convert http://... to ws://...
     const httpBase = getBaseURL();
     let wsBase = httpBase.replace(/^http/, 'ws');
-    
+
     ws = new WebSocket(`${wsBase}/ws/logs/${id}`);
-    
+
     ws.onopen = () => {
         setWSStatus('connected');
+        // Server me-replay backlog histori tiap connect. Bersihkan dulu agar reconnect
+        // tidak menumpuk duplikat (startTracking sudah clear, ini untuk reconnect berikutnya).
+        const terminal = document.getElementById('terminal-logs');
+        if (terminal) terminal.innerHTML = '';
     };
     
     ws.onmessage = (event) => {

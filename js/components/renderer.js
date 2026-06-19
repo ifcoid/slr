@@ -883,7 +883,20 @@ export function renderApprovalContent(area, session, handleApproval) {
 
     } else if (status === 'M5_STEP1_WAITING_APPROVAL' && session.screener_briefing) {
         const sb = session.screener_briefing;
+
+        // Tampilkan banner error jika guard-rail menolak approve karena API belum siap
+        let configBanner = '';
+        if (session.system_error) {
+            configBanner = `
+                <div style="background: rgba(234, 179, 8, 0.15); padding: 15px; border-radius: 8px; border-left: 4px solid #eab308; margin-bottom: 15px;">
+                    <h4 style="color: #fcd34d; margin-top: 0; margin-bottom: 8px;"><i class="fa fa-exclamation-triangle"></i> API Reviewer Belum Siap</h4>
+                    <p style="color: #fef3c7; font-size: 0.9em; margin: 0;">${session.system_error}</p>
+                </div>
+            `;
+        }
+
         html = wrapCard('Screener Briefing Document', `
+            ${configBanner}
             <p><strong>Decision:</strong> <span style="color: ${sb.decision === 'PROCEED' ? '#4ade80' : '#fca5a5'};">${sb.decision}</span></p>
             <p><strong>Validation Gap:</strong> ${sb.validation_gap}</p>
             <p><strong>Recommendation:</strong> ${sb.recommendation}</p>
@@ -898,7 +911,22 @@ export function renderApprovalContent(area, session, handleApproval) {
         const kal = session.kalibrasi_log ? session.kalibrasi_log[session.kalibrasi_log.length-1] : null;
         let info = '';
         let totalSampelTeks = "20"; // default
-        if (kal) {
+
+        // Deteksi data kalibrasi kosong (reviewer belum dikonfigurasi / semua gagal)
+        if (!kal || (!kal.total_sample && !kal.agree_count && !kal.kappa)) {
+            info = `
+                <div style="background: rgba(234, 179, 8, 0.15); padding: 18px; border-radius: 8px; border-left: 4px solid #eab308; margin-bottom: 15px;">
+                    <h4 style="color: #fcd34d; margin-top: 0; margin-bottom: 10px;">⚠️ Data Kalibrasi Kosong</h4>
+                    <p style="color: #fef3c7; margin-bottom: 8px;">Tidak ada hasil kalibrasi (keputusan INCLUDE/EXCLUDE) yang tercatat dari AI Reviewer. Kemungkinan penyebab:</p>
+                    <ul style="color: #fef3c7; font-size: 0.9em; padding-left: 20px; margin-bottom: 12px;">
+                        <li>API Key untuk <strong>Reviewer 1</strong> dan/atau <strong>Reviewer 2</strong> belum dikonfigurasi</li>
+                        <li>Semua panggilan LLM gagal karena timeout, rate limit, atau provider sedang down</li>
+                        <li>Provider API dinonaktifkan (<code>is_active: false</code>) di database</li>
+                    </ul>
+                    <p style="color: #fef3c7; font-size: 0.9em; margin-bottom: 0;">Silakan buka <strong>⚙️ Pengaturan</strong> → konfigurasikan API Key pada <em>Reviewer 1</em> dan <em>Reviewer 2</em>, lalu kirim instruksi revisi kosong untuk mengulangi kalibrasi.</p>
+                </div>
+            `;
+        } else if (kal) {
             totalSampelTeks = kal.total_sample ? kal.total_sample.toString() : "20";
             info = `<p><strong>Iterasi:</strong> ${kal.iterasi}</p>
                     <p><strong>Total Sampel Dievaluasi:</strong> ${kal.total_sample || '?'} paper</p>

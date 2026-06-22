@@ -77,8 +77,18 @@ export function renderApprovalContent(area, session, handleApproval) {
         };
         const reviews = (session.prior_reviews_matrix.reviews || []);
         const cards = reviews.map(cardHtml).join('');
+        const guidance = session.prior_reviews_matrix.search_guidance || '';
+        const guidanceHtml = guidance ? `
+            <div style="background:rgba(59,130,246,0.08); padding:12px; border-radius:6px; border-left:3px solid #3b82f6; margin-bottom:12px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:6px;">
+                    <strong style="color:#93c5fd; font-size:0.9em;">🔎 Cara menemukan & memverifikasi artikelnya</strong>
+                    <button type="button" id="btn-pr-copy-guide" class="btn btn-secondary" style="padding:3px 9px; font-size:0.78em;">📋 Salin query</button>
+                </div>
+                <p id="pr-guide-text" style="font-size:0.85em; color:#cbd5e1; margin:0; white-space:pre-wrap; line-height:1.5;">${escTxt(guidance)}</p>
+            </div>` : '';
         html = wrapCard('Review of Prior Reviews (Matrix)', `
-            <p style="font-size:0.85em; color:#fcd34d; background:rgba(245,158,11,0.08); padding:10px; border-radius:6px; border-left:3px solid #f59e0b; margin-top:0;">⚠ Usulan ini dibuat <strong>tanpa pencarian web</strong> (dari pengetahuan model). Setiap entri <strong>WAJIB Anda verifikasi</strong> di Scholar/Scopus/WoS, koreksi bila perlu, lalu tandai <strong>VERIFIED</strong>. Jangan Setuju selama masih ada UNVERIFIED yang belum Anda cek.</p>
+            <p style="font-size:0.85em; color:#fcd34d; background:rgba(245,158,11,0.08); padding:10px; border-radius:6px; border-left:3px solid #f59e0b; margin-top:0;">⚠ Usulan ini dibuat <strong>tanpa pencarian web</strong> (dari pengetahuan model). Setiap entri <strong>WAJIB Anda verifikasi</strong> di Scholar/Scopus/WoS memakai panduan di bawah, koreksi bila perlu, lalu tandai <strong>VERIFIED</strong>. Jangan Setuju selama masih ada UNVERIFIED yang belum Anda cek.</p>
+            ${guidanceHtml}
             <div id="pr-cards">${cards}</div>
             <div style="margin-top:10px; display:flex; gap:8px;">
                 <button type="button" id="btn-pr-add" class="btn btn-secondary" style="padding:5px 10px;">➕ Tambah Review</button>
@@ -87,6 +97,12 @@ export function renderApprovalContent(area, session, handleApproval) {
         `);
 
         setTimeout(() => {
+            const copyBtn = document.getElementById('btn-pr-copy-guide');
+            if (copyBtn) copyBtn.addEventListener('click', async () => {
+                const txt = document.getElementById('pr-guide-text')?.textContent || '';
+                try { await navigator.clipboard.writeText(txt); showToast('📋 Panduan pencarian disalin.'); }
+                catch { showToast('Gagal menyalin; salin manual dari teks panduan.', 'error'); }
+            });
             const wrap = document.getElementById('pr-cards');
             if (!wrap) return;
             const addBtn = document.getElementById('btn-pr-add');

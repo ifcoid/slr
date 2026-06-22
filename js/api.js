@@ -139,6 +139,11 @@ export const API = {
         body: JSON.stringify({ columns })
     }),
 
+    savePriorReviews: (id, reviews) => apiFetch(`/sessions/${id}/prior-reviews`, {
+        method: 'PUT',
+        body: JSON.stringify({ reviews })
+    }),
+
     getExtractions: (id) => apiFetch(`/sessions/${id}/extractions`),
 
     getAmbiguousExtractions: (id) => apiFetch(`/sessions/${id}/extractions/ambiguous`),

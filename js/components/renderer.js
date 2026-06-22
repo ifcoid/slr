@@ -46,29 +46,106 @@ export function renderApprovalContent(area, session, handleApproval) {
         `);
 
     } else if (status === 'M2_STEP2_WAITING_APPROVAL' && session.prior_reviews_matrix) {
-        let cards = '';
-        if (session.prior_reviews_matrix.reviews) {
-            session.prior_reviews_matrix.reviews.forEach((r, idx) => {
-                cards += `
-                <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 6px; margin-bottom: 15px; border-left: 4px solid #8b5cf6;">
-                    <h5 style="margin-top: 0; color: #c4b5fd; margin-bottom: 10px; font-size: 1.05em;"><i class="fa fa-book"></i> ${r.author_year || 'Unknown'}</h5>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; font-size: 0.9em; line-height: 1.5;">
-                        <div><strong style="color: #9ca3af;">Scope:</strong><br>${r.scope || '-'}</div>
-                        <div><strong style="color: #9ca3af;">Methodology:</strong><br>${r.methodology || '-'}</div>
-                        <div style="grid-column: 1 / -1;"><strong style="color: #9ca3af;">Key Findings:</strong><br>${r.key_findings || '-'}</div>
-                        <div style="grid-column: 1 / -1;"><strong style="color: #9ca3af;">Limitations:</strong><br>${r.limitations || '-'}</div>
-                        <div style="grid-column: 1 / -1; background: rgba(239, 68, 68, 0.1); padding: 10px; border-radius: 4px; border-left: 3px solid #ef4444;">
-                            <strong style="color: #fca5a5;">Selisih (Gap):</strong> ${r.selisih || '-'}
-                        </div>
-                        <div style="grid-column: 1 / -1; background: rgba(16, 185, 129, 0.1); padding: 10px; border-radius: 4px; border-left: 3px solid #10b981;">
-                            <strong style="color: #6ee7b7;">Synthesis Novelty:</strong> ${r.synthesis_novelty || '-'}
-                        </div>
+        // HITL + anti-halusinasi: usulan AI dibuat TANPA web search (provider Brain tak
+        // mendukung pencarian), jadi tiap entri ditandai UNVERIFIED dan WAJIB diverifikasi
+        // peneliti (edit + tandai VERIFIED) sebelum Setuju.
+        const escAttr = (v) => String(v || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+        const escTxt = (v) => String(v || '').replace(/&/g, '&amp;').replace(/</g, '&lt;');
+        const inp = (cls, val, ph) => `<input class="${cls}" value="${escAttr(val)}" placeholder="${ph}" style="width:100%;padding:6px;border-radius:4px;background:rgba(255,255,255,0.05);color:#e5e7eb;border:1px solid rgba(255,255,255,0.1);">`;
+        const ta = (cls, val, ph) => `<textarea class="${cls}" placeholder="${ph}" rows="2" style="width:100%;padding:6px;border-radius:4px;background:rgba(255,255,255,0.05);color:#e5e7eb;border:1px solid rgba(255,255,255,0.1);resize:vertical;">${escTxt(val)}</textarea>`;
+        const cardHtml = (r) => {
+            const verified = String(r.verification || '').toUpperCase() === 'VERIFIED';
+            return `
+            <div class="pr-card" data-verif="${verified ? 'VERIFIED' : 'UNVERIFIED'}" style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 6px; margin-bottom: 15px; border-left: 4px solid ${verified ? '#10b981' : '#f59e0b'};">
+                <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:10px;">
+                    <span class="pr-badge" style="font-size:0.75em; font-weight:bold; padding:3px 8px; border-radius:10px; ${verified ? 'background:rgba(16,185,129,0.2);color:#6ee7b7;' : 'background:rgba(245,158,11,0.2);color:#fcd34d;'}">${verified ? '✓ VERIFIED' : '⚠ UNVERIFIED — perlu dicek'}</span>
+                    <div style="display:flex; gap:6px;">
+                        <button type="button" class="pr-verif-toggle btn" style="padding:3px 9px; font-size:0.8em;">${verified ? 'Tandai UNVERIFIED' : '✓ Tandai VERIFIED'}</button>
+                        <button type="button" class="pr-del btn btn-danger" style="padding:3px 9px; font-size:0.8em;">✕</button>
                     </div>
-                </div>`;
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 0.9em;">
+                    <div style="grid-column: 1 / -1;"><strong style="color:#9ca3af;">Author/Year:</strong> ${inp('pr-author', r.author_year, 'Nama dkk. (Tahun)')}</div>
+                    <div><strong style="color:#9ca3af;">Scope:</strong> ${inp('pr-scope', r.scope, 'Populasi, Area, Periode')}</div>
+                    <div><strong style="color:#9ca3af;">Methodology:</strong> ${inp('pr-method', r.methodology, 'SLR/Biblio, DB, n')}</div>
+                    <div style="grid-column: 1 / -1;"><strong style="color:#9ca3af;">Key Findings:</strong> ${ta('pr-find', r.key_findings, 'Temuan utama')}</div>
+                    <div style="grid-column: 1 / -1;"><strong style="color:#9ca3af;">Limitations:</strong> ${ta('pr-limit', r.limitations, 'Kelemahan studi')}</div>
+                    <div style="grid-column: 1 / -1;"><strong style="color:#fca5a5;">Selisih (Gap):</strong> ${inp('pr-selisih', r.selisih, 'BEDA POPULASI / BEDA FOKUS')}</div>
+                    <div style="grid-column: 1 / -1;"><strong style="color:#6ee7b7;">Synthesis Novelty:</strong> ${ta('pr-novelty', r.synthesis_novelty, 'Sintesis 150-200 kata')}</div>
+                </div>
+            </div>`;
+        };
+        const reviews = (session.prior_reviews_matrix.reviews || []);
+        const cards = reviews.map(cardHtml).join('');
+        html = wrapCard('Review of Prior Reviews (Matrix)', `
+            <p style="font-size:0.85em; color:#fcd34d; background:rgba(245,158,11,0.08); padding:10px; border-radius:6px; border-left:3px solid #f59e0b; margin-top:0;">⚠ Usulan ini dibuat <strong>tanpa pencarian web</strong> (dari pengetahuan model). Setiap entri <strong>WAJIB Anda verifikasi</strong> di Scholar/Scopus/WoS, koreksi bila perlu, lalu tandai <strong>VERIFIED</strong>. Jangan Setuju selama masih ada UNVERIFIED yang belum Anda cek.</p>
+            <div id="pr-cards">${cards}</div>
+            <div style="margin-top:10px; display:flex; gap:8px;">
+                <button type="button" id="btn-pr-add" class="btn btn-secondary" style="padding:5px 10px;">➕ Tambah Review</button>
+                <button type="button" id="btn-pr-save" class="btn btn-primary" style="padding:5px 10px;">💾 Simpan Matriks</button>
+            </div>
+        `);
+
+        setTimeout(() => {
+            const wrap = document.getElementById('pr-cards');
+            if (!wrap) return;
+            const addBtn = document.getElementById('btn-pr-add');
+            const saveBtn = document.getElementById('btn-pr-save');
+            const applyCard = (card) => {
+                const verified = card.dataset.verif === 'VERIFIED';
+                card.style.borderLeftColor = verified ? '#10b981' : '#f59e0b';
+                const badge = card.querySelector('.pr-badge');
+                const toggle = card.querySelector('.pr-verif-toggle');
+                if (badge) {
+                    badge.textContent = verified ? '✓ VERIFIED' : '⚠ UNVERIFIED — perlu dicek';
+                    badge.style.cssText = `font-size:0.75em; font-weight:bold; padding:3px 8px; border-radius:10px; ${verified ? 'background:rgba(16,185,129,0.2);color:#6ee7b7;' : 'background:rgba(245,158,11,0.2);color:#fcd34d;'}`;
+                }
+                if (toggle) toggle.textContent = verified ? 'Tandai UNVERIFIED' : '✓ Tandai VERIFIED';
+            };
+            wrap.addEventListener('click', (e) => {
+                const card = e.target.closest('.pr-card');
+                if (!card) return;
+                if (e.target.classList.contains('pr-del')) { card.remove(); return; }
+                if (e.target.classList.contains('pr-verif-toggle')) {
+                    card.dataset.verif = card.dataset.verif === 'VERIFIED' ? 'UNVERIFIED' : 'VERIFIED';
+                    applyCard(card);
+                }
             });
-        }
-        
-        html = wrapCard('Review of Prior Reviews (Matrix)', cards);
+            if (addBtn) addBtn.addEventListener('click', () => {
+                wrap.insertAdjacentHTML('beforeend', cardHtml({ verification: 'UNVERIFIED' }));
+                wrap.querySelector('.pr-card:last-child .pr-author')?.focus();
+            });
+            if (saveBtn) saveBtn.addEventListener('click', async () => {
+                const out = [];
+                wrap.querySelectorAll('.pr-card').forEach((c) => {
+                    const author = (c.querySelector('.pr-author')?.value || '').trim();
+                    if (!author) return;
+                    out.push({
+                        author_year: author,
+                        scope: (c.querySelector('.pr-scope')?.value || '').trim(),
+                        methodology: (c.querySelector('.pr-method')?.value || '').trim(),
+                        key_findings: (c.querySelector('.pr-find')?.value || '').trim(),
+                        limitations: (c.querySelector('.pr-limit')?.value || '').trim(),
+                        selisih: (c.querySelector('.pr-selisih')?.value || '').trim(),
+                        synthesis_novelty: (c.querySelector('.pr-novelty')?.value || '').trim(),
+                        verification: c.dataset.verif === 'VERIFIED' ? 'VERIFIED' : 'UNVERIFIED',
+                    });
+                });
+                if (out.length === 0) { showToast('Minimal satu review dengan Author/Year.', 'error'); return; }
+                try {
+                    saveBtn.disabled = true;
+                    saveBtn.textContent = '💾 Menyimpan...';
+                    const res = await API.savePriorReviews(session.id, out);
+                    const v = out.filter(r => r.verification === 'VERIFIED').length;
+                    showToast(`✅ ${out.length} review tersimpan (${v} terverifikasi).`);
+                } catch (err) {
+                    showToast('Gagal menyimpan matriks: ' + err.message, 'error');
+                } finally {
+                    saveBtn.disabled = false;
+                    saveBtn.textContent = '💾 Simpan Matriks';
+                }
+            });
+        }, 0);
 
     } else if (status === 'M2_STEP3_WAITING_APPROVAL' && session.pico_definitions) {
         const pico = session.pico_definitions;

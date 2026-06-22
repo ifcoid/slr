@@ -58,6 +58,30 @@ export function initSetup() {
         }
     };
 
+    // healthMap[provider] = { status, message }. Dipakai agar di modal Pengaturan langsung
+    // terlihat provider mana yang BERMASALAH (merah/kuning) — penyebab error — tanpa pindah
+    // ke tab Health Check terpisah. Status: ALIVE | UNAUTHORIZED | QUOTA_EXCEEDED | ERROR.
+    let healthMap = {};
+    const loadHealth = async () => {
+        try {
+            const res = await API.checkLLMHealth();
+            healthMap = {};
+            (res.health || []).forEach((h) => { healthMap[h.provider] = h; });
+        } catch (e) {
+            console.warn('Gagal memuat health LLM:', e.message);
+        }
+    };
+    const healthDot = (provider) => {
+        const h = healthMap[provider];
+        if (!h) return '';
+        switch (h.status) {
+            case 'ALIVE': return ' <span title="Sehat" style="color:#4ade80;">🟢</span>';
+            case 'UNAUTHORIZED': return ' <span title="API key invalid" style="color:#f87171;">🔴 key invalid</span>';
+            case 'QUOTA_EXCEEDED': return ' <span title="Kuota habis" style="color:#facc15;">🟡 kuota habis</span>';
+            default: return ' <span title="Error/timeout" style="color:#cbd5e1;">⚪ error</span>';
+        }
+    };
+
     const updateBaseUrlVisibility = () => {
         const prov = selectProviderEl ? selectProviderEl.value : '';
         if (!groupBaseUrl) return;
@@ -150,9 +174,43 @@ export function initSetup() {
                 ? (info.default_model || '(model default)')
                 : '<span style="color:#fca5a5;">belum dikonfigurasi</span>';
             const fb = id.endsWith('_fallback');
-            return `<tr style="${fb ? 'opacity:.7;' : ''}"><td style="padding:2px 8px 2px 0; color:#9ca3af;">${ROLE_LABELS[id]}</td><td style="padding:2px 0;"><strong>${formatProviderName(prov)}</strong> · ${model}</td></tr>`;
+            return `<tr style="${fb ? 'opacity:.7;' : ''}"><td style="padding:2px 8px 2px 0; color:#9ca3af;">${ROLE_LABELS[id]}</td><td style="padding:2px 0;"><strong>${formatProviderName(prov)}</strong> · ${model}${healthDot(prov)}</td></tr>`;
         }).join('');
-        box.innerHTML = `<div style="background:rgba(0,0,0,0.2); padding:10px; border-radius:6px;"><strong style="color:#6ee7b7; font-size:0.85em;">Rangkuman aktif (peran → provider · model):</strong><table style="margin-top:6px; border-collapse:collapse;">${rows}</table></div>`;
+        box.innerHTML = `<div style="background:rgba(0,0,0,0.2); padding:10px; border-radius:6px;"><strong style="color:#6ee7b7; font-size:0.85em;">Rangkuman aktif (peran → provider · model · status):</strong><table style="margin-top:6px; border-collapse:collapse;">${rows}</table></div>`;
+    };
+
+    // Banner di puncak modal: daftar provider BERMASALAH yang dipakai role (penyebab error).
+    // Hijau-semua -> banner hijau ringkas. Diisi setelah loadHealth().
+    const renderHealthAlert = () => {
+        const box = document.getElementById('llm-health-alert');
+        if (!box) return;
+        const usedProviders = new Set();
+        ROLE_IDS.forEach((id) => {
+            const sel = document.getElementById('role-' + id);
+            if (sel && sel.value) usedProviders.add(sel.value);
+        });
+        const problems = [];
+        usedProviders.forEach((p) => {
+            const h = healthMap[p];
+            if (h && h.status !== 'ALIVE') {
+                const tag = h.status === 'UNAUTHORIZED' ? 'API key invalid'
+                    : h.status === 'QUOTA_EXCEEDED' ? 'kuota habis' : 'error/timeout';
+                problems.push(`<strong>${formatProviderName(p)}</strong> — ${tag}`);
+            }
+        });
+        if (Object.keys(healthMap).length === 0) { box.innerHTML = ''; return; }
+        if (problems.length === 0) {
+            box.innerHTML = `<div style="background:rgba(16,185,129,0.1); border-left:3px solid #10b981; padding:8px 10px; border-radius:6px; font-size:0.85em; color:#6ee7b7;">🟢 Semua provider yang dipakai sehat.</div>`;
+            return;
+        }
+        box.innerHTML = `<div style="background:rgba(239,68,68,0.1); border-left:3px solid #ef4444; padding:10px; border-radius:6px; font-size:0.85em; color:#fca5a5;">⚠ <strong>${problems.length} provider bermasalah</strong> (kemungkinan penyebab error pipeline):<ul style="margin:6px 0 0 0; padding-left:18px;">${problems.map((p) => `<li>${p}</li>`).join('')}</ul><div style="margin-top:6px; color:#cbd5e1;">Perbaiki API Key / ganti provider di bawah, atau pindah role ke provider yang sehat.</div></div>`;
+    };
+
+    // Muat health (panggilan jaringan, bisa beberapa detik) lalu segarkan badge + banner.
+    const refreshHealth = async () => {
+        await loadHealth();
+        renderRoutingSummary();
+        renderHealthAlert();
     };
 
     const loadRolesIntoForm = async () => {
@@ -313,12 +371,15 @@ export function initSetup() {
     }
 
     if (btnSettings) {
-        btnSettings.addEventListener('click', () => {
+        btnSettings.addEventListener('click', async () => {
             openModal('modal-settings');
-            loadRolesIntoForm();
+            const alertBox = document.getElementById('llm-health-alert');
+            if (alertBox) alertBox.innerHTML = '<div style="font-size:0.85em; color:#9ca3af;">🩺 Memeriksa status provider…</div>';
             loadGitHubConfig();
             loadEmbedConfig();
             loadScopusConfig();
+            await loadRolesIntoForm(); // isi role selects dulu agar badge health akurat
+            refreshHealth();           // cek kesehatan (async) lalu segarkan badge + banner
         });
     }
 

@@ -35,6 +35,7 @@ export function initSetup() {
         'xiaomi':     'https://token-plan-sgp.xiaomimimo.com/v1',
         'nvidia':     'https://integrate.api.nvidia.com/v1',
         'unimodel':   'https://unimodel.ai/v1',
+        'agentrouter': 'https://agentrouter.org/v1',
         'aerolink':   'https://capi.aerolink.lat',
     };
     // Provider yang field base URL-nya wajib/berguna ditampilkan
@@ -65,7 +66,7 @@ export function initSetup() {
 
     // ===== Model Routing (peran -> provider) =====
     const ROLE_IDS = ['reviewer1', 'reviewer1_fallback', 'reviewer2', 'reviewer2_fallback', 'supervisor', 'supervisor_fallback', 'brain', 'brain_fallback', 'auditor', 'auditor_fallback'];
-    const PROVIDERS = ['gemini', 'groq', 'zhipu', 'claude', 'openrouter', 'nvidia', 'cohere', 'xiaomi', 'unimodel', 'aerolink', 'rprompt1', 'rprompt2', 'rprompt3', 'rprompt4'];
+    const PROVIDERS = ['gemini', 'groq', 'zhipu', 'claude', 'openrouter', 'nvidia', 'cohere', 'xiaomi', 'unimodel', 'agentrouter', 'aerolink', 'rprompt1', 'rprompt2', 'rprompt3', 'rprompt4'];
     let roleSelectsPopulated = false;
 
     const formatProviderName = (p) => {

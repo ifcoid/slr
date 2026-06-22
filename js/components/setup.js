@@ -67,7 +67,6 @@ export function initSetup() {
     // ===== Model Routing (peran -> provider) =====
     const ROLE_IDS = ['reviewer1', 'reviewer1_fallback', 'reviewer2', 'reviewer2_fallback', 'supervisor', 'supervisor_fallback', 'brain', 'brain_fallback', 'auditor', 'auditor_fallback'];
     const PROVIDERS = ['gemini', 'groq', 'zhipu', 'claude', 'openrouter', 'nvidia', 'cohere', 'xiaomi', 'unimodel', 'agentrouter', 'aerolink', 'rprompt1', 'rprompt2', 'rprompt3', 'rprompt4'];
-    let roleSelectsPopulated = false;
 
     const formatProviderName = (p) => {
         if (p.startsWith('rprompt')) {
@@ -76,17 +75,37 @@ export function initSetup() {
         return p;
     };
 
+    // providerInfo[provider] = { default_model, has_key }. Dipakai agar dropdown Model
+    // Routing menampilkan MODEL (bukan cuma provider) + menandai provider yang belum
+    // dikonfigurasi. Diisi dari GET /api/llm/config.
+    let providerInfo = {};
+    const roleOptionLabel = (p) => {
+        const base = formatProviderName(p);
+        const info = providerInfo[p];
+        if (!info || !info.has_key) return `${base} — belum dikonfigurasi`;
+        return info.default_model ? `${base} · ${info.default_model}` : `${base} · (model default)`;
+    };
+
     const populateRoleSelects = () => {
-        if (roleSelectsPopulated) return;
         ROLE_IDS.forEach((id) => {
             const sel = document.getElementById('role-' + id);
             if (!sel) return;
-            sel.innerHTML = PROVIDERS.map((p) => `<option value="${p}">${formatProviderName(p)}</option>`).join('');
+            const prev = sel.value;
+            sel.innerHTML = PROVIDERS.map((p) => `<option value="${p}">${roleOptionLabel(p)}</option>`).join('');
+            if (prev) sel.value = prev; // pertahankan pilihan saat re-render label
         });
-        roleSelectsPopulated = true;
     };
 
     const loadRolesIntoForm = async () => {
+        // Ambil daftar provider terkonfigurasi + model-nya DULU agar label dropdown
+        // menampilkan "provider · model" (bukan cuma provider).
+        try {
+            const cfg = await API.getLLMConfigs();
+            providerInfo = {};
+            (cfg.configs || []).forEach((c) => { providerInfo[c.provider] = c; });
+        } catch (e) {
+            console.warn('Gagal memuat daftar LLM config:', e.message);
+        }
         populateRoleSelects();
         try {
             const r = await API.getRoles();

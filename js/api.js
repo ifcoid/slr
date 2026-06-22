@@ -169,6 +169,8 @@ export const API = {
         body: JSON.stringify({ api_key: apiKey, base_url: baseUrl })
     }),
 
+    getLLMConfigs: () => apiFetch('/llm/config'),
+
     getRoles: () => apiFetch('/llm/roles'),
 
     updateRoles: (roles) => apiFetch('/llm/roles', {

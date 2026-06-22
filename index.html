@@ -144,6 +144,9 @@
                 <hr>
 
                 <h3>Konfigurasi LLM API Key</h3>
+                <small style="display:block; color:var(--text-secondary); margin-bottom:8px; line-height:1.5;">
+                    Langkah: <strong>1)</strong> pilih Provider → <strong>2)</strong> isi API Key → <strong>3)</strong> klik <strong>🔄 Muat Model</strong> → <strong>4)</strong> pilih Model → <strong>5)</strong> Simpan. <em>Model yang dipilih di sinilah yang dipakai role mana pun yang menunjuk provider ini (lihat Model Routing di bawah).</em>
+                </small>
                 <form id="form-llm-config">
                     <div class="form-group">
                         <label for="select-provider">Provider</label>
@@ -168,6 +171,7 @@
                     <div class="form-group">
                         <label for="input-api-key">API Key</label>
                         <input type="password" id="input-api-key" placeholder="Masukkan API Key...">
+                        <small id="apikey-hint" style="display:block; color:var(--text-secondary); margin-top:3px;"></small>
                     </div>
                     <div class="form-group hidden" id="group-base-url">
                         <label>Base URL (Opsional)</label>
@@ -184,13 +188,24 @@
                         <button type="button" id="btn-fetch-models" class="btn btn-secondary" style="height: 42px;">🔄 Muat Model</button>
                     </div>
                     
+                    <div id="llm-config-status" style="font-size:0.85em; margin:4px 0; min-height:1em;"></div>
                     <button type="submit" class="btn btn-primary">Simpan LLM Config</button>
                 </form>
 
                 <hr>
 
                 <h3>Model Routing (Peran → Provider)</h3>
-                <small>Tentukan provider untuk tiap peran agen + fallback-nya. Tanpa edit kode. Provider harus sudah dikonfigurasi API Key-nya di atas.</small>
+                <small>Tentukan provider untuk tiap peran agen + fallback-nya. Tanpa edit kode. Tiap opsi menampilkan <strong>provider · model</strong> yang dipakai; provider tanpa API Key ditandai "belum dikonfigurasi".</small>
+                <details style="margin:6px 0; font-size:0.85em; color:var(--text-secondary);">
+                    <summary style="cursor:pointer; color:#93c5fd;">❓ Apa arti tiap peran &amp; "fallback"?</summary>
+                    <ul style="margin:6px 0 0 0; padding-left:18px; line-height:1.6;">
+                        <li><strong>Reviewer 1 &amp; 2</strong> — dua penilai independen untuk screening (M5/M6) &amp; ekstraksi (M7); hasilnya dibandingkan (dual-review).</li>
+                        <li><strong>Supervisor (Arbiter)</strong> — memutus saat Reviewer 1 &amp; 2 berbeda pendapat (konflik screening).</li>
+                        <li><strong>Brain</strong> — penalaran umum: framework ekstraksi, sintesis, manuskrip, agen M1–M4.</li>
+                        <li><strong>Auditor</strong> — audit konsistensi keputusan terhadap kriteria PICO (M5/M6).</li>
+                        <li><strong>Fallback</strong> — provider cadangan yang dipakai OTOMATIS bila provider utama peran itu gagal/limit. Boleh sama dengan utama jika tak punya cadangan.</li>
+                    </ul>
+                </details>
                 <form id="form-llm-roles" style="margin-top: 10px;">
                     <div class="form-group"><label>Reviewer 1 (R1)</label><select id="role-reviewer1"></select></div>
                     <div class="form-group"><label>R1 Fallback</label><select id="role-reviewer1_fallback"></select></div>
@@ -204,6 +219,7 @@
                     <div class="form-group"><label>Auditor Fallback</label><select id="role-auditor_fallback"></select></div>
                     <button type="submit" class="btn btn-primary">Simpan Model Routing</button>
                 </form>
+                <div id="routing-summary" style="margin-top:10px; font-size:0.85em;"></div>
 
                 <hr>
 

@@ -45,6 +45,19 @@ export function initSetup() {
     const groupBaseUrl = document.getElementById('group-base-url');
     const llmBaseUrlInput = document.getElementById('llm-base-url');
 
+    // providerInfo[provider] = { default_model, has_key, base_url }. Sumber tunggal untuk:
+    // (a) label "provider · model" di Model Routing, (b) prefill form config, (c) rekap.
+    let providerInfo = {};
+    const loadLLMConfigs = async () => {
+        try {
+            const cfg = await API.getLLMConfigs();
+            providerInfo = {};
+            (cfg.configs || []).forEach((c) => { providerInfo[c.provider] = c; });
+        } catch (e) {
+            console.warn('Gagal memuat daftar LLM config:', e.message);
+        }
+    };
+
     const updateBaseUrlVisibility = () => {
         const prov = selectProviderEl ? selectProviderEl.value : '';
         if (!groupBaseUrl) return;
@@ -59,8 +72,33 @@ export function initSetup() {
         }
     };
 
+    // #3/#5: prefill form config dari config tersimpan saat provider dipilih, agar user
+    // bisa lihat/edit model & base_url tanpa ketik ulang API key (key dipertahankan backend
+    // bila dikosongkan).
+    const prefillConfigForm = () => {
+        const prov = selectProviderEl ? selectProviderEl.value : '';
+        const info = providerInfo[prov];
+        const keyInput = document.getElementById('input-api-key');
+        const hint = document.getElementById('apikey-hint');
+        const modelSel = document.getElementById('llm-model');
+        const status = document.getElementById('llm-config-status');
+        if (status) status.textContent = '';
+        if (info && info.has_key) {
+            if (keyInput) { keyInput.value = ''; keyInput.placeholder = '(API Key tersimpan — kosongkan = tetap)'; }
+            if (hint) hint.innerHTML = '✓ Provider ini sudah dikonfigurasi. Kosongkan API Key untuk mempertahankan yang lama.';
+            if (modelSel) modelSel.innerHTML = info.default_model
+                ? `<option value="${info.default_model}">${info.default_model} (tersimpan)</option>`
+                : '<option value="">Klik 🔄 Muat Model</option>';
+            if (info.base_url && llmBaseUrlInput) llmBaseUrlInput.value = info.base_url;
+        } else {
+            if (keyInput) keyInput.placeholder = 'Masukkan API Key...';
+            if (hint) hint.textContent = 'Provider ini belum dikonfigurasi.';
+            if (modelSel) modelSel.innerHTML = '<option value="">Masukkan API Key & Muat Model...</option>';
+        }
+    };
+
     if (selectProviderEl) {
-        selectProviderEl.addEventListener('change', updateBaseUrlVisibility);
+        selectProviderEl.addEventListener('change', () => { updateBaseUrlVisibility(); prefillConfigForm(); });
         updateBaseUrlVisibility(); // set initial state
     }
 
@@ -75,10 +113,6 @@ export function initSetup() {
         return p;
     };
 
-    // providerInfo[provider] = { default_model, has_key }. Dipakai agar dropdown Model
-    // Routing menampilkan MODEL (bukan cuma provider) + menandai provider yang belum
-    // dikonfigurasi. Diisi dari GET /api/llm/config.
-    let providerInfo = {};
     const roleOptionLabel = (p) => {
         const base = formatProviderName(p);
         const info = providerInfo[p];
@@ -96,16 +130,36 @@ export function initSetup() {
         });
     };
 
+    // #1: rekap ringkas peran -> provider · model yang aktif sekarang, agar user yakin
+    // konfigurasinya. Diperbarui saat load, saat ganti dropdown, dan setelah simpan.
+    const ROLE_LABELS = {
+        reviewer1: 'Reviewer 1', reviewer1_fallback: 'R1 fallback',
+        reviewer2: 'Reviewer 2', reviewer2_fallback: 'R2 fallback',
+        supervisor: 'Supervisor', supervisor_fallback: 'Supervisor fallback',
+        brain: 'Brain', brain_fallback: 'Brain fallback',
+        auditor: 'Auditor', auditor_fallback: 'Auditor fallback',
+    };
+    const renderRoutingSummary = () => {
+        const box = document.getElementById('routing-summary');
+        if (!box) return;
+        const rows = ROLE_IDS.map((id) => {
+            const sel = document.getElementById('role-' + id);
+            const prov = sel ? sel.value : '';
+            const info = providerInfo[prov];
+            const model = info && info.has_key
+                ? (info.default_model || '(model default)')
+                : '<span style="color:#fca5a5;">belum dikonfigurasi</span>';
+            const fb = id.endsWith('_fallback');
+            return `<tr style="${fb ? 'opacity:.7;' : ''}"><td style="padding:2px 8px 2px 0; color:#9ca3af;">${ROLE_LABELS[id]}</td><td style="padding:2px 0;"><strong>${formatProviderName(prov)}</strong> · ${model}</td></tr>`;
+        }).join('');
+        box.innerHTML = `<div style="background:rgba(0,0,0,0.2); padding:10px; border-radius:6px;"><strong style="color:#6ee7b7; font-size:0.85em;">Rangkuman aktif (peran → provider · model):</strong><table style="margin-top:6px; border-collapse:collapse;">${rows}</table></div>`;
+    };
+
     const loadRolesIntoForm = async () => {
         // Ambil daftar provider terkonfigurasi + model-nya DULU agar label dropdown
         // menampilkan "provider · model" (bukan cuma provider).
-        try {
-            const cfg = await API.getLLMConfigs();
-            providerInfo = {};
-            (cfg.configs || []).forEach((c) => { providerInfo[c.provider] = c; });
-        } catch (e) {
-            console.warn('Gagal memuat daftar LLM config:', e.message);
-        }
+        await loadLLMConfigs();
+        prefillConfigForm();
         populateRoleSelects();
         try {
             const r = await API.getRoles();
@@ -116,6 +170,11 @@ export function initSetup() {
         } catch (e) {
             console.warn('Gagal memuat roles:', e.message);
         }
+        renderRoutingSummary();
+        ROLE_IDS.forEach((id) => {
+            const sel = document.getElementById('role-' + id);
+            if (sel) sel.addEventListener('change', renderRoutingSummary);
+        });
     };
 
     const formRoles = document.getElementById('form-llm-roles');
@@ -131,7 +190,10 @@ export function initSetup() {
             setButtonLoading(btn, true);
             try {
                 await API.updateRoles(payload);
-                showToast('Model Routing berhasil disimpan!');
+                const r1 = providerInfo[payload.reviewer1];
+                const r1m = r1 && r1.has_key ? (r1.default_model || formatProviderName(payload.reviewer1)) : formatProviderName(payload.reviewer1);
+                showToast(`✅ Routing tersimpan. Reviewer 1 = ${r1m}. Lihat rekap lengkap di bawah form.`);
+                renderRoutingSummary();
             } catch (error) {
                 showToast(error.message, 'error');
             } finally {
@@ -270,14 +332,17 @@ export function initSetup() {
             const apiKey = document.getElementById('input-api-key').value;
             const baseUrl = llmBaseUrlInput ? llmBaseUrlInput.value : '';
 
-            if (!apiKey && provider !== 'claude') {
+            const savedKey = providerInfo[provider] && providerInfo[provider].has_key;
+            const status = document.getElementById('llm-config-status');
+            if (!apiKey && provider !== 'claude' && !savedKey) {
                 showToast('API Key diperlukan untuk memuat model!', 'error');
                 return;
             }
 
             setButtonLoading(btnFetchModels, true);
             selectModel.innerHTML = '<option value="">Memuat model...</option>';
-            
+            if (status) status.textContent = '';
+
             try {
                 const res = await API.fetchModels(provider, apiKey, baseUrl);
                 selectModel.innerHTML = '';
@@ -289,12 +354,16 @@ export function initSetup() {
                         selectModel.appendChild(opt);
                     });
                     showToast('Model berhasil dimuat!');
+                    // #4: memuat model = validasi key secara implisit.
+                    if (status) status.innerHTML = `<span style="color:#6ee7b7;">✓ API key valid — ${res.models.length} model dimuat. Pilih model lalu Simpan.</span>`;
                 } else {
                     selectModel.innerHTML = '<option value="">Tidak ada model ditemukan</option>';
+                    if (status) status.innerHTML = '<span style="color:#fcd34d;">⚠ Key OK tapi tak ada model terdaftar.</span>';
                 }
             } catch (error) {
                 showToast(error.message, 'error');
                 selectModel.innerHTML = '<option value="">Gagal memuat model</option>';
+                if (status) status.innerHTML = `<span style="color:#fca5a5;">✗ Gagal (API key/koneksi?): ${error.message}</span>`;
             } finally {
                 setButtonLoading(btnFetchModels, false, '🔄 Muat Model');
             }
@@ -309,13 +378,14 @@ export function initSetup() {
             const model = document.getElementById('llm-model').value;
             const btn = e.target.querySelector('button[type="submit"]');
 
-            if (!apiKey) {
-                showToast('API Key tidak boleh kosong!', 'error');
+            const savedKey = providerInfo[provider] && providerInfo[provider].has_key;
+            const status = document.getElementById('llm-config-status');
+            if (!apiKey && !savedKey) {
+                showToast('API Key wajib untuk provider baru!', 'error');
                 return;
             }
-
             if (!model) {
-                showToast('Pilih model terlebih dahulu!', 'error');
+                showToast('Pilih/Muat model terlebih dahulu!', 'error');
                 return;
             }
 
@@ -324,12 +394,20 @@ export function initSetup() {
 
             setButtonLoading(btn, true);
             try {
+                // apiKey kosong -> backend pertahankan key lama (edit model/base_url saja).
                 await API.updateLLMConfig(provider, apiKey, model, baseUrl);
-                showToast(`Konfigurasi ${provider} berhasil disimpan!`);
+                showToast(`✅ ${formatProviderName(provider)} (${model}) tersimpan.`);
                 document.getElementById('input-api-key').value = '';
-                closeModal('modal-settings');
+                // #1: segarkan providerInfo -> label routing + rekap ikut update; modal tetap
+                // terbuka agar user melihat efeknya & bisa lanjut ke Model Routing.
+                await loadLLMConfigs();
+                populateRoleSelects();
+                renderRoutingSummary();
+                prefillConfigForm();
+                if (status) status.innerHTML = '<span style="color:#6ee7b7;">✓ Tersimpan. Provider siap dipakai di Model Routing di bawah.</span>';
             } catch (error) {
                 showToast(error.message, 'error');
+                if (status) status.innerHTML = `<span style="color:#fca5a5;">✗ ${error.message}</span>`;
             } finally {
                 setButtonLoading(btn, false, 'Simpan LLM Config');
             }

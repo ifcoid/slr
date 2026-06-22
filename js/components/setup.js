@@ -373,6 +373,7 @@ export function initSetup() {
     if (btnSettings) {
         btnSettings.addEventListener('click', async () => {
             openModal('modal-settings');
+            document.getElementById('settings-error-dot')?.classList.add('hidden'); // sudah dilihat
             const alertBox = document.getElementById('llm-health-alert');
             if (alertBox) alertBox.innerHTML = '<div style="font-size:0.85em; color:#9ca3af;">🩺 Memeriksa status provider…</div>';
             loadGitHubConfig();

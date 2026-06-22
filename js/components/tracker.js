@@ -147,8 +147,19 @@ async function fetchSessionStatus() {
     try {
         const session = await API.getSession(currentSessionId);
         displayStatus.textContent = session.status || 'UNKNOWN';
-        
-        // Prevent re-rendering UI if status hasn't changed, 
+
+        // Titik merah REAKTIF di tombol Pengaturan: nyala HANYA bila error LLM-terkait
+        // benar terjadi (tanpa polling health). Penyebab umum: provider down/limit/key salah.
+        const errDot = document.getElementById('settings-error-dot');
+        if (errDot) {
+            const st = session.status || '';
+            const isErr = st.includes('ERROR') || st.includes('FAILED') || st.includes('WAITING_EMBED');
+            const errText = `${session.system_error || ''} ${session.embed_error || ''}`;
+            const llmRelated = isErr && /role |provider|pengaturan llm|api key|rate|kuota|quota|dihubungi|beruntun|stream kosong|extractor|reviewer|supervisor|brain|auditor|embedding/i.test(errText);
+            errDot.classList.toggle('hidden', !llmRelated);
+        }
+
+        // Prevent re-rendering UI if status hasn't changed,
         // to avoid wiping out user's input in textareas
         if (session.status === lastRenderedStatus) {
             return;

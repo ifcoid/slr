@@ -26,8 +26,9 @@
             <button id="btn-health" class="btn btn-icon" title="Kesehatan API">
                 🩺 Health Check
             </button>
-            <button id="btn-settings" class="btn btn-icon" title="Pengaturan API">
+            <button id="btn-settings" class="btn btn-icon" title="Pengaturan API" style="position:relative;">
                 ⚙️ Pengaturan
+                <span id="settings-error-dot" class="hidden" title="Ada provider LLM bermasalah — klik untuk cek" style="position:absolute; top:-2px; right:-2px; width:11px; height:11px; background:#ef4444; border-radius:50%; border:2px solid var(--bg-primary, #0f172a); box-shadow:0 0 6px #ef4444;"></span>
             </button>
             <button id="btn-logout" class="btn btn-icon hidden" title="Keluar dari Akun" style="background: rgba(239, 68, 68, 0.2); color: #ef4444; border-color: rgba(239, 68, 68, 0.3);">
                 🚪 Logout

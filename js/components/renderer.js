@@ -1575,10 +1575,13 @@ export function renderApprovalContent(area, session, handleApproval) {
 
     } else if (status === 'M7_STEP1_WAITING_APPROVAL' && session.framework_selection) {
         const fw = session.framework_selection;
-        let rows = '';
-        (fw.columns || []).forEach((c) => {
-            rows += `<tr><td style="padding:6px;border-bottom:1px solid rgba(255,255,255,0.05);"><strong>${c.key}</strong></td><td style="padding:6px;border-bottom:1px solid rgba(255,255,255,0.05);color:#93c5fd;">${c.category || ''}</td><td style="padding:6px;border-bottom:1px solid rgba(255,255,255,0.05);color:#cbd5e1;">${c.desc || ''}</td></tr>`;
-        });
+        // HITL: kolom framework editable langsung (tambah/hapus/edit) — bukan menebak
+        // lewat feedback ke LLM. Tambah kolom delta TERPISAH (delta_accuracy/delta_itr)
+        // untuk nilai peningkatan agar tidak tercampur metrik absolut.
+        const escAttr = (v) => String(v || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+        const inputCell = (cls, val, ph, color) => `<td style="padding:4px;"><input class="${cls}" value="${escAttr(val)}" placeholder="${ph}" style="width:100%;padding:5px;border-radius:4px;background:rgba(255,255,255,0.05);color:${color};border:1px solid rgba(255,255,255,0.1);"></td>`;
+        const rowHtml = (c) => `<tr class="fw-col-row">${inputCell('fw-col-key', c.key, 'key', 'white')}${inputCell('fw-col-cat', c.category, 'Output', '#93c5fd')}${inputCell('fw-col-desc', c.desc, 'deskripsi', '#cbd5e1')}<td style="padding:4px;"><button type="button" class="fw-col-del btn btn-danger" style="padding:4px 9px;">✕</button></td></tr>`;
+        const rows = (fw.columns || []).map(rowHtml).join('');
         html = wrapCard('Modul 7 L1 — Framework & Template Ekstraksi', `
             <p><strong>Framework:</strong> <span style="color:#6ee7b7;">${fw.framework}</span></p>
             ${fw.system_prompt ? `
@@ -1594,11 +1597,54 @@ export function renderApprovalContent(area, session, handleApproval) {
             </details>
             ` : ''}
             <p style="font-size:0.9em;color:#cbd5e1;">${fw.justification || ''}</p>
+            <p style="font-size:0.82em;color:#fcd34d;margin-top:10px;">✎ Kolom bisa diedit langsung (HITL). Untuk nilai peningkatan, buat kolom delta TERPISAH (mis. <code>delta_accuracy</code>, <code>delta_itr</code>) agar tak tercampur metrik absolut. Klik <strong>Simpan Kolom</strong>, lalu <strong>Setuju</strong> untuk mulai ekstraksi.</p>
             <table style="width:100%;border-collapse:collapse;font-size:0.85em;margin-top:8px;">
-                <tr><th style="text-align:left;padding:6px;color:#9ca3af;">Kolom</th><th style="text-align:left;padding:6px;color:#9ca3af;">Kat.</th><th style="text-align:left;padding:6px;color:#9ca3af;">Deskripsi</th></tr>
-                ${rows}
+                <tr><th style="text-align:left;padding:6px;color:#9ca3af;">Kolom (key)</th><th style="text-align:left;padding:6px;color:#9ca3af;">Kat.</th><th style="text-align:left;padding:6px;color:#9ca3af;">Deskripsi</th><th style="width:36px;"></th></tr>
+                <tbody id="fw-cols-body">${rows}</tbody>
             </table>
+            <div style="margin-top:10px; display:flex; gap:8px;">
+                <button type="button" id="btn-fw-add-col" class="btn btn-secondary" style="padding:5px 10px;">➕ Tambah Kolom</button>
+                <button type="button" id="btn-fw-save-cols" class="btn btn-primary" style="padding:5px 10px;">💾 Simpan Kolom</button>
+            </div>
         `);
+
+        setTimeout(() => {
+            const body = document.getElementById('fw-cols-body');
+            if (!body) return;
+            const addBtn = document.getElementById('btn-fw-add-col');
+            const saveBtn = document.getElementById('btn-fw-save-cols');
+            if (addBtn) addBtn.addEventListener('click', () => {
+                body.insertAdjacentHTML('beforeend', rowHtml({ key: '', category: 'Output', desc: '' }));
+                body.querySelector('tr.fw-col-row:last-child .fw-col-key')?.focus();
+            });
+            body.addEventListener('click', (e) => {
+                if (e.target.classList.contains('fw-col-del')) e.target.closest('tr')?.remove();
+            });
+            if (saveBtn) saveBtn.addEventListener('click', async () => {
+                const cols = [];
+                body.querySelectorAll('tr.fw-col-row').forEach((tr) => {
+                    const key = (tr.querySelector('.fw-col-key')?.value || '').trim();
+                    if (!key) return;
+                    cols.push({
+                        key,
+                        category: (tr.querySelector('.fw-col-cat')?.value || '').trim(),
+                        desc: (tr.querySelector('.fw-col-desc')?.value || '').trim(),
+                    });
+                });
+                if (cols.length === 0) { showToast('Minimal satu kolom dengan key terisi.', 'error'); return; }
+                try {
+                    saveBtn.disabled = true;
+                    saveBtn.textContent = '💾 Menyimpan...';
+                    await API.saveFrameworkColumns(session.id, cols);
+                    showToast(`✅ ${cols.length} kolom tersimpan. Klik Setuju untuk mulai ekstraksi.`);
+                } catch (err) {
+                    showToast('Gagal menyimpan kolom: ' + err.message, 'error');
+                } finally {
+                    saveBtn.disabled = false;
+                    saveBtn.textContent = '💾 Simpan Kolom';
+                }
+            });
+        }, 0);
 
     } else if (status === 'M7_STEP2_WAITING_APPROVAL') {
         const l = session.extraction_log || {};

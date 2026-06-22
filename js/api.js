@@ -134,6 +134,11 @@ export const API = {
         method: 'PUT'
     }),
 
+    saveFrameworkColumns: (id, columns) => apiFetch(`/sessions/${id}/framework/columns`, {
+        method: 'PUT',
+        body: JSON.stringify({ columns })
+    }),
+
     getExtractions: (id) => apiFetch(`/sessions/${id}/extractions`),
 
     getAmbiguousExtractions: (id) => apiFetch(`/sessions/${id}/extractions/ambiguous`),

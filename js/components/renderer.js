@@ -1786,11 +1786,18 @@ export function renderApprovalContent(area, session, handleApproval) {
             </details>
         `;
 
+        // Verifikasi (Reviewer 2) gagal total: jangan biarkan "0% (hijau)" menyesatkan.
+        const verifyFailed = (l.total_extracted || 0) > 0 && (l.verified_sample || 0) === 0;
+        const verifyBanner = verifyFailed ? `
+            <div style="padding:10px 12px;background:rgba(239,68,68,0.12);border-left:3px solid #ef4444;border-radius:6px;color:#fca5a5;margin-bottom:12px;">
+                <strong>⚠️ Pengecekan kualitas (Reviewer 2) TIDAK berjalan</strong> — 0 paper berhasil diverifikasi. Tingkat perbedaan di bawah <strong>bukan</strong> hasil valid. ${l.nr_note || 'Periksa provider Reviewer 2 di Pengaturan ⚙ (mungkin model salah/404 atau kuota), lalu Ekstrak Ulang.'}
+            </div>` : '';
         html = wrapCard('Modul 7 L2 — Hasil Ekstraksi Data (Full-Text)', `
             ${fwHtml}
+            ${verifyBanner}
             ${xaiHtml}
             <p><strong>Total Paper:</strong> ${l.total_extracted || 0} paper berhasil dibaca dan diekstrak datanya oleh AI (Reviewer 1).</p>
-            <p><strong>Pengecekan Kualitas (Cross-check):</strong> AI kedua (Reviewer 2) telah mengambil sampel acak ${l.verified_sample || 0} paper untuk diperiksa ulang. <br>
+            <p><strong>Pengecekan Kualitas (Cross-check):</strong> AI kedua (Reviewer 2) ${verifyFailed ? '<span style="color:#fca5a5;">GAGAL memverifikasi (0 paper)</span>' : `telah mengambil sampel acak ${l.verified_sample || 0} paper untuk diperiksa ulang`}. <br>
             <strong>Tingkat Perbedaan Pemahaman:</strong> <a href="#" onclick="window.showExtractionModal(true); return false;" style="color:${rateColor};font-weight:bold;text-decoration:underline;cursor:pointer;" title="Klik untuk memfilter dan HANYA melihat paper yang rancu/kuning di Tabel Ekstraksi">${rate}%</a></p>
             <p><strong>Temuan Kerancuan:</strong> Terdapat ${l.ambiguous_count || 0} isian data (seperti metodologi, hasil, atau variabel lainnya) yang ditandai ambigu/membingungkan oleh Reviewer 2. Isian yang ambigu ini akan ditandai dengan <strong>warna kuning</strong> pada Tabel Ekstraksi di bawah.</p>
             ${(l.failed_count || 0) > 0 ? `<p style="padding:8px 12px;background:rgba(239,68,68,0.12);border-left:3px solid #ef4444;border-radius:6px;color:#fca5a5;"><strong>⚠️ ${l.failed_count} paper gagal/kosong</strong> (ERROR / hasil kosong / tanpa full-text). Klik <strong>🔁 Ekstrak Ulang Paper Gagal/Kosong</strong> di bawah untuk mengulang HANYA paper ini (paper baik dipertahankan, hemat kuota).</p>` : ''}

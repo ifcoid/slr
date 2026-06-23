@@ -87,9 +87,10 @@ export function initSetup() {
         if (!groupBaseUrl) return;
         if (PROVIDERS_WITH_BASE_URL.has(prov)) {
             groupBaseUrl.classList.remove('hidden');
-            if (llmBaseUrlInput && !llmBaseUrlInput.value) {
-                llmBaseUrlInput.value = PROVIDER_BASE_URLS[prov] || '';
-            }
+            // SELALU set default provider INI saat ganti — jangan biarkan URL provider
+            // sebelumnya nyangkut (mis. agentrouter mewarisi openrouter). prefillConfigForm
+            // akan menimpa dgn base_url TERSIMPAN bila provider ini sudah dikonfigurasi.
+            if (llmBaseUrlInput) llmBaseUrlInput.value = PROVIDER_BASE_URLS[prov] || '';
         } else {
             groupBaseUrl.classList.add('hidden');
             if (llmBaseUrlInput) llmBaseUrlInput.value = '';
@@ -107,8 +108,11 @@ export function initSetup() {
         const modelSel = document.getElementById('llm-model');
         const status = document.getElementById('llm-config-status');
         if (status) status.textContent = '';
+        // API Key spesifik per-provider — SELALU bersihkan saat ganti agar key provider lain
+        // (mis. nvidia) tidak nyangkut terbawa ke aerolink/unimodel/agentrouter.
+        if (keyInput) keyInput.value = '';
         if (info && info.has_key) {
-            if (keyInput) { keyInput.value = ''; keyInput.placeholder = '(API Key tersimpan — kosongkan = tetap)'; }
+            if (keyInput) keyInput.placeholder = '(API Key tersimpan — kosongkan = tetap)';
             if (hint) hint.innerHTML = '✓ Provider ini sudah dikonfigurasi. Kosongkan API Key untuk mempertahankan yang lama.';
             if (modelSel) modelSel.innerHTML = info.default_model
                 ? `<option value="${info.default_model}">${info.default_model} (tersimpan)</option>`

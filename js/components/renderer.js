@@ -1,6 +1,46 @@
 // js/components/renderer.js
 import { API, getBaseURL } from '../api.js';
 import { setButtonLoading, showToast } from '../ui.js';
+
+// Panel audit koreksi include/exclude (HITL) — dipakai di tahap-tahap M9 agar jejak
+// deviasi protokol terlihat peneliti & bisa diekspor (provenance/Q1). "" bila tak ada.
+function correctionsAuditHtml(session) {
+    const cor = session.screening_corrections || [];
+    if (cor.length === 0) return '';
+    const esc = (v) => String(v || '').replace(/&/g, '&amp;').replace(/</g, '&lt;');
+    const reincl = cor.filter(c => c.to === 'INCLUDE').length;
+    const excl = cor.filter(c => c.to === 'EXCLUDE').length;
+    const rows = cor.map(c => `<tr>
+        <td style="padding:4px 6px;border-bottom:1px solid rgba(255,255,255,0.06);font-size:0.85em;">${esc(c.title) || esc(c.doi) || '-'}</td>
+        <td style="padding:4px 6px;border-bottom:1px solid rgba(255,255,255,0.06);text-align:center;white-space:nowrap;"><span style="color:#fca5a5;">${esc(c.from) || '?'}</span> → <span style="color:${c.to === 'INCLUDE' ? '#6ee7b7' : '#fca5a5'};font-weight:bold;">${esc(c.to)}</span></td>
+        <td style="padding:4px 6px;border-bottom:1px solid rgba(255,255,255,0.06);font-size:0.85em;color:#cbd5e1;">${esc(c.reason)}</td>
+        <td style="padding:4px 6px;border-bottom:1px solid rgba(255,255,255,0.06);font-size:0.78em;color:#94a3b8;white-space:nowrap;">${esc((c.at || '').slice(0, 10))}</td>
+    </tr>`).join('');
+    return `<details style="margin-bottom:12px;background:rgba(245,158,11,0.06);border-left:3px solid #f59e0b;border-radius:6px;padding:10px;">
+        <summary style="cursor:pointer;color:#fcd34d;font-weight:bold;">🧾 Audit Koreksi Include/Exclude (${cor.length}: ${reincl} re-include, ${excl} exclude)</summary>
+        <p style="font-size:0.82em;color:#cbd5e1;margin:8px 0;">Jejak koreksi keputusan full-text pasca-screening (deviasi protokol terdokumentasi). Angka PRISMA sudah mencerminkan keputusan FINAL; ini provenance untuk audit/Q1, juga otomatis masuk narasi Methods.</p>
+        <table style="width:100%;border-collapse:collapse;font-size:0.85em;">
+            <tr style="color:#9ca3af;text-align:left;"><th style="padding:4px 6px;">Paper</th><th style="padding:4px 6px;text-align:center;">Perubahan</th><th style="padding:4px 6px;">Alasan</th><th style="padding:4px 6px;">Tgl</th></tr>
+            ${rows}
+        </table>
+        <button onclick="window.exportCorrectionsAudit('${session.id}')" class="btn btn-secondary" style="margin-top:8px;padding:3px 9px;font-size:0.8em;">📥 Export CSV</button>
+    </details>`;
+}
+
+window.exportCorrectionsAudit = async (sessionId) => {
+    try {
+        const s = await API.getSession(sessionId);
+        const cor = s.screening_corrections || [];
+        if (!cor.length) { showToast('Tak ada koreksi tercatat.', 'error'); return; }
+        const q = (v) => '"' + String(v || '').replace(/"/g, '""') + '"';
+        const csv = 'paper_id,doi,title,from,to,reason,at\n' +
+            cor.map(c => [c.paper_id, c.doi, c.title, c.from, c.to, c.reason, c.at].map(q).join(',')).join('\n');
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+        a.download = 'screening_corrections.csv';
+        document.body.appendChild(a); a.click(); a.remove();
+    } catch (e) { showToast('Gagal export: ' + e.message, 'error'); }
+};
 export function renderApprovalContent(area, session, handleApproval) {
     const status = session.status;
     let html = '';
@@ -2713,6 +2753,7 @@ ATURAN EDGES:
         const ms = session.manuscript;
         const sec = (t, c) => `<details style="margin-top:8px;"><summary style="cursor:pointer;color:#93c5fd;font-weight:bold;">${t} (${(c || '').length} char)</summary><div style="font-size:0.88em;margin-top:6px;max-height:340px;overflow:auto;">${formatMarkdown(c || '(kosong)')}</div></details>`;
         html = wrapCard('Modul 9 — Draft Grup A (Methods · Results · Discussion · Future Research)', `
+            ${correctionsAuditHtml(session)}
             <div style="background:rgba(139,92,246,0.08);border:1px solid rgba(139,92,246,0.3);border-radius:6px;padding:10px 12px;margin-bottom:12px;font-size:0.82em;color:#a78bfa;">
                 <strong>🧠 xAI Info:</strong> Hasil ditulis oleh model Brain (lihat Pengaturan → Model Routing). Proses: 3-pass per section (Draft → Verification → Style Cleanup). Jika output tidak ada \\cite{}, kemungkinan model kurang capable — ganti Brain ke GPT-4o/Claude Sonnet/Gemini Pro.
             </div>
@@ -2734,6 +2775,7 @@ ATURAN EDGES:
     } else if (status === 'M9_COMPILE_WAITING_APPROVAL' && session.manuscript) {
         const ms = session.manuscript;
         html = wrapCard('Modul 9 — Compile Final (manuscript_final + .tex + .bib)', `
+            ${correctionsAuditHtml(session)}
             <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
                 <button id="dl-tex" class="btn" style="background:#3b82f6;color:#fff;font-weight:bold;">📥 Download LaTeX (.tex)</button>
                 <button id="dl-bib" class="btn" style="background:#8b5cf6;color:#fff;font-weight:bold;">📥 Download BibTeX (.bib)</button>

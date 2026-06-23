@@ -442,10 +442,17 @@ export function initSetup() {
         btnTestModel.addEventListener('click', async () => {
             const provider = document.getElementById('select-provider').value;
             const status = document.getElementById('llm-config-status');
+            // Kirim nilai form -> menguji config yang BELUM disimpan (key/base_url/model terpilih).
+            // Field kosong -> backend fallback ke config tersimpan.
+            const opts = {
+                api_key: (document.getElementById('input-api-key') || {}).value || '',
+                base_url: (document.getElementById('llm-base-url') || {}).value || '',
+                model: (document.getElementById('llm-model') || {}).value || '',
+            };
             setButtonLoading(btnTestModel, true);
-            if (status) status.innerHTML = `<span style="color:#9ca3af;">🧪 Menguji panggilan nyata ke model ${provider}… (bisa ~10-30 dtk)</span>`;
+            if (status) status.innerHTML = `<span style="color:#9ca3af;">🧪 Menguji panggilan nyata ke model ${opts.model || provider}… (bisa ~10-30 dtk)</span>`;
             try {
-                const res = await API.testModel(provider);
+                const res = await API.testModel(provider, opts);
                 if (res.ok) {
                     if (status) status.innerHTML = `<span style="color:#6ee7b7;">✓ Model <strong>${res.model || '(default)'}</strong> BISA dipakai. Balasan uji: "${(res.sample || '').replace(/</g, '&lt;')}"</span>`;
                     showToast('✓ Model bisa dipakai.');

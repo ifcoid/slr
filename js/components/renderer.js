@@ -31,7 +31,7 @@ function correctionsAuditHtml(session) {
 window.testRoleModel = async (role) => {
     showToast(`🧪 Menguji model ${role}…`);
     try {
-        const res = await API.testModel('', role);
+        const res = await API.testModel('', { role });
         if (res.ok) showToast(`✓ ${role} (${res.model || 'default'}) bisa dipakai.`);
         else showToast(`✗ ${role} (${res.model || 'default'}) gagal: ${(res.message || '').slice(0, 160)}`, 'error');
     } catch (e) { showToast('Gagal menguji: ' + e.message, 'error'); }

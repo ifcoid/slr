@@ -1695,10 +1695,12 @@ export function renderApprovalContent(area, session, handleApproval) {
                 <tr><th style="text-align:left;padding:6px;color:#9ca3af;">Kolom (key)</th><th style="text-align:left;padding:6px;color:#9ca3af;">Kat.</th><th style="text-align:left;padding:6px;color:#9ca3af;">Deskripsi</th><th style="width:36px;"></th></tr>
                 <tbody id="fw-cols-body">${rows}</tbody>
             </table>
-            <div style="margin-top:10px; display:flex; gap:8px;">
+            <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap;">
                 <button type="button" id="btn-fw-add-col" class="btn btn-secondary" style="padding:5px 10px;">➕ Tambah Kolom</button>
                 <button type="button" id="btn-fw-save-cols" class="btn btn-primary" style="padding:5px 10px;">💾 Simpan Kolom</button>
+                <button type="button" onclick="window.openScreeningCorrection('${session.id}')" class="btn" style="padding:5px 10px;background:rgba(245,158,11,0.18);color:#fcd34d;border:1px solid rgba(245,158,11,0.3);" title="Koreksi keputusan include/exclude tanpa mengubah protokol ekstraksi">⏪ Koreksi Include/Exclude</button>
             </div>
+            <p style="font-size:0.78em;color:#94a3b8;margin:6px 0 0;">Merasa paper kurang/keliru? "Koreksi Include/Exclude" memperbaiki keputusan full-text <strong>tanpa mengubah protokol</strong> (paper baru diekstrak inkremental). Untuk menyusun ULANG protokol dari awal, pakai "Drop/Reset Modul 7" (amendemen — re-ekstrak semua).</p>
         `);
 
         setTimeout(() => {
@@ -1802,9 +1804,10 @@ export function renderApprovalContent(area, session, handleApproval) {
             <p><strong>Temuan Kerancuan:</strong> Terdapat ${l.ambiguous_count || 0} isian data (seperti metodologi, hasil, atau variabel lainnya) yang ditandai ambigu/membingungkan oleh Reviewer 2. Isian yang ambigu ini akan ditandai dengan <strong>warna kuning</strong> pada Tabel Ekstraksi di bawah.</p>
             ${(l.failed_count || 0) > 0 ? `<p style="padding:8px 12px;background:rgba(239,68,68,0.12);border-left:3px solid #ef4444;border-radius:6px;color:#fca5a5;"><strong>⚠️ ${l.failed_count} paper gagal/kosong</strong> (ERROR / hasil kosong / tanpa full-text). Klik <strong>🔁 Ekstrak Ulang Paper Gagal/Kosong</strong> di bawah untuk mengulang HANYA paper ini (paper baik dipertahankan, hemat kuota).</p>` : ''}
             <p style="font-size:0.85em;color:#94a3b8;">${l.nr_note || ''}</p>
-            <div style="margin-top: 15px; text-align: center; display: flex; gap: 10px; justify-content: center;">
-                <button class="btn btn-secondary" onclick="window.showExtractionModal()" style="width:100%;">📊 Lihat Tabel Ekstraksi</button>
-                <button class="btn btn-primary" id="btn-dl-ext-md" onclick="window.downloadExtractionMarkdown('${session.id}')" style="width:100%;">📥 Download Laporan (MD)</button>
+            <div style="margin-top: 15px; text-align: center; display: flex; gap: 10px; justify-content: center; flex-wrap:wrap;">
+                <button class="btn btn-secondary" onclick="window.showExtractionModal()" style="flex:1;min-width:160px;">📊 Lihat Tabel Ekstraksi</button>
+                <button class="btn btn-primary" id="btn-dl-ext-md" onclick="window.downloadExtractionMarkdown('${session.id}')" style="flex:1;min-width:160px;">📥 Download Laporan (MD)</button>
+                <button class="btn" onclick="window.openScreeningCorrection('${session.id}')" style="flex:1;min-width:160px;background:rgba(245,158,11,0.18);color:#fcd34d;border:1px solid rgba(245,158,11,0.3);" title="Koreksi include/exclude tanpa mengubah protokol">⏪ Koreksi Include/Exclude</button>
             </div>
         `);
 
@@ -4079,6 +4082,101 @@ export function appendXAISection(area, session) {
         }
     });
 }
+
+// Panel koreksi Include/Exclude full-text (HITL) dari M7. PRESERVE protokol (lihat backend).
+window.openScreeningCorrection = async (sessionId) => {
+    const esc = (v) => String(v || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+    let overlay = document.getElementById('screening-correct-overlay');
+    if (overlay) overlay.remove();
+    overlay = document.createElement('div');
+    overlay.id = 'screening-correct-overlay';
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:9999;';
+    overlay.innerHTML = `
+        <div class="glass-panel" style="max-width:880px;width:92%;max-height:88vh;display:flex;flex-direction:column;padding:18px;border-radius:10px;background:#0f172a;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                <h3 style="margin:0;">⏪ Koreksi Include/Exclude (Full-Text)</h3>
+                <button id="sc-close" class="btn-close" style="background:none;border:none;color:#cbd5e1;font-size:1.4em;cursor:pointer;">&times;</button>
+            </div>
+            <p style="font-size:0.82em;color:#fcd34d;background:rgba(245,158,11,0.08);padding:8px 10px;border-radius:6px;border-left:3px solid #f59e0b;margin:0 0 8px;">
+                Koreksi keputusan full-text yang KELIRU. <strong>Protokol ekstraksi TIDAK berubah</strong>; paper baru diekstrak inkremental, data lama dipertahankan. Tiap perubahan WAJIB beralasan (audit PRISMA). <em>"Terasa sedikit" bukan alasan valid</em> — sebut error screening spesifik.
+            </p>
+            <input id="sc-filter" placeholder="🔎 filter judul / DOI…" style="width:100%;padding:6px;margin-bottom:6px;border-radius:4px;background:rgba(255,255,255,0.05);color:#e5e7eb;border:1px solid rgba(255,255,255,0.1);">
+            <div id="sc-body" style="flex:1;overflow-y:auto;border:1px solid rgba(255,255,255,0.08);border-radius:6px;"><div style="padding:20px;text-align:center;color:#94a3b8;">Memuat…</div></div>
+            <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px;">
+                <button id="sc-cancel" class="btn btn-secondary">Batal</button>
+                <button id="sc-save" class="btn btn-primary">💾 Terapkan Koreksi</button>
+            </div>
+        </div>`;
+    document.body.appendChild(overlay);
+    const close = () => overlay.remove();
+    overlay.querySelector('#sc-close').onclick = close;
+    overlay.querySelector('#sc-cancel').onclick = close;
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+
+    const body = overlay.querySelector('#sc-body');
+    let papers = [];
+    try {
+        const data = await API.getScreeningReview(sessionId);
+        papers = data.papers || [];
+    } catch (e) {
+        body.innerHTML = `<div style="padding:16px;color:#fca5a5;">Gagal memuat: ${e.message}</div>`;
+        return;
+    }
+    const changed = {}; // paper_id -> {decision, reason, doi, title}
+    const renderRows = (filter = '') => {
+        const f = filter.toLowerCase();
+        const list = papers.filter(p => !f || (p.title || '').toLowerCase().includes(f) || (p.doi || '').toLowerCase().includes(f));
+        body.innerHTML = list.map(p => {
+            const cur = changed[p.paper_id] ? changed[p.paper_id].decision : p.decision;
+            const incl = cur === 'INCLUDE';
+            const isChanged = !!changed[p.paper_id];
+            const warn = (incl && !p.retrieved) ? ' <span title="Full-text belum ada di Qdrant — tak bisa diekstrak sampai PDF tersedia" style="color:#fca5a5;">⚠ no full-text</span>' : '';
+            return `<div class="sc-row" data-id="${p.paper_id}" data-doi="${esc(p.doi)}" data-title="${esc(p.title)}" data-orig="${p.decision}" style="padding:8px 10px;border-bottom:1px solid rgba(255,255,255,0.06);${isChanged ? 'background:rgba(59,130,246,0.08);' : ''}">
+                <div style="display:flex;gap:10px;align-items:center;">
+                    <button class="sc-toggle btn" style="min-width:96px;padding:3px 8px;font-size:0.8em;${incl ? 'background:rgba(16,185,129,0.2);color:#6ee7b7;' : 'background:rgba(239,68,68,0.18);color:#fca5a5;'}">${incl ? '✓ INCLUDE' : '✕ EXCLUDE'}</button>
+                    <div style="flex:1;font-size:0.85em;color:#e5e7eb;">${esc(p.title) || '(tanpa judul)'}${warn}<br><span style="color:#94a3b8;font-size:0.9em;">${esc(p.doi) || '-'}</span></div>
+                </div>
+                ${isChanged ? `<input class="sc-reason" placeholder="Alasan koreksi (wajib) — sebut error screening spesifik" value="${esc(changed[p.paper_id].reason)}" style="width:100%;margin-top:6px;padding:5px;border-radius:4px;background:rgba(255,255,255,0.05);color:#e5e7eb;border:1px solid ${changed[p.paper_id].reason ? 'rgba(255,255,255,0.1)' : '#ef4444'};">` : ''}
+            </div>`;
+        }).join('') || '<div style="padding:16px;color:#94a3b8;">Tak ada paper.</div>';
+    };
+    renderRows();
+    overlay.querySelector('#sc-filter').addEventListener('input', (e) => renderRows(e.target.value));
+    body.addEventListener('click', (e) => {
+        if (!e.target.classList.contains('sc-toggle')) return;
+        const row = e.target.closest('.sc-row'); const id = row.dataset.id, orig = row.dataset.orig;
+        const cur = changed[id] ? changed[id].decision : orig;
+        const next = cur === 'INCLUDE' ? 'EXCLUDE' : 'INCLUDE';
+        if (next === orig) delete changed[id];
+        else changed[id] = { decision: next, reason: (changed[id] && changed[id].reason) || '', doi: row.dataset.doi, title: row.dataset.title };
+        renderRows(overlay.querySelector('#sc-filter').value);
+    });
+    body.addEventListener('input', (e) => {
+        if (!e.target.classList.contains('sc-reason')) return;
+        const id = e.target.closest('.sc-row').dataset.id;
+        if (changed[id]) changed[id].reason = e.target.value;
+    });
+    overlay.querySelector('#sc-save').addEventListener('click', async () => {
+        const corrections = Object.entries(changed).map(([paper_id, v]) => ({
+            paper_id, decision: v.decision, reason: (v.reason || '').trim(), doi: v.doi, title: v.title,
+            from: (papers.find(p => p.paper_id === paper_id) || {}).decision || '',
+        }));
+        if (corrections.length === 0) { showToast('Tak ada perubahan.', 'error'); return; }
+        if (corrections.some(c => !c.reason)) { showToast('Setiap perubahan wajib punya alasan.', 'error'); return; }
+        if (!confirm(`Terapkan ${corrections.length} koreksi? Protokol ekstraksi dipertahankan; paper baru akan diekstrak. Perubahan tercatat di audit.`)) return;
+        const btn = overlay.querySelector('#sc-save');
+        btn.disabled = true; btn.textContent = 'Menyimpan…';
+        try {
+            const res = await API.correctScreening(sessionId, corrections);
+            showToast(`✅ ${res.applied} koreksi diterapkan (protokol dipertahankan).`);
+            close();
+            setTimeout(() => window.location.reload(), 900);
+        } catch (e) {
+            showToast('Gagal: ' + e.message, 'error');
+            btn.disabled = false; btn.textContent = '💾 Terapkan Koreksi';
+        }
+    });
+};
 
 window.showQAXAIModal = async (btn) => {
     if (btn) {

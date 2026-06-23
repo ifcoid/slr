@@ -144,6 +144,13 @@ export const API = {
         body: JSON.stringify({ reviews })
     }),
 
+    getScreeningReview: (id) => apiFetch(`/sessions/${id}/screening-review`),
+
+    correctScreening: (id, corrections) => apiFetch(`/sessions/${id}/screening-correction`, {
+        method: 'POST',
+        body: JSON.stringify({ corrections })
+    }),
+
     getExtractions: (id) => apiFetch(`/sessions/${id}/extractions`),
 
     getAmbiguousExtractions: (id) => apiFetch(`/sessions/${id}/extractions/ambiguous`),

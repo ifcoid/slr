@@ -26,6 +26,9 @@
             <button id="btn-health" class="btn btn-icon" title="Kesehatan API">
                 🩺 Health Check
             </button>
+            <button id="btn-full-report" class="btn btn-icon" title="Unduh laporan SLR utuh dari database (Markdown)" onclick="window.downloadFullReport()">
+                📄 Laporan
+            </button>
             <button id="btn-settings" class="btn btn-icon" title="Pengaturan API" style="position:relative;">
                 ⚙️ Pengaturan
                 <span id="settings-error-dot" class="hidden" title="Ada provider LLM bermasalah — klik untuk cek" style="position:absolute; top:-2px; right:-2px; width:11px; height:11px; background:#ef4444; border-radius:50%; border:2px solid var(--bg-primary, #0f172a); box-shadow:0 0 6px #ef4444;"></span>

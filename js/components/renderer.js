@@ -27,6 +27,26 @@ function correctionsAuditHtml(session) {
     </details>`;
 }
 
+// Unduh laporan SLR utuh (Markdown) dari database untuk sesi aktif.
+window.downloadFullReport = async () => {
+    const sid = localStorage.getItem('activeSessionId') ||
+        ((document.getElementById('display-session-id') || {}).textContent || '').trim();
+    if (!sid || sid === '...' || sid === '-') { showToast('Buka sesi dulu untuk membuat laporan.', 'error'); return; }
+    showToast('📄 Menyusun laporan dari database…');
+    try {
+        const resp = await fetch(`${getBaseURL()}/sessions/${encodeURIComponent(sid)}/report`, {
+            headers: { 'Authorization': 'Bearer ' + (localStorage.getItem('auth_token') || '') }
+        });
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        const blob = await resp.blob();
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `laporan_slr_${sid}.md`;
+        document.body.appendChild(a); a.click(); a.remove();
+        showToast('✅ Laporan diunduh.');
+    } catch (e) { showToast('Gagal menyusun laporan: ' + e.message, 'error'); }
+};
+
 // Uji model NYATA untuk sebuah ROLE (mis. reviewer2) — tangkap model terkunci/404.
 window.testRoleModel = async (role) => {
     showToast(`🧪 Menguji model ${role}…`);

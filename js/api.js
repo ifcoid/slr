@@ -178,6 +178,11 @@ export const API = {
 
     getLLMConfigs: () => apiFetch('/llm/config'),
 
+    testModel: (provider, role) => apiFetch('/llm/test', {
+        method: 'POST',
+        body: JSON.stringify({ provider: provider || '', role: role || '' })
+    }),
+
     getRoles: () => apiFetch('/llm/roles'),
 
     updateRoles: (roles) => apiFetch('/llm/roles', {

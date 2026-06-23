@@ -8,6 +8,7 @@ export function initSetup() {
     const inputBaseUrl = document.getElementById('input-base-url');
     const formLlmConfig = document.getElementById('form-llm-config');
     const btnFetchModels = document.getElementById('btn-fetch-models');
+    const btnTestModel = document.getElementById('btn-test-model');
     const selectModel = document.getElementById('llm-model');
 
     // Load initial Base URL to input
@@ -431,6 +432,31 @@ export function initSetup() {
                 if (status) status.innerHTML = `<span style="color:#fca5a5;">✗ Gagal (API key/koneksi?): ${error.message}</span>`;
             } finally {
                 setButtonLoading(btnFetchModels, false, '🔄 Muat Model');
+            }
+        });
+    }
+
+    // 🧪 Test Model: panggilan completion NYATA ke model TERSIMPAN provider terpilih.
+    // Menangkap model terkunci/404 yang lolos cek API key (mis. nvidia "not found for account").
+    if (btnTestModel) {
+        btnTestModel.addEventListener('click', async () => {
+            const provider = document.getElementById('select-provider').value;
+            const status = document.getElementById('llm-config-status');
+            setButtonLoading(btnTestModel, true);
+            if (status) status.innerHTML = `<span style="color:#9ca3af;">🧪 Menguji panggilan nyata ke model ${provider}… (bisa ~10-30 dtk)</span>`;
+            try {
+                const res = await API.testModel(provider);
+                if (res.ok) {
+                    if (status) status.innerHTML = `<span style="color:#6ee7b7;">✓ Model <strong>${res.model || '(default)'}</strong> BISA dipakai. Balasan uji: "${(res.sample || '').replace(/</g, '&lt;')}"</span>`;
+                    showToast('✓ Model bisa dipakai.');
+                } else {
+                    if (status) status.innerHTML = `<span style="color:#fca5a5;">✗ Model <strong>${res.model || '(default)'}</strong> TIDAK bisa dipakai (mungkin terkunci/404/salah nama). Detail: ${(res.message || '').replace(/</g, '&lt;').slice(0, 300)}</span>`;
+                    showToast('✗ Model tidak bisa dipakai — lihat detail.', 'error');
+                }
+            } catch (e) {
+                if (status) status.innerHTML = `<span style="color:#fca5a5;">✗ Gagal menguji: ${e.message}</span>`;
+            } finally {
+                setButtonLoading(btnTestModel, false, '🧪 Test Model');
             }
         });
     }

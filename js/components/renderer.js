@@ -27,6 +27,26 @@ function correctionsAuditHtml(session) {
     </details>`;
 }
 
+// Uji model NYATA untuk sebuah ROLE (mis. reviewer2) — tangkap model terkunci/404.
+window.testRoleModel = async (role) => {
+    showToast(`🧪 Menguji model ${role}…`);
+    try {
+        const res = await API.testModel('', role);
+        if (res.ok) showToast(`✓ ${role} (${res.model || 'default'}) bisa dipakai.`);
+        else showToast(`✗ ${role} (${res.model || 'default'}) gagal: ${(res.message || '').slice(0, 160)}`, 'error');
+    } catch (e) { showToast('Gagal menguji: ' + e.message, 'error'); }
+};
+
+// Ulangi HANYA spot-verification (tanpa re-ekstrak) setelah memperbaiki provider Reviewer 2.
+window.reverifyExtraction = async (sessionId) => {
+    if (!confirm('Ulangi pengecekan kualitas (Reviewer 2) tanpa re-ekstrak? Pastikan model Reviewer 2 sudah benar (Test Model).')) return;
+    try {
+        await API.reviseStep(sessionId, 'Re-verify setelah perbaikan provider Reviewer 2', 'M7_STEP2_REVERIFY');
+        showToast('🔁 Verifikasi diulang — lihat Live Log.');
+        setTimeout(() => window.location.reload(), 900);
+    } catch (e) { showToast('Gagal: ' + e.message, 'error'); }
+};
+
 window.exportCorrectionsAudit = async (sessionId) => {
     try {
         const s = await API.getSession(sessionId);
@@ -1832,7 +1852,12 @@ export function renderApprovalContent(area, session, handleApproval) {
         const verifyFailed = (l.total_extracted || 0) > 0 && (l.verified_sample || 0) === 0;
         const verifyBanner = verifyFailed ? `
             <div style="padding:10px 12px;background:rgba(239,68,68,0.12);border-left:3px solid #ef4444;border-radius:6px;color:#fca5a5;margin-bottom:12px;">
-                <strong>⚠️ Pengecekan kualitas (Reviewer 2) TIDAK berjalan</strong> — 0 paper berhasil diverifikasi. Tingkat perbedaan di bawah <strong>bukan</strong> hasil valid. ${l.nr_note || 'Periksa provider Reviewer 2 di Pengaturan ⚙ (mungkin model salah/404 atau kuota), lalu Ekstrak Ulang.'}
+                <strong>⚠️ Pengecekan kualitas (Reviewer 2) TIDAK berjalan</strong> — 0 paper berhasil diverifikasi. Tingkat perbedaan di bawah <strong>bukan</strong> hasil valid. ${l.nr_note || 'Periksa provider Reviewer 2 (mungkin model terkunci/404 atau kuota).'}
+                <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
+                    <button onclick="window.testRoleModel('reviewer2')" class="btn btn-secondary" style="padding:3px 10px;font-size:0.82em;">🧪 Test model Reviewer 2</button>
+                    <button onclick="document.getElementById('btn-settings')?.click()" class="btn btn-secondary" style="padding:3px 10px;font-size:0.82em;">⚙ Buka Pengaturan</button>
+                    <button onclick="window.reverifyExtraction('${session.id}')" class="btn btn-primary" style="padding:3px 10px;font-size:0.82em;">🔁 Ulangi Verifikasi (tanpa re-ekstrak)</button>
+                </div>
             </div>` : '';
         html = wrapCard('Modul 7 L2 — Hasil Ekstraksi Data (Full-Text)', `
             ${fwHtml}

@@ -96,35 +96,41 @@ async function pollReplay(jobId, box) {
     box.innerHTML = '<div style="color:#fca5a5;">⏱️ Replay belum selesai dalam 10 menit — provider kemungkinan sangat lambat / hang. Coba potong prompt lalu uji lagi.</div>';
 }
 
-// Kirim laporan bug: konteks (sesi/step/provider/model/error/prompt/hasil replay) DITANGKAP
-// OTOMATIS. Backend menyimpan + balas deep-link Telegram; buka agar user tap "Start" ke bot.
+// buildReportText merangkai SELURUH info reproduksi bug ke SATU pesan (muat di limit Telegram
+// 4096 char): metadata + error PENUH + prompt (dipotong bila perlu) + ringkas hasil replay.
+// Tidak butuh backend — konten dibawa lewat deep-link & dikirim user ke bot (cocok utk backend
+// lokal per-user; bot terpusat = satu-satunya inbox yang developer bisa baca).
+function buildReportText() {
+    const sid = ctxState.sessionId || window.currentSessionId || '(manual)';
+    const provider = val('llm-debug-provider').trim() || '-';
+    const model = val('llm-debug-model').trim() || '-';
+    const sys = val('llm-debug-system');
+    const usr = val('llm-debug-user');
+    const err = ctxState.error || '(lihat hasil replay)';
+    const replay = ctxState.replay || '';
+    const head = `🐞 BUG NSA/SLR\nsession: ${sid}\nstep: ${ctxState.step || '-'}\nprovider: ${provider} / model: ${model}\nwaktu: ${new Date().toISOString()}\n\n❌ ERROR:\n${err}\n`;
+    const replayLine = replay ? `\n🔁 REPLAY: ${replay.slice(0, 500)}\n` : '';
+    let budget = 3800 - head.length - replayLine.length - 120;
+    if (budget < 200) budget = 200;
+    const sysBudget = Math.min(sys.length, Math.floor(budget * 0.35));
+    const usrBudget = Math.min(usr.length, budget - sysBudget);
+    const clip = (s, n) => (s.length > n ? s.slice(0, n) + `…[+${s.length - n} char dipotong]` : s);
+    const body = `\n— SYSTEM PROMPT (${sys.length} char):\n${clip(sys, sysBudget)}\n\n— USER PROMPT (${usr.length} char):\n${clip(usr, usrBudget)}`;
+    return head + replayLine + body;
+}
+
+// Report Bug: SATU pesan reproduksi → deep-link t.me/BugLaporBot?text=... (user tap KIRIM).
+// Clipboard sebagai cadangan bila client tak meng-isi otomatis.
 async function reportBug() {
-    const btn = document.getElementById('llm-debug-report');
-    const payload = {
-        session_id: ctxState.sessionId || window.currentSessionId || '',
-        step: ctxState.step || '',
-        provider: val('llm-debug-provider').trim(),
-        model: val('llm-debug-model').trim(),
-        error: ctxState.error || '',
-        system_prompt: val('llm-debug-system'),
-        user_prompt: val('llm-debug-user'),
-        replay_result: ctxState.replay || '',
-        app_version: 'slr-web',
-    };
-    btn.disabled = true; const orig = btn.textContent; btn.textContent = '⏳ Mengirim…';
-    try {
-        const res = await API.reportBug(payload);
-        if (res && res.telegram_url) {
-            window.open(res.telegram_url, '_blank');
-            showToast(`📨 Laporan tersimpan (ID ${res.id}). Telegram terbuka — tap "Start" untuk kirim ke @BugLaporBot.`);
-        } else {
-            showToast('📨 Laporan bug tersimpan. Terima kasih!');
-        }
-    } catch (e) {
-        showToast('Gagal report bug: ' + e.message, 'error');
-    } finally {
-        btn.disabled = false; btn.textContent = orig;
-    }
+    const report = buildReportText();
+    let copied = false;
+    try { await navigator.clipboard.writeText(report); copied = true; } catch (e) { /* abaikan */ }
+    window.open('https://t.me/BugLaporBot?text=' + encodeURIComponent(report), '_blank');
+    showToast(copied
+        ? '📨 Telegram terbuka & laporan terisi — tap KIRIM. (Sudah disalin juga bila perlu paste.)'
+        : '📨 Telegram terbuka & laporan terisi — tap KIRIM ke @BugLaporBot.');
+    const box = document.getElementById('llm-debug-result');
+    box.innerHTML = `<div style="font-size:0.82em;color:#9ca3af;margin-bottom:6px;">📨 Laporan siap kirim ke <strong>@BugLaporBot</strong> (bot akan balas "diterima"). Jika Telegram tak terisi otomatis, salin teks ini lalu kirim manual:</div><textarea readonly rows="8" style="width:100%;font-family:monospace;font-size:0.78em;" onclick="this.select()">${esc(report)}</textarea>`;
 }
 
 function renderResult(res) {

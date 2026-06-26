@@ -3888,20 +3888,28 @@ ATURAN EDGES:
             const btnSync = document.getElementById('btn-m6-sync');
             if (btnSync) {
                 btnSync.addEventListener('click', async () => {
+                    // ASYNC: backend mulai job & balas {started}; kita POLL hasilnya. Scroll Qdrant
+                    // + cocokkan bisa lama → hindari timeout proxy + beri feedback seketika.
+                    const resetBtn = () => { btnSync.disabled = false; btnSync.innerHTML = '🔄 Sinkronisasi dengan Qdrant DB'; };
+                    btnSync.disabled = true;
+                    btnSync.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Syncing… (lihat Live Log)';
+                    showToast('🔄 Sinkronisasi Qdrant dimulai — bisa beberapa menit. Lihat progres di Live Log.');
                     try {
-                        btnSync.disabled = true;
-                        btnSync.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Syncing...';
-                        const res = await API.syncQdrant(session.id);
-                        const msg = `Qdrant sync complete! Synced: ${res.synced_count}`;
-                        alert(msg);
-                        // Reload agar header card (Total/Vectorized/Inaccessible/%) ikut ter-refresh
-                        // dari acquisition_log yang baru — bukan hanya tabel modal. Tanpa ini header
-                        // menampilkan angka basi (mis. 16.8% padahal DB sudah 14.95%).
-                        window.location.reload();
+                        await API.syncQdrant(session.id); // {started:true}
+                        const poll = async () => {
+                            try {
+                                const r = await API.getSyncQdrantResult(session.id);
+                                if (!r.found || !r.done) { setTimeout(poll, 2500); return; }
+                                if (r.error) { showToast('Sync gagal: ' + r.error, 'error'); resetBtn(); return; }
+                                showToast(`✅ Sync selesai: ${r.synced_count} paper tervektor.`);
+                                // Reload agar header card (Total/Vectorized/%) ikut ter-refresh.
+                                setTimeout(() => window.location.reload(), 800);
+                            } catch (e) { showToast('Gagal cek hasil sync: ' + e.message, 'error'); resetBtn(); }
+                        };
+                        setTimeout(poll, 1500);
                     } catch(e) {
-                        alert('Sync failed: ' + e.message);
-                        btnSync.disabled = false;
-                        btnSync.innerHTML = '🔄 Sinkronisasi dengan Qdrant DB';
+                        showToast('Gagal mulai sync: ' + e.message, 'error');
+                        resetBtn();
                     }
                 });
             }

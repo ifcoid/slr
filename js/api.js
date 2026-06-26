@@ -238,6 +238,7 @@ export const API = {
     syncQdrant: (id) => apiFetch(`/sessions/${id}/m6/sync-qdrant`, {
         method: 'POST'
     }),
+    getSyncQdrantResult: (id) => apiFetch(`/sessions/${id}/m6/sync-qdrant/result`),
 
     deleteQdrantPaper: (id, payload) => apiFetch(`/sessions/${id}/m6/qdrant/paper`, {
         method: 'DELETE',

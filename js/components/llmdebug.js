@@ -23,21 +23,28 @@ function ensureModal() {
     el.innerHTML = `
     <div class="glass-panel modal-content" style="max-width:920px;">
         <div class="modal-header">
-            <h2>🔬 Debug & Uji Coba Prompt LLM</h2>
+            <h2>🐞 Lapor / Debug Bug</h2>
             <button class="btn-close" id="llm-debug-close">&times;</button>
         </div>
-        <p style="font-size:0.85em;color:#9ca3af;margin:0 0 12px;">Reproduksi error (xAI): lihat prompt PERSIS yang dikirim + error provider, edit bila perlu (mis. potong full-text untuk uji batas context window), lalu <strong>Uji Coba</strong> untuk melihat respons/error mentah. Hasilnya bisa Anda kirim ke developer.</p>
+        <p style="font-size:0.85em;color:#9ca3af;margin:0 0 12px;">Lapor masalah APA PUN — tampilan/UX (mis. "tombol toast tak muncul") atau error LLM. Cukup tulis keterangan; <strong>state (modul/step, sesi, browser) ditambahkan OTOMATIS</strong>. Untuk error LLM, detail prompt & error terisi sendiri dan bisa di-Uji Coba.</p>
         <div id="llm-debug-meta"></div>
-        <div style="display:flex;gap:10px;flex-wrap:wrap;">
-            <div class="form-group" style="flex:1;min-width:160px;"><label>Provider</label><input id="llm-debug-provider" type="text" placeholder="mis. groq / gemini / mistral"></div>
-            <div class="form-group" style="flex:1;min-width:160px;"><label>Model (opsional; kosong = default tersimpan)</label><input id="llm-debug-model" type="text" placeholder="(default tersimpan)"></div>
-        </div>
-        <div class="form-group"><label>System Prompt <span id="llm-debug-sys-chars" style="color:#9ca3af;font-size:0.8em;"></span></label><textarea id="llm-debug-system" rows="5" style="width:100%;font-family:monospace;font-size:0.82em;"></textarea></div>
-        <div class="form-group"><label>User Prompt <span id="llm-debug-user-chars" style="color:#9ca3af;font-size:0.8em;"></span></label><textarea id="llm-debug-user" rows="10" style="width:100%;font-family:monospace;font-size:0.82em;"></textarea></div>
+        <div class="form-group"><label>📝 Keterangan masalah <span style="color:#9ca3af;font-size:0.8em;">(jelaskan singkat apa yang salah)</span></label><textarea id="llm-debug-note" rows="3" style="width:100%;" placeholder='mis. "Klik Sync, toast tidak muncul dan tombol diam"'></textarea></div>
+        <div id="llm-debug-state" style="font-size:0.78em;color:#9ca3af;margin-bottom:10px;"></div>
+        <details id="llm-debug-tech" style="margin-bottom:10px;">
+            <summary style="cursor:pointer;color:#60a5fa;font-size:0.85em;">🔧 Detail teknis LLM (prompt &amp; error) — terisi otomatis bila lapor dari error LLM; bisa Uji Coba</summary>
+            <div style="margin-top:10px;">
+                <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                    <div class="form-group" style="flex:1;min-width:160px;"><label>Provider</label><input id="llm-debug-provider" type="text" placeholder="mis. groq / gemini / mistral"></div>
+                    <div class="form-group" style="flex:1;min-width:160px;"><label>Model (opsional; kosong = default tersimpan)</label><input id="llm-debug-model" type="text" placeholder="(default tersimpan)"></div>
+                </div>
+                <div class="form-group"><label>System Prompt <span id="llm-debug-sys-chars" style="color:#9ca3af;font-size:0.8em;"></span></label><textarea id="llm-debug-system" rows="5" style="width:100%;font-family:monospace;font-size:0.82em;"></textarea></div>
+                <div class="form-group"><label>User Prompt <span id="llm-debug-user-chars" style="color:#9ca3af;font-size:0.8em;"></span></label><textarea id="llm-debug-user" rows="10" style="width:100%;font-family:monospace;font-size:0.82em;"></textarea></div>
+                <button id="llm-debug-run" class="btn btn-primary">🧪 Uji Coba (replay ke provider)</button>
+            </div>
+        </details>
         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-            <button id="llm-debug-run" class="btn btn-primary">🧪 Uji Coba</button>
-            <button id="llm-debug-report" class="btn" style="background:rgba(245,158,11,0.18);color:#fcd34d;border:1px solid rgba(245,158,11,0.3);" title="Kirim laporan bug (konteks otomatis) ke @BugLaporBot — tanpa perlu menambah keterangan">📨 Report Bug ke Telegram</button>
-            <span style="font-size:0.8em;color:#9ca3af;">Uji Coba = panggil provider. Report Bug = kirim ke developer via @BugLaporBot.</span>
+            <button id="llm-debug-report" class="btn" style="background:rgba(245,158,11,0.18);color:#fcd34d;border:1px solid rgba(245,158,11,0.3);" title="Unduh file laporan (state otomatis) lalu lampirkan ke @BugLaporBot">📨 Report Bug ke Telegram</button>
+            <span style="font-size:0.8em;color:#9ca3af;">Unduh file laporan → lampirkan ke @BugLaporBot (bot balas "diterima").</span>
         </div>
         <div id="llm-debug-result" style="margin-top:12px;"></div>
     </div>`;
@@ -96,40 +103,64 @@ async function pollReplay(jobId, box) {
     box.innerHTML = '<div style="color:#fca5a5;">⏱️ Replay belum selesai dalam 10 menit — provider kemungkinan sangat lambat / hang. Coba potong prompt lalu uji lagi.</div>';
 }
 
-// buildReportText merangkai SELURUH info reproduksi bug — TANPA dipotong (dikirim sebagai FILE
-// ke bot, jadi tak terbatas limit pesan 4096 char). Tidak butuh backend — konten dibawa lewat
-// file yang user lampirkan ke bot terpusat (cocok utk backend lokal per-user).
+// currentStatus membaca status sesi yang sedang tampil (= modul/step, mis. M5_STEP3_...).
+function currentStatus() {
+    return (document.getElementById('display-status')?.textContent || '').trim();
+}
+
+// renderState menampilkan state otomatis (sesi/modul-step/viewport) di modal — agar user tahu
+// info apa yang ikut terkirim untuk laporan bug TAMPILAN/UX (tanpa perlu mengetik manual).
+function renderState() {
+    const el = document.getElementById('llm-debug-state');
+    if (!el) return;
+    const sid = ctxState.sessionId || window.currentSessionId || '(tidak ada sesi aktif)';
+    el.innerHTML = `🧭 Ikut terkirim otomatis: sesi <strong>${esc(sid)}</strong> · modul/step <strong>${esc(currentStatus() || '-')}</strong> · layar ${window.innerWidth}×${window.innerHeight}`;
+}
+
+// buildReportText merangkai SELURUH info reproduksi bug — keterangan user + STATE OTOMATIS
+// (modul/step, sesi, url, browser) + (bila ada) detail LLM. TANPA dipotong (dikirim sebagai
+// FILE ke bot). Cocok utk bug tampilan/UX MAUPUN error LLM.
 function buildReportText() {
     const sid = ctxState.sessionId || window.currentSessionId || '(manual)';
-    const provider = val('llm-debug-provider').trim() || '-';
-    const model = val('llm-debug-model').trim() || '-';
+    const note = val('llm-debug-note').trim();
+    const provider = val('llm-debug-provider').trim();
+    const model = val('llm-debug-model').trim();
     const sys = val('llm-debug-system');
     const usr = val('llm-debug-user');
-    const err = ctxState.error || '(lihat hasil replay)';
+    const err = ctxState.error || '';
     const replay = ctxState.replay || '';
-    return [
+    const lines = [
         '🐞 BUG REPORT NSA/SLR',
-        `session: ${sid}`,
-        `step: ${ctxState.step || '-'}`,
-        `provider: ${provider} / model: ${model}`,
-        `waktu: ${new Date().toISOString()}`,
+        `waktu      : ${new Date().toISOString()}`,
+        `session    : ${sid}`,
+        `modul/step : ${currentStatus() || '-'}`,
+        `url        : ${location.href}`,
+        `viewport   : ${window.innerWidth}x${window.innerHeight}`,
+        `userAgent  : ${navigator.userAgent}`,
         '',
-        '❌ ERROR:',
-        err,
-        replay ? `\n🔁 REPLAY:\n${replay}` : '',
-        '',
-        `— SYSTEM PROMPT (${sys.length} char):`,
-        sys,
-        '',
-        `— USER PROMPT (${usr.length} char):`,
-        usr,
-        '',
-    ].join('\n');
+        '📝 KETERANGAN USER:',
+        note || '(tidak diisi)',
+    ];
+    // Bagian LLM hanya disertakan bila relevan (lapor dari error LLM / ada prompt).
+    if (err || provider || sys || usr || replay) {
+        lines.push('', '── DETAIL LLM ──',
+            `step    : ${ctxState.step || '-'}`,
+            `provider: ${provider || '-'} / model: ${model || '-'}`,
+            '', '❌ ERROR:', err || '(tidak ada)');
+        if (replay) lines.push('', '🔁 REPLAY:', replay);
+        lines.push('', `— SYSTEM PROMPT (${sys.length} char):`, sys, '', `— USER PROMPT (${usr.length} char):`, usr);
+    }
+    return lines.join('\n');
 }
 
 // Report Bug: unduh laporan LENGKAP sebagai FILE .txt lalu buka @BugLaporBot — user tinggal
-// LAMPIRKAN file itu & kirim (memuat seluruh prompt tanpa potong). Bot auto-reply "diterima".
+// LAMPIRKAN file itu & kirim. Bot auto-reply "diterima". Untuk bug tampilan, keterangan wajib.
 function reportBug() {
+    if (!val('llm-debug-note').trim() && !ctxState.error) {
+        showToast('Tulis keterangan masalahnya dulu.', 'error');
+        document.getElementById('llm-debug-note')?.focus();
+        return;
+    }
     const report = buildReportText();
     const sid = (ctxState.sessionId || window.currentSessionId || 'manual').replace(/[^A-Za-z0-9_-]/g, '');
     const fname = `bug-${sid || 'manual'}-${Date.now()}.txt`;
@@ -163,17 +194,22 @@ function renderResult(res) {
 window.openLLMDebug = async (sessionId) => {
     ensureModal();
     const meta = document.getElementById('llm-debug-meta');
+    setVal('llm-debug-note', '');
     setVal('llm-debug-provider', ''); setVal('llm-debug-model', '');
     setVal('llm-debug-system', ''); setVal('llm-debug-user', '');
     document.getElementById('llm-debug-result').innerHTML = '';
     meta.innerHTML = '';
+    const tech = document.getElementById('llm-debug-tech');
+    if (tech) tech.open = false; // default tertutup (mode lapor tampilan/UX)
     ctxState.sessionId = sessionId || window.currentSessionId || '';
     ctxState.step = ''; ctxState.error = ''; ctxState.replay = '';
+    renderState();
     openModal(MODAL_ID);
+    setTimeout(() => document.getElementById('llm-debug-note')?.focus(), 50);
 
     const sid = sessionId || window.currentSessionId;
     if (!sid) {
-        meta.innerHTML = '<div style="font-size:0.85em;color:#9ca3af;margin-bottom:10px;">Mode manual — isi provider & prompt, lalu Uji Coba.</div>';
+        meta.innerHTML = '<div style="font-size:0.85em;color:#9ca3af;margin-bottom:10px;">Tulis keterangan masalah di atas, lalu Report Bug. (Detail LLM opsional — buka jika perlu uji prompt.)</div>';
         return;
     }
     meta.innerHTML = '<div style="font-size:0.85em;color:#9ca3af;margin-bottom:10px;">⏳ Memuat jejak error LLM terakhir…</div>';
@@ -190,6 +226,7 @@ window.openLLMDebug = async (sessionId) => {
         setVal('llm-debug-model', t.model);
         setVal('llm-debug-system', t.system_prompt);
         setVal('llm-debug-user', t.user_prompt);
+        if (tech) tech.open = true; // ada jejak error LLM → buka detail teknis otomatis
         document.getElementById('llm-debug-system').dispatchEvent(new Event('input'));
         const when = t.timestamp ? new Date(t.timestamp).toLocaleString() : '';
         meta.innerHTML = `<div style="padding:10px 12px;background:rgba(239,68,68,0.1);border-left:3px solid #ef4444;border-radius:6px;margin-bottom:12px;font-size:0.85em;color:#fca5a5;">

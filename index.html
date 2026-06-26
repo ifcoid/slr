@@ -100,7 +100,7 @@
                 <div class="terminal-header">
                     <span>🔴</span><span>🟡</span><span>🟢</span>
                     <span style="margin-left:10px; font-size:0.8rem; color:#666;">Agent Real-Time Logs</span>
-                    <button onclick="window.openLLMDebug()" class="btn btn-icon" style="float:right;font-size:0.72rem;padding:2px 8px;" title="Debug & uji coba prompt LLM dari error terakhir (Reproducible Error)">🔬 Debug LLM</button>
+                    <button onclick="window.openLLMDebug()" class="btn btn-icon" style="float:right;font-size:0.72rem;padding:2px 8px;" title="Lapor bug / debug & uji coba prompt LLM (Reproducible Error)">🐞 Lapor Bug</button>
                 </div>
                 <div id="terminal-logs" class="terminal-body">
                     <!-- Logs will be appended here -->
@@ -118,7 +118,7 @@
                 <h2>Dashboard Kesehatan & Kuota API</h2>
                 <div style="display: flex; gap: 10px;">
                     <button id="btn-preflight" class="btn btn-icon" style="background: rgba(59, 130, 246, 0.2); color: #60a5fa; border-color: rgba(59, 130, 246, 0.3);" title="Uji SEMUA role pipeline (Reviewer 1/2, Supervisor, Brain, Auditor + fallback) dengan generate nyata. ~1-2 menit.">🚦 Pre-flight Semua Role</button>
-                    <button onclick="window.openLLMDebug()" class="btn btn-icon" style="background: rgba(168, 85, 247, 0.2); color: #c084fc; border-color: rgba(168, 85, 247, 0.3);" title="Debug & uji coba prompt LLM dari error terakhir (Reproducible Error)">🔬 Debug LLM</button>
+                    <button onclick="window.openLLMDebug()" class="btn btn-icon" style="background: rgba(168, 85, 247, 0.2); color: #c084fc; border-color: rgba(168, 85, 247, 0.3);" title="Lapor bug / debug & uji coba prompt LLM (Reproducible Error)">🐞 Lapor / Debug Bug</button>
                     <button id="btn-refresh-health" class="btn btn-icon">🔄 Refresh Status</button>
                     <button id="btn-back-health" class="btn btn-icon" style="background: rgba(156, 163, 175, 0.2); color: #9ca3af; border-color: rgba(156, 163, 175, 0.3);">Kembali</button>
                 </div>
@@ -206,7 +206,7 @@
                         </div>
                         <button type="button" id="btn-fetch-models" class="btn btn-secondary" style="height: 42px;">🔄 Muat Model</button>
                         <button type="button" id="btn-test-model" class="btn btn-secondary" style="height: 42px;" title="Uji panggilan NYATA ke model terpilih — menangkap model terkunci/404 yang lolos cek API key">🧪 Test Model</button>
-                        <button type="button" onclick="window.openLLMDebug()" class="btn btn-secondary" style="height: 42px;" title="Debug & uji coba prompt LLM dari error terakhir (Reproducible Error)">🔬 Debug Prompt</button>
+                        <button type="button" onclick="window.openLLMDebug()" class="btn btn-secondary" style="height: 42px;" title="Lapor bug / debug & uji coba prompt LLM (Reproducible Error)">🐞 Lapor / Debug Bug</button>
                     </div>
                     
                     <div id="llm-config-status" style="font-size:0.85em; margin:4px 0; min-height:1em;"></div>

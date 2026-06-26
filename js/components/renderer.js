@@ -1861,7 +1861,7 @@ export function renderApprovalContent(area, session, handleApproval) {
             </div>
             <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;">
                 <button onclick="window.testRoleModel('reviewer2')" class="btn btn-secondary" style="flex:1;min-width:150px;">🧪 Test model Reviewer 2</button>
-                <button onclick="window.openLLMDebug('${session.id}')" class="btn btn-secondary" style="flex:1;min-width:150px;" title="Lihat prompt+error persis & uji coba (Reproducible Error)">🔬 Debug/Uji Coba Prompt</button>
+                <button onclick="window.openLLMDebug('${session.id}')" class="btn btn-secondary" style="flex:1;min-width:150px;" title="Lapor bug / lihat prompt+error persis & uji coba (Reproducible Error)">🐞 Lapor / Debug Bug</button>
                 <button onclick="document.getElementById('btn-settings')?.click()" class="btn btn-secondary" style="flex:1;min-width:150px;">⚙ Buka Pengaturan</button>
                 <button onclick="window.reverifyExtraction('${session.id}')" class="btn btn-primary" style="flex:1;min-width:150px;">🔁 Ulangi Verifikasi</button>
             </div>
@@ -1923,7 +1923,7 @@ export function renderApprovalContent(area, session, handleApproval) {
                 <strong>⚠️ Pengecekan kualitas (Reviewer 2) TIDAK berjalan</strong> — 0 paper berhasil diverifikasi. Tingkat perbedaan di bawah <strong>bukan</strong> hasil valid. ${l.nr_note || 'Periksa provider Reviewer 2 (mungkin model terkunci/404 atau kuota).'}
                 <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
                     <button onclick="window.testRoleModel('reviewer2')" class="btn btn-secondary" style="padding:3px 10px;font-size:0.82em;">🧪 Test model Reviewer 2</button>
-                    <button onclick="window.openLLMDebug('${session.id}')" class="btn btn-secondary" style="padding:3px 10px;font-size:0.82em;" title="Lihat prompt+error persis & uji coba">🔬 Debug/Uji Coba</button>
+                    <button onclick="window.openLLMDebug('${session.id}')" class="btn btn-secondary" style="padding:3px 10px;font-size:0.82em;" title="Lapor bug / lihat prompt+error persis & uji coba">🐞 Lapor / Debug Bug</button>
                     <button onclick="document.getElementById('btn-settings')?.click()" class="btn btn-secondary" style="padding:3px 10px;font-size:0.82em;">⚙ Buka Pengaturan</button>
                     <button onclick="window.reverifyExtraction('${session.id}')" class="btn btn-primary" style="padding:3px 10px;font-size:0.82em;">🔁 Ulangi Verifikasi (tanpa re-ekstrak)</button>
                 </div>

@@ -370,13 +370,21 @@ export function initSetup() {
             setButtonLoading(btn, true);
             try {
                 await API.updateScopusConfig(payload);
+                // Tombol SELESAI begitu penyimpanan sukses — jangan gantung menunggu refresh
+                // UI di bawah (loadScopusConfig = panggilan jaringan) agar tombol tak nyangkut
+                // "Memproses..." padahal toast sudah bilang tersimpan.
+                setButtonLoading(btn, false, 'Simpan Scopus Config');
                 showToast('Scopus config berhasil disimpan!');
                 document.getElementById('scopus-cfg-key').value = '';
-                await loadScopusConfig();
+                // Refresh best-effort: kegagalan TIDAK boleh memunculkan toast error (simpan sukses).
+                try {
+                    await loadScopusConfig();
+                } catch (refreshErr) {
+                    console.warn('Refresh setelah simpan Scopus config gagal:', refreshErr);
+                }
             } catch (error) {
-                showToast(error.message, 'error');
-            } finally {
                 setButtonLoading(btn, false, 'Simpan Scopus Config');
+                showToast(error.message, 'error');
             }
         });
     }

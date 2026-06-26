@@ -50,6 +50,8 @@ function ensureModal() {
     document.getElementById('llm-debug-run').addEventListener('click', runReplay);
 }
 
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
 async function runReplay() {
     const btn = document.getElementById('llm-debug-run');
     const provider = val('llm-debug-provider').trim();
@@ -59,10 +61,11 @@ async function runReplay() {
     const box = document.getElementById('llm-debug-result');
     if (!provider) { showToast('Isi provider dulu.', 'error'); return; }
     btn.disabled = true; const orig = btn.textContent; btn.textContent = '⏳ Menguji…';
-    box.innerHTML = '<div style="color:#9ca3af;">⏳ Mengirim prompt ke provider… (bisa lama untuk prompt besar)</div>';
+    box.innerHTML = '<div style="color:#9ca3af;">⏳ Mengirim prompt ke provider… (async — aman untuk prompt panjang)</div>';
     try {
-        const res = await API.replayLLM({ provider, model, system_prompt, user_prompt });
-        renderResult(res);
+        const start = await API.replayLLM({ provider, model, system_prompt, user_prompt });
+        if (!start || !start.job_id) { renderResult(start || {}); return; } // error build client (langsung)
+        await pollReplay(start.job_id, box);
     } catch (e) {
         box.innerHTML = `<div style="color:#fca5a5;">Gagal memanggil replay: ${esc(e.message)}</div>`;
     } finally {
@@ -70,9 +73,26 @@ async function runReplay() {
     }
 }
 
+// pollReplay menanyai hasil job tiap 2 dtk sampai done. Prompt besar bisa lama; tak ada
+// timeout proxy karena tiap GET balik cepat. Batas aman 10 menit.
+async function pollReplay(jobId, box) {
+    const startT = Date.now();
+    const maxMs = 10 * 60 * 1000;
+    while (Date.now() - startT < maxMs) {
+        await sleep(2000);
+        let res;
+        try { res = await API.getReplayResult(jobId); }
+        catch (e) { box.innerHTML = `<div style="color:#fca5a5;">Gagal polling hasil: ${esc(e.message)}</div>`; return; }
+        if (res && res.done) { renderResult(res); return; }
+        const secs = Math.round((Date.now() - startT) / 1000);
+        box.innerHTML = `<div style="color:#9ca3af;">⏳ Menunggu balasan provider… ${secs}s (prompt besar memang lama; aman tanpa timeout proxy)</div>`;
+    }
+    box.innerHTML = '<div style="color:#fca5a5;">⏱️ Replay belum selesai dalam 10 menit — provider kemungkinan sangat lambat / hang. Coba potong prompt lalu uji lagi.</div>';
+}
+
 function renderResult(res) {
     const box = document.getElementById('llm-debug-result');
-    const meta = `<div style="font-size:0.8em;color:#9ca3af;margin-bottom:6px;">model: <strong>${esc(res.model) || '(default)'}</strong> · prompt ${res.prompt_chars} char · ${res.duration_ms} ms · respons ${res.response_chars || 0} char</div>`;
+    const meta = `<div style="font-size:0.8em;color:#9ca3af;margin-bottom:6px;">model: <strong>${esc(res.model) || '(default)'}</strong> · prompt ${res.prompt_chars || 0} char · ${res.duration_ms || 0} ms · respons ${res.response_chars || 0} char</div>`;
     if (res.ok) {
         box.innerHTML = meta + `<div style="padding:8px 10px;background:rgba(34,197,94,0.1);border-left:3px solid #22c55e;border-radius:6px;color:#86efac;margin-bottom:6px;">✓ Provider MEMBALAS (${res.response_chars} char). Prompt ini OK untuk provider/model ini — jika error aslinya hilang, berarti penyebabnya pada prompt/ukuran tadi.</div><pre style="white-space:pre-wrap;font-family:monospace;font-size:0.8em;background:rgba(0,0,0,0.35);padding:10px;border-radius:6px;max-height:340px;overflow:auto;color:#cbd5e1;">${esc(res.response)}</pre>`;
     } else {

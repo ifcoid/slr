@@ -59,6 +59,22 @@ export function initHealthDashboard() {
     // sebelum run panjang (ekstraksi/QA) terlanjur jalan dan membuang waktu.
     async function loadPreflightData() {
         if (!preflightLoading || !preflightResults) return;
+
+        // Pre-flight menguji config TERSIMPAN. Bila user baru mengedit Pengaturan tapi belum
+        // klik Simpan, hasil pre-flight bisa menyesatkan (menguji nilai lama). Peringatkan dulu.
+        const unsaved = (typeof window.hasUnsavedLLMConfig === 'function')
+            ? window.hasUnsavedLLMConfig() : { dirty: false, parts: [] };
+        if (unsaved.dirty) {
+            const proceed = confirm(
+                '⚠ Ada perubahan konfigurasi LLM yang BELUM disimpan:\n' +
+                '• ' + unsaved.parts.join('\n• ') + '\n\n' +
+                'Pre-flight menguji konfigurasi TERSIMPAN, jadi perubahan tadi BELUM ikut diuji.\n' +
+                'Sebaiknya buka Pengaturan, klik Simpan, lalu jalankan pre-flight lagi.\n\n' +
+                'Tetap lanjut pre-flight dengan config tersimpan saat ini?'
+            );
+            if (!proceed) return;
+        }
+
         preflightLoading.classList.remove('hidden');
         preflightResults.innerHTML = '';
         healthResults.innerHTML = ''; // jangan tumpang-tindih dgn tabel health lama
@@ -66,7 +82,7 @@ export function initHealthDashboard() {
         btnRefreshHealth.disabled = true;
         try {
             const res = await API.preflightRoles();
-            renderPreflightTable(res.roles || [], !!res.all_usable);
+            renderPreflightTable(res.roles || [], !!res.all_usable, unsaved.dirty);
         } catch (error) {
             preflightResults.innerHTML = `<div class="error-msg" style="color:#ef4444;padding:15px;border:1px solid #ef4444;border-radius:8px;background:rgba(239,68,68,0.1);">Gagal menjalankan pre-flight: ${error.message}</div>`;
         } finally {
@@ -95,17 +111,21 @@ export function initHealthDashboard() {
         return `<div style="color:${color};font-weight:600;">${icon} ${name}</div><div style="font-size:0.82em;color:#cbd5e1;">${m.replace(/</g, '&lt;')}</div>${errLine}`;
     }
 
-    function renderPreflightTable(roles, allUsable) {
+    function renderPreflightTable(roles, allUsable, unsavedWarn) {
         if (!roles || roles.length === 0) {
             preflightResults.innerHTML = '<p>Tidak ada role LLM untuk diuji (cek Model Routing di Pengaturan).</p>';
             return;
         }
+        const unsavedBanner = unsavedWarn
+            ? `<div style="padding:10px 14px;background:rgba(234,179,8,0.12);border-left:4px solid #eab308;border-radius:8px;color:#fde68a;margin-bottom:12px;font-size:0.9em;"><strong>⚠ Hasil di bawah dari config TERSIMPAN</strong> — ada perubahan di Pengaturan yang belum Anda Simpan, jadi belum ikut terhitung. Simpan dulu lalu jalankan pre-flight lagi untuk hasil akurat.</div>`
+            : '';
         const failed = roles.filter(r => !r.usable);
         const banner = allUsable
             ? `<div style="padding:12px 16px;background:rgba(34,197,94,0.12);border-left:4px solid #22c55e;border-radius:8px;color:#86efac;margin-bottom:16px;"><strong>✅ Semua role siap.</strong> Aman memulai run — tiap role punya minimal satu provider (primary/fallback) yang lolos generate nyata.</div>`
             : `<div style="padding:12px 16px;background:rgba(239,68,68,0.12);border-left:4px solid #ef4444;border-radius:8px;color:#fca5a5;margin-bottom:16px;"><strong>⛔ ${failed.length} role TIDAK bisa dipakai:</strong> ${failed.map(r => roleLabels[r.role] || r.role).join(', ')}.<br>Perbaiki provider di <strong>Pengaturan → Model Routing</strong> (Test Model sampai ✓) SEBELUM memulai run, agar tidak terhenti di tengah jalan.</div>`;
 
         let table = `
+            ${unsavedBanner}
             ${banner}
             <table style="width:100%;border-collapse:collapse;text-align:left;background:rgba(30,41,59,0.5);border-radius:8px;overflow:hidden;">
                 <thead>

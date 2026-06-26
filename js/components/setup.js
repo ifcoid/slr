@@ -11,6 +11,25 @@ export function initSetup() {
     const btnTestModel = document.getElementById('btn-test-model');
     const selectModel = document.getElementById('llm-model');
 
+    // Lacak "ada perubahan belum disimpan" agar Pre-flight (yang menguji config TERSIMPAN)
+    // bisa memperingatkan user kalau ia baru mengedit tapi belum klik Simpan.
+    let dirtyConfig = false; // form Konfigurasi Provider (API key / model / base URL)
+    let dirtyRoles = false;  // form Model Routing (peran -> provider)
+    const markConfigDirty = () => { dirtyConfig = true; };
+    const markRolesDirty = () => { dirtyRoles = true; };
+    // Diekspos global agar health.js (Pre-flight) bisa membacanya lintas-modul.
+    window.hasUnsavedLLMConfig = () => {
+        const parts = [];
+        if (dirtyConfig) parts.push('Konfigurasi Provider (API Key / Model / Base URL)');
+        if (dirtyRoles) parts.push('Model Routing (peran → provider)');
+        return { dirty: parts.length > 0, parts };
+    };
+    ['input-api-key', 'llm-base-url'].forEach((id) => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('input', markConfigDirty);
+    });
+    if (selectModel) selectModel.addEventListener('change', markConfigDirty);
+
     // Load initial Base URL to input
     if (inputBaseUrl) {
         inputBaseUrl.value = getBaseURL();
@@ -235,7 +254,10 @@ export function initSetup() {
         renderRoutingSummary();
         ROLE_IDS.forEach((id) => {
             const sel = document.getElementById('role-' + id);
-            if (sel) sel.addEventListener('change', renderRoutingSummary);
+            if (sel) {
+                sel.addEventListener('change', renderRoutingSummary);
+                sel.addEventListener('change', markRolesDirty);
+            }
         });
     };
 
@@ -252,6 +274,7 @@ export function initSetup() {
             setButtonLoading(btn, true);
             try {
                 await API.updateRoles(payload);
+                dirtyRoles = false; // tersimpan
                 const r1 = providerInfo[payload.reviewer1];
                 const r1m = r1 && r1.has_key ? (r1.default_model || formatProviderName(payload.reviewer1)) : formatProviderName(payload.reviewer1);
                 showToast(`✅ Routing tersimpan. Reviewer 1 = ${r1m}. Lihat rekap lengkap di bawah form.`);
@@ -384,6 +407,10 @@ export function initSetup() {
             loadEmbedConfig();
             loadScopusConfig();
             await loadRolesIntoForm(); // isi role selects dulu agar badge health akurat
+            // Form baru saja dimuat dari config TERSIMPAN -> belum ada perubahan. Reset flag
+            // (nilai di-set programatik tidak memicu event 'input'/'change', jadi aman).
+            dirtyConfig = false;
+            dirtyRoles = false;
             refreshHealth();           // cek kesehatan (async) lalu segarkan badge + banner
         });
     }
@@ -494,6 +521,7 @@ export function initSetup() {
             try {
                 // apiKey kosong -> backend pertahankan key lama (edit model/base_url saja).
                 await API.updateLLMConfig(provider, apiKey, model, baseUrl);
+                dirtyConfig = false; // tersimpan
                 showToast(`✅ ${formatProviderName(provider)} (${model}) tersimpan.`);
                 document.getElementById('input-api-key').value = '';
                 // #1: segarkan providerInfo -> label routing + rekap ikut update; modal tetap

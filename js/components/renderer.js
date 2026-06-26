@@ -67,6 +67,18 @@ window.reverifyExtraction = async (sessionId) => {
     } catch (e) { showToast('Gagal: ' + e.message, 'error'); }
 };
 
+// Lanjut TANPA QA Reviewer 2 (provider tak tersedia) — keputusan SADAR user; dicatat sebagai
+// limitation metodologis. Dipakai dari gerbang M7_STEP2_VERIFY_BLOCKED saat provider tak bisa
+// diperbaiki sekarang. Ekstraksi tetap dipertahankan.
+window.skipVerification = async (sessionId) => {
+    if (!confirm('Lanjut TANPA QA silang Reviewer 2?\n\nIni akan dicatat sebagai LIMITATION metodologis (tidak ada verifikasi dual-rater). Gunakan hanya bila provider Reviewer 2 benar-benar tak bisa diperbaiki sekarang.')) return;
+    try {
+        await API.reviseStep(sessionId, 'Lanjut tanpa QA Reviewer 2 (limitation)', 'M7_STEP2_VERIFY_SKIP');
+        showToast('⏭ Lanjut tanpa verifikasi — dicatat sebagai limitation.');
+        setTimeout(() => window.location.reload(), 900);
+    } catch (e) { showToast('Gagal: ' + e.message, 'error'); }
+};
+
 window.exportCorrectionsAudit = async (sessionId) => {
     try {
         const s = await API.getSession(sessionId);
@@ -1821,6 +1833,41 @@ export function renderApprovalContent(area, session, handleApproval) {
             });
         }, 0);
 
+    } else if (status === 'M7_STEP2_VERIFY_BLOCKED') {
+        // Gerbang HITL: pipeline DIJEDA karena provider Reviewer 2 (QA silang) tak bisa dipakai.
+        // Tampilkan error PENUH + langkah perbaikan, beri user waktu mengganti provider, lalu
+        // 'Ulangi Verifikasi'. (Ekstraksi sudah tersimpan & aman — tidak hilang.)
+        const l = session.extraction_log || {};
+        const detail = (session.system_error || l.verifier_error || 'Provider Reviewer 2 tidak bisa dihubungi (mungkin 404 model salah / 401 API key / 429 kuota).');
+        const esc = (s) => (s || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        html = wrapCard('⛔ Pipeline Dijeda — QA Reviewer 2 Perlu Diperbaiki', `
+            <div style="padding:14px 16px;background:rgba(239,68,68,0.12);border-left:4px solid #ef4444;border-radius:8px;color:#fca5a5;margin-bottom:14px;">
+                <strong style="font-size:1.05em;">QA silang (Reviewer 2) tidak bisa dijalankan.</strong>
+                <p style="margin:8px 0 0;color:#fecaca;">Pipeline sengaja <strong>berhenti di sini</strong> agar Anda sempat memperbaiki provider sebelum lanjut. Data ekstraksi <strong>${l.total_extracted || 0} paper</strong> sudah <strong>TERSIMPAN &amp; AMAN</strong> — tidak akan hilang.</p>
+            </div>
+            <div style="margin-bottom:14px;">
+                <strong style="color:#fcd34d;">🔎 Detail error (yang harus diperbaiki):</strong>
+                <pre style="white-space:pre-wrap;font-family:monospace;font-size:0.82em;background:rgba(0,0,0,0.35);padding:10px;border-radius:6px;margin-top:6px;color:#fecaca;max-height:260px;overflow-y:auto;">${esc(detail)}</pre>
+                ${l.model_refine_protocol ? `<p style="font-size:0.82em;color:#94a3b8;margin-top:4px;">Model Reviewer 2 saat ini: <strong style="color:#cbd5e1;">${esc(l.model_refine_protocol)}</strong></p>` : ''}
+            </div>
+            <div style="padding:10px 12px;background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.3);border-radius:8px;margin-bottom:14px;font-size:0.88em;color:#cbd5e1;">
+                <strong style="color:#60a5fa;">Langkah perbaikan:</strong>
+                <ol style="margin:6px 0 0;padding-left:20px;line-height:1.6;">
+                    <li>Buka <strong>Pengaturan</strong> → role <strong>Reviewer 2</strong>, perbaiki API key / nama model / base URL.</li>
+                    <li>Klik <strong>🧪 Test Model</strong> sampai hijau (✓).</li>
+                    <li>Kembali ke sini, klik <strong>🔁 Ulangi Verifikasi</strong>.</li>
+                </ol>
+                <p style="margin:8px 0 0;color:#94a3b8;">Penyebab umum: nama model salah/terkunci (404), API key salah (401), atau kuota habis (429).</p>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;">
+                <button onclick="window.testRoleModel('reviewer2')" class="btn btn-secondary" style="flex:1;min-width:150px;">🧪 Test model Reviewer 2</button>
+                <button onclick="document.getElementById('btn-settings')?.click()" class="btn btn-secondary" style="flex:1;min-width:150px;">⚙ Buka Pengaturan</button>
+                <button onclick="window.reverifyExtraction('${session.id}')" class="btn btn-primary" style="flex:1;min-width:150px;">🔁 Ulangi Verifikasi</button>
+            </div>
+            <div style="margin-top:10px;text-align:center;">
+                <button onclick="window.skipVerification('${session.id}')" class="btn" style="background:rgba(245,158,11,0.15);color:#fcd34d;border:1px solid rgba(245,158,11,0.3);font-size:0.82em;padding:4px 12px;" title="Lanjut tanpa QA dual-rater; akan dicatat sebagai limitation metodologis">⏭ Lanjut tanpa verifikasi (catat sebagai limitation)</button>
+            </div>
+        `);
     } else if (status === 'M7_STEP2_WAITING_APPROVAL') {
         const l = session.extraction_log || {};
         const rate = (l.disagreement_rate || 0).toFixed(1);

@@ -153,7 +153,7 @@ async function fetchSessionStatus() {
         const errDot = document.getElementById('settings-error-dot');
         if (errDot) {
             const st = session.status || '';
-            const isErr = st.includes('ERROR') || st.includes('FAILED') || st.includes('WAITING_EMBED');
+            const isErr = st.includes('ERROR') || st.includes('FAILED') || st.includes('WAITING_EMBED') || st === 'M7_STEP2_VERIFY_BLOCKED';
             const errText = `${session.system_error || ''} ${session.embed_error || ''}`;
             const llmRelated = isErr && /role |provider|pengaturan llm|api key|rate|kuota|quota|dihubungi|beruntun|stream kosong|extractor|reviewer|supervisor|brain|auditor|embedding/i.test(errText);
             errDot.classList.toggle('hidden', !llmRelated);
@@ -167,7 +167,7 @@ async function fetchSessionStatus() {
         lastRenderedStatus = session.status;
 
         // Logic for animation and interaction based on status
-        if (session.status && (session.status.includes('WAITING') || session.status.includes('DONE') || session.status.includes('LOW_KAPPA'))) {
+        if (session.status && (session.status.includes('WAITING') || session.status.includes('DONE') || session.status.includes('LOW_KAPPA') || session.status === 'M7_STEP2_VERIFY_BLOCKED')) {
             toggleHidden('status-spinner', false); // Hide spinner
             renderApprovalUI(session);
         } else if (session.status === 'COMPLETED') {

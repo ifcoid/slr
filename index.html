@@ -4,6 +4,35 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Agentic SLR Orchestrator</title>
+    <!-- Reproducible Error: tangkap error JS SEDINI mungkin (sebelum modul lain dimuat) ke
+         ring-buffer 30 → ikut di laporan bug. Untuk bug TAMPILAN, error console sering kuncinya. -->
+    <script>
+      (function () {
+        window.__errLog = [];
+        function push(kind, msg) {
+          try {
+            window.__errLog.push(new Date().toISOString() + ' [' + kind + '] ' + String(msg).slice(0, 500));
+            if (window.__errLog.length > 30) window.__errLog.shift();
+          } catch (e) {}
+        }
+        window.addEventListener('error', function (e) {
+          push('error', (e && e.message ? e.message : 'error') + (e && e.filename ? ' @' + e.filename + ':' + (e.lineno || '?') : ''));
+        });
+        window.addEventListener('unhandledrejection', function (e) {
+          var r = e && e.reason;
+          push('promise', (r && r.message) ? r.message : (r ? String(r) : 'unhandledrejection'));
+        });
+        var _ce = console.error;
+        console.error = function () {
+          try {
+            push('console.error', Array.prototype.map.call(arguments, function (a) {
+              return (a && a.message) ? a.message : (typeof a === 'object' ? (function () { try { return JSON.stringify(a).slice(0, 200); } catch (x) { return String(a); } })() : String(a));
+            }).join(' '));
+          } catch (e) {}
+          return _ce.apply(console, arguments);
+        };
+      })();
+    </script>
     <!-- Modern Font: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

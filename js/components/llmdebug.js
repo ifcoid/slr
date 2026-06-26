@@ -144,6 +144,11 @@ function buildReportText() {
         '📝 KETERANGAN USER:',
         note || '(tidak diisi)',
     ];
+    // Error console JS (window.__errLog dari script di <head>) — kunci untuk bug TAMPILAN.
+    const errs = (window.__errLog || []);
+    if (errs.length) {
+        lines.push('', `── ERROR CONSOLE (${errs.length} terakhir) ──`, ...errs.slice(-20));
+    }
     // Bagian LLM hanya disertakan bila relevan (lapor dari error LLM / ada prompt).
     if (err || provider || sys || usr || replay) {
         lines.push('', '── DETAIL LLM ──',
@@ -167,8 +172,23 @@ async function reportBug() {
     const btn = document.getElementById('llm-debug-report');
     btn.disabled = true; const orig = btn.textContent; btn.textContent = '⏳ Menyiapkan…';
     let report = buildReportText();
+
+    // VERSI BUILD FRONTEND: fingerprint deploy (slr "deploy from branch", tanpa SHA build) —
+    // Last-Modified/ETag situs + version.json bila ada. Agar developer tahu versi frontend mana
+    // yang dipakai user saat reproduksi. Best-effort.
+    let fe = '';
+    try {
+        const vr = await fetch('version.json?cb=' + Date.now(), { cache: 'no-store' });
+        if (vr.ok) { const vj = await vr.json(); fe += `frontend_version: ${JSON.stringify(vj)}\n`; }
+    } catch (e) { /* abaikan */ }
+    try {
+        const hr = await fetch(location.pathname + '?cb=' + Date.now(), { method: 'HEAD', cache: 'no-store' });
+        fe += `frontend_deploy: last-modified=${hr.headers.get('last-modified') || '?'} etag=${hr.headers.get('etag') || '?'}\n`;
+    } catch (e) { /* abaikan */ }
+    if (fe) report += '\n════ VERSI FRONTEND ════\n' + fe;
+
     // SISIPKAN snapshot state DB (diagnostic) ke laporan → developer TAK perlu akses Mongo user
-    // (cocok backend lokal; tak bocorkan connection-string). Best-effort.
+    // (cocok backend lokal; tak bocorkan connection-string). Diagnostic juga memuat backend_version.
     const sidRaw = ctxState.sessionId || window.currentSessionId;
     if (sidRaw) {
         try {

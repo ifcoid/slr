@@ -96,10 +96,9 @@ async function pollReplay(jobId, box) {
     box.innerHTML = '<div style="color:#fca5a5;">⏱️ Replay belum selesai dalam 10 menit — provider kemungkinan sangat lambat / hang. Coba potong prompt lalu uji lagi.</div>';
 }
 
-// buildReportText merangkai SELURUH info reproduksi bug ke SATU pesan (muat di limit Telegram
-// 4096 char): metadata + error PENUH + prompt (dipotong bila perlu) + ringkas hasil replay.
-// Tidak butuh backend — konten dibawa lewat deep-link & dikirim user ke bot (cocok utk backend
-// lokal per-user; bot terpusat = satu-satunya inbox yang developer bisa baca).
+// buildReportText merangkai SELURUH info reproduksi bug — TANPA dipotong (dikirim sebagai FILE
+// ke bot, jadi tak terbatas limit pesan 4096 char). Tidak butuh backend — konten dibawa lewat
+// file yang user lampirkan ke bot terpusat (cocok utk backend lokal per-user).
 function buildReportText() {
     const sid = ctxState.sessionId || window.currentSessionId || '(manual)';
     const provider = val('llm-debug-provider').trim() || '-';
@@ -108,29 +107,41 @@ function buildReportText() {
     const usr = val('llm-debug-user');
     const err = ctxState.error || '(lihat hasil replay)';
     const replay = ctxState.replay || '';
-    const head = `🐞 BUG NSA/SLR\nsession: ${sid}\nstep: ${ctxState.step || '-'}\nprovider: ${provider} / model: ${model}\nwaktu: ${new Date().toISOString()}\n\n❌ ERROR:\n${err}\n`;
-    const replayLine = replay ? `\n🔁 REPLAY: ${replay.slice(0, 500)}\n` : '';
-    let budget = 3800 - head.length - replayLine.length - 120;
-    if (budget < 200) budget = 200;
-    const sysBudget = Math.min(sys.length, Math.floor(budget * 0.35));
-    const usrBudget = Math.min(usr.length, budget - sysBudget);
-    const clip = (s, n) => (s.length > n ? s.slice(0, n) + `…[+${s.length - n} char dipotong]` : s);
-    const body = `\n— SYSTEM PROMPT (${sys.length} char):\n${clip(sys, sysBudget)}\n\n— USER PROMPT (${usr.length} char):\n${clip(usr, usrBudget)}`;
-    return head + replayLine + body;
+    return [
+        '🐞 BUG REPORT NSA/SLR',
+        `session: ${sid}`,
+        `step: ${ctxState.step || '-'}`,
+        `provider: ${provider} / model: ${model}`,
+        `waktu: ${new Date().toISOString()}`,
+        '',
+        '❌ ERROR:',
+        err,
+        replay ? `\n🔁 REPLAY:\n${replay}` : '',
+        '',
+        `— SYSTEM PROMPT (${sys.length} char):`,
+        sys,
+        '',
+        `— USER PROMPT (${usr.length} char):`,
+        usr,
+        '',
+    ].join('\n');
 }
 
-// Report Bug: SATU pesan reproduksi → deep-link t.me/BugLaporBot?text=... (user tap KIRIM).
-// Clipboard sebagai cadangan bila client tak meng-isi otomatis.
-async function reportBug() {
+// Report Bug: unduh laporan LENGKAP sebagai FILE .txt lalu buka @BugLaporBot — user tinggal
+// LAMPIRKAN file itu & kirim (memuat seluruh prompt tanpa potong). Bot auto-reply "diterima".
+function reportBug() {
     const report = buildReportText();
-    let copied = false;
-    try { await navigator.clipboard.writeText(report); copied = true; } catch (e) { /* abaikan */ }
-    window.open('https://t.me/BugLaporBot?text=' + encodeURIComponent(report), '_blank');
-    showToast(copied
-        ? '📨 Telegram terbuka & laporan terisi — tap KIRIM. (Sudah disalin juga bila perlu paste.)'
-        : '📨 Telegram terbuka & laporan terisi — tap KIRIM ke @BugLaporBot.');
+    const sid = (ctxState.sessionId || window.currentSessionId || 'manual').replace(/[^A-Za-z0-9_-]/g, '');
+    const fname = `bug-${sid || 'manual'}-${Date.now()}.txt`;
+    const url = URL.createObjectURL(new Blob([report], { type: 'text/plain' }));
+    const a = document.createElement('a');
+    a.href = url; a.download = fname;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 3000);
+    window.open('https://t.me/BugLaporBot', '_blank');
+    showToast(`📎 File "${fname}" terunduh. Di chat @BugLaporBot (terbuka), LAMPIRKAN file itu lalu kirim — bot membalas "diterima".`);
     const box = document.getElementById('llm-debug-result');
-    box.innerHTML = `<div style="font-size:0.82em;color:#9ca3af;margin-bottom:6px;">📨 Laporan siap kirim ke <strong>@BugLaporBot</strong> (bot akan balas "diterima"). Jika Telegram tak terisi otomatis, salin teks ini lalu kirim manual:</div><textarea readonly rows="8" style="width:100%;font-family:monospace;font-size:0.78em;" onclick="this.select()">${esc(report)}</textarea>`;
+    box.innerHTML = `<div style="font-size:0.82em;color:#9ca3af;margin-bottom:6px;">📎 File <strong>${esc(fname)}</strong> terunduh (berisi SELURUH prompt, tak terpotong). Lampirkan ke <strong>@BugLaporBot</strong> lalu kirim. Cadangan — salin teks ini bila perlu:</div><textarea readonly rows="8" style="width:100%;font-family:monospace;font-size:0.78em;" onclick="this.select()">${esc(report)}</textarea>`;
 }
 
 function renderResult(res) {

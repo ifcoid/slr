@@ -134,6 +134,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     initHealthDashboard();
     initLLMDebug();
 
+    // Header dropdown menu (Lapor Bug + diagnostik). Toggle + tutup saat klik di luar.
+    window.toggleHeaderMenu = (e) => { if (e) e.stopPropagation(); document.getElementById('header-menu')?.classList.toggle('hidden'); };
+    window.closeHeaderMenu = () => document.getElementById('header-menu')?.classList.add('hidden');
+    document.addEventListener('click', (e) => {
+        const menu = document.getElementById('header-menu');
+        const btn = document.getElementById('btn-menu');
+        if (menu && !menu.classList.contains('hidden') && !menu.contains(e.target) && btn && !btn.contains(e.target)) {
+            menu.classList.add('hidden');
+        }
+    });
+
     // Initialize connection check modal buttons
     initConnectionCheck();
 

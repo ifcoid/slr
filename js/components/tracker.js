@@ -163,12 +163,17 @@ async function fetchSessionStatus() {
             errDot.classList.toggle('hidden', !llmRelated);
         }
 
-        // Prevent re-rendering UI if status hasn't changed,
-        // to avoid wiping out user's input in textareas
-        if (session.status === lastRenderedStatus) {
+        // Re-render hanya saat ada perubahan, agar input textarea user tak ke-wipe tiap poll.
+        // PENTING: kunci-render menyertakan embed_error & system_error — BUKAN status saja.
+        // Tanpa ini: saat embed gagal cepat, status "round-trip" balik ke nilai semula
+        // (mis. M6_STEP2_WAITING_EMBED → FULLTEXT_SCREENING → balik WAITING_EMBED) dalam 1
+        // siklus poll, sehingga error BARU tak pernah tampil → panel tampak "stuck" dengan
+        // tombol ter-disable & pesan "Menyimpan…" nyangkut (bug dilaporkan user balqis).
+        const renderKey = `${session.status || ''}|${session.embed_error || ''}|${session.system_error || ''}`;
+        if (renderKey === lastRenderedStatus) {
             return;
         }
-        lastRenderedStatus = session.status;
+        lastRenderedStatus = renderKey;
 
         // Logic for animation and interaction based on status
         if (session.status && (session.status.includes('WAITING') || session.status.includes('DONE') || session.status.includes('LOW_KAPPA') || session.status === 'M7_STEP2_VERIFY_BLOCKED')) {

@@ -523,20 +523,28 @@ export function initSetup() {
                 // apiKey kosong -> backend pertahankan key lama (edit model/base_url saja).
                 await API.updateLLMConfig(provider, apiKey, model, baseUrl);
                 dirtyConfig = false; // tersimpan
+                // Tombol SELESAI begitu penyimpanan sukses. JANGAN gantung tombol menunggu
+                // refresh UI di bawah (loadLLMConfigs = panggilan jaringan); kalau ditunggu,
+                // tombol tampak "Memproses..." lama padahal toast sudah bilang tersimpan.
+                setButtonLoading(btn, false, 'Simpan LLM Config');
                 showToast(`✅ ${formatProviderName(provider)} (${model}) tersimpan.`);
                 document.getElementById('input-api-key').value = '';
                 // #1: segarkan providerInfo -> label routing + rekap ikut update; modal tetap
-                // terbuka agar user melihat efeknya & bisa lanjut ke Model Routing.
-                await loadLLMConfigs();
-                populateRoleSelects();
-                renderRoutingSummary();
-                prefillConfigForm();
+                // terbuka agar user melihat efeknya & bisa lanjut ke Model Routing. Best-effort:
+                // kegagalan refresh TIDAK boleh memunculkan toast error (simpan sudah sukses).
+                try {
+                    await loadLLMConfigs();
+                    populateRoleSelects();
+                    renderRoutingSummary();
+                    prefillConfigForm();
+                } catch (refreshErr) {
+                    console.warn('Refresh setelah simpan config gagal:', refreshErr);
+                }
                 if (status) status.innerHTML = '<span style="color:#6ee7b7;">✓ Tersimpan. Provider siap dipakai di Model Routing di bawah.</span>';
             } catch (error) {
+                setButtonLoading(btn, false, 'Simpan LLM Config');
                 showToast(error.message, 'error');
                 if (status) status.innerHTML = `<span style="color:#fca5a5;">✗ ${error.message}</span>`;
-            } finally {
-                setButtonLoading(btn, false, 'Simpan LLM Config');
             }
         });
     }

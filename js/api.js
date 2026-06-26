@@ -225,6 +225,10 @@ export const API = {
     // ketat dari checkLLMHealth (yang hanya cek konektivitas /models). Bisa makan ~1-2 menit.
     preflightRoles: () => apiFetch('/llm/preflight'),
 
+    // Reproducible Error (xAI): jejak panggilan LLM gagal terakhir + replay prompt ("Uji Coba").
+    getLLMDebug: (id) => apiFetch(`/sessions/${id}/llm-debug`),
+    replayLLM: (payload) => apiFetch('/llm/replay', { method: 'POST', body: JSON.stringify(payload) }),
+
     resetModul7: (id) => apiFetch(`/sessions/${id}/reset-m7`, { method: 'POST' }),
 
     // M6 API

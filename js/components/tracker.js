@@ -10,6 +10,7 @@ let lastRenderedStatus = null;
 
 export function startTracking(sessionId) {
     currentSessionId = sessionId;
+    window.currentSessionId = sessionId; // dipakai lintas-modul (mis. Debug LLM dari Pengaturan/Health)
     document.getElementById('display-session-id').textContent = sessionId;
     
     // Clear terminal
@@ -187,6 +188,7 @@ async function fetchSessionStatus() {
                     <h4 style="color: #ef4444; margin-top: 0;">Sistem Mengalami Kendala <span style="font-size: 0.8em; color: #666;">[v1.0.1 - 09 Juni 2026]</span></h4>
                     <p style="margin-bottom: 1rem; font-size: 0.9rem;">${session.system_error || 'Silakan cek log terminal untuk detail error.'}</p>
                     <button id="btn-retry-error" class="btn btn-primary">🔄 Coba Lagi (Retry)</button>
+                    <button onclick="window.openLLMDebug('${session.id || currentSessionId}')" class="btn btn-secondary" style="margin-left:8px;" title="Lihat prompt+error LLM persis & uji coba (Reproducible Error)">🔬 Debug/Uji Coba Prompt</button>
                 </div>
 
                 <div style="margin-top: 20px; padding: 15px; background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 8px;">

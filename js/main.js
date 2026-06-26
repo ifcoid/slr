@@ -4,6 +4,7 @@ import { initAuth } from './components/auth.js';
 import { initSession } from './components/session.js';
 import { startTracking } from './components/tracker.js';
 import { initHealthDashboard } from './components/health.js';
+import { initLLMDebug } from './components/llmdebug.js';
 import { toggleHidden, openModal, closeModal, showToast } from './ui.js';
 import { API, getBaseURL } from './api.js';
 
@@ -131,6 +132,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     // Initialize Health Dashboard
     initHealthDashboard();
+    initLLMDebug();
 
     // Initialize connection check modal buttons
     initConnectionCheck();

@@ -279,7 +279,24 @@ async function fetchSessionStatus() {
             toggleHidden('interactive-area', true); // Show the interactive area
         }
     } catch (error) {
+        // JANGAN diam: gagal memuat sesi (mis. backend tak balas, sesi 404, Mongo lambat/timeout)
+        // dulu hanya di-console.error → UI nyangkut di "Menunggu..." seolah hang (bug balqis).
+        // Surface ke user + tombol coba lagi, agar jelas & bisa lapor.
         console.error('Failed to poll status:', error);
+        const ds = document.getElementById('display-status');
+        if (ds) ds.textContent = 'Gagal memuat status sesi';
+        const area = document.getElementById('interactive-area');
+        if (area) {
+            area.innerHTML = `
+                <div style="background: rgba(239, 68, 68, 0.1); border-left: 4px solid #ef4444; padding: 1rem; border-radius: 4px;">
+                    <h4 style="color:#ef4444;margin-top:0;">Tidak bisa memuat sesi</h4>
+                    <p style="font-size:0.9em;margin:0 0 10px;">Backend tidak merespons atau sesi tak ditemukan. Cek backend (api base URL di Pengaturan) hidup & ID sesi benar.<br><span style="color:#fca5a5;font-size:0.85em;">${(error && error.message) ? error.message.replace(/</g,'&lt;') : 'error tidak diketahui'}</span></p>
+                    <button class="btn btn-primary" onclick="window.location.reload()">🔄 Muat Ulang</button>
+                    <button class="btn btn-secondary" style="margin-left:8px;" onclick="window.openLLMDebug()" title="Lapor bug dengan diagnostic">🐞 Lapor Bug</button>
+                </div>`;
+            toggleHidden('interactive-area', true);
+        }
+        toggleHidden('status-spinner', false);
     }
 }
 

@@ -114,14 +114,24 @@
             <div class="tracker-header">
                 <h2>Dashboard Kesehatan & Kuota API</h2>
                 <div style="display: flex; gap: 10px;">
+                    <button id="btn-preflight" class="btn btn-icon" style="background: rgba(59, 130, 246, 0.2); color: #60a5fa; border-color: rgba(59, 130, 246, 0.3);" title="Uji SEMUA role pipeline (Reviewer 1/2, Supervisor, Brain, Auditor + fallback) dengan generate nyata. ~1-2 menit.">🚦 Pre-flight Semua Role</button>
                     <button id="btn-refresh-health" class="btn btn-icon">🔄 Refresh Status</button>
                     <button id="btn-back-health" class="btn btn-icon" style="background: rgba(156, 163, 175, 0.2); color: #9ca3af; border-color: rgba(156, 163, 175, 0.3);">Kembali</button>
                 </div>
             </div>
-            
+
             <div id="health-loading" class="status-indicator hidden" style="margin: 20px 0;">
                 <div class="spinner"></div>
                 <h3>Mengecek status API ke seluruh provider...</h3>
+            </div>
+
+            <div id="preflight-loading" class="status-indicator hidden" style="margin: 20px 0;">
+                <div class="spinner"></div>
+                <h3>Pre-flight: menguji generate nyata ke semua role LLM... (bisa ~1-2 menit)</h3>
+            </div>
+
+            <div id="preflight-results" style="margin-top: 20px;">
+                <!-- Pre-flight role table injected here -->
             </div>
 
             <div id="health-results" style="margin-top: 20px;">

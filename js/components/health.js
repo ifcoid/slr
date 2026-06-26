@@ -7,6 +7,9 @@ export function initHealthDashboard() {
     const btnBackHealth = document.getElementById('btn-back-health');
     const healthLoading = document.getElementById('health-loading');
     const healthResults = document.getElementById('health-results');
+    const btnPreflight = document.getElementById('btn-preflight');
+    const preflightLoading = document.getElementById('preflight-loading');
+    const preflightResults = document.getElementById('preflight-results');
     
     // Simpan referensi ke section yang aktif sebelumnya agar bisa kembali
     let previousSection = null;
@@ -45,9 +48,103 @@ export function initHealthDashboard() {
         loadHealthData();
     });
 
+    if (btnPreflight) {
+        btnPreflight.addEventListener('click', () => {
+            loadPreflightData();
+        });
+    }
+
+    // Pre-flight: uji SEMUA role pipeline dengan generate NYATA (bukan sekadar GET /models).
+    // Tujuannya: ketahui provider rusak (404 model salah/terkunci, 401 key, 429 kuota) di AWAL,
+    // sebelum run panjang (ekstraksi/QA) terlanjur jalan dan membuang waktu.
+    async function loadPreflightData() {
+        if (!preflightLoading || !preflightResults) return;
+        preflightLoading.classList.remove('hidden');
+        preflightResults.innerHTML = '';
+        healthResults.innerHTML = ''; // jangan tumpang-tindih dgn tabel health lama
+        btnPreflight.disabled = true;
+        btnRefreshHealth.disabled = true;
+        try {
+            const res = await API.preflightRoles();
+            renderPreflightTable(res.roles || [], !!res.all_usable);
+        } catch (error) {
+            preflightResults.innerHTML = `<div class="error-msg" style="color:#ef4444;padding:15px;border:1px solid #ef4444;border-radius:8px;background:rgba(239,68,68,0.1);">Gagal menjalankan pre-flight: ${error.message}</div>`;
+        } finally {
+            preflightLoading.classList.add('hidden');
+            btnPreflight.disabled = false;
+            btnRefreshHealth.disabled = false;
+        }
+    }
+
+    const roleLabels = {
+        reviewer1: 'Reviewer 1 (Ekstraksi/Screening)',
+        reviewer2: 'Reviewer 2 (QA silang)',
+        supervisor: 'Supervisor (Resolusi)',
+        brain: 'Brain (Saran/Sintesis)',
+        auditor: 'Auditor (Audit PICO/Protokol)',
+    };
+
+    function provCell(name, modelName, ok, msg) {
+        if (!name) return '<span style="color:#64748b;">—</span>';
+        const icon = ok ? '🟢' : '🔴';
+        const color = ok ? '#4ade80' : '#f87171';
+        const m = (modelName || '(default)');
+        const errLine = (!ok && msg)
+            ? `<div style="font-size:0.8em;color:#fca5a5;margin-top:3px;white-space:pre-wrap;word-break:break-word;">${(msg || '').replace(/</g, '&lt;').slice(0, 300)}</div>`
+            : '';
+        return `<div style="color:${color};font-weight:600;">${icon} ${name}</div><div style="font-size:0.82em;color:#cbd5e1;">${m.replace(/</g, '&lt;')}</div>${errLine}`;
+    }
+
+    function renderPreflightTable(roles, allUsable) {
+        if (!roles || roles.length === 0) {
+            preflightResults.innerHTML = '<p>Tidak ada role LLM untuk diuji (cek Model Routing di Pengaturan).</p>';
+            return;
+        }
+        const failed = roles.filter(r => !r.usable);
+        const banner = allUsable
+            ? `<div style="padding:12px 16px;background:rgba(34,197,94,0.12);border-left:4px solid #22c55e;border-radius:8px;color:#86efac;margin-bottom:16px;"><strong>✅ Semua role siap.</strong> Aman memulai run — tiap role punya minimal satu provider (primary/fallback) yang lolos generate nyata.</div>`
+            : `<div style="padding:12px 16px;background:rgba(239,68,68,0.12);border-left:4px solid #ef4444;border-radius:8px;color:#fca5a5;margin-bottom:16px;"><strong>⛔ ${failed.length} role TIDAK bisa dipakai:</strong> ${failed.map(r => roleLabels[r.role] || r.role).join(', ')}.<br>Perbaiki provider di <strong>Pengaturan → Model Routing</strong> (Test Model sampai ✓) SEBELUM memulai run, agar tidak terhenti di tengah jalan.</div>`;
+
+        let table = `
+            ${banner}
+            <table style="width:100%;border-collapse:collapse;text-align:left;background:rgba(30,41,59,0.5);border-radius:8px;overflow:hidden;">
+                <thead>
+                    <tr style="background:rgba(15,23,42,0.8);border-bottom:1px solid rgba(255,255,255,0.1);">
+                        <th style="padding:12px 16px;">Role</th>
+                        <th style="padding:12px 16px;">Primary</th>
+                        <th style="padding:12px 16px;">Fallback</th>
+                        <th style="padding:12px 16px;">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+        roles.forEach(r => {
+            const usableBadge = r.usable
+                ? '<span style="background:rgba(34,197,94,0.2);color:#4ade80;padding:4px 8px;border-radius:4px;font-size:0.85em;font-weight:600;">✅ Siap</span>'
+                : '<span style="background:rgba(239,68,68,0.2);color:#f87171;padding:4px 8px;border-radius:4px;font-size:0.85em;font-weight:600;">⛔ Gagal</span>';
+            table += `
+                <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+                    <td style="padding:12px 16px;font-weight:500;">${roleLabels[r.role] || r.role}</td>
+                    <td style="padding:12px 16px;">${provCell(r.primary, r.primary_model, r.primary_ok, r.primary_message)}</td>
+                    <td style="padding:12px 16px;">${provCell(r.fallback, r.fallback_model, r.fallback_ok, r.fallback_message)}</td>
+                    <td style="padding:12px 16px;">${usableBadge}</td>
+                </tr>
+            `;
+        });
+        table += `
+                </tbody>
+            </table>
+            <div style="margin-top:15px;font-size:0.85em;color:#9ca3af;">
+                * Pre-flight memanggil <strong>generate nyata</strong> (bukan cuma cek konektivitas) ke tiap provider unik sekali — menangkap nama model salah/terkunci (404) yang lolos dari Refresh Status biasa. Role "Siap" = primary ATAU fallback lolos.
+            </div>
+        `;
+        preflightResults.innerHTML = table;
+    }
+
     async function loadHealthData() {
         healthLoading.classList.remove('hidden');
         healthResults.innerHTML = '';
+        if (preflightResults) preflightResults.innerHTML = ''; // hindari dua tabel sekaligus
         btnRefreshHealth.disabled = true;
 
         try {

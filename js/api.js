@@ -221,6 +221,10 @@ export const API = {
 
     checkLLMHealth: () => apiFetch('/llm/health'),
 
+    // Pre-flight: uji SEMUA role pipeline (primary+fallback) dengan generate NYATA. Lebih
+    // ketat dari checkLLMHealth (yang hanya cek konektivitas /models). Bisa makan ~1-2 menit.
+    preflightRoles: () => apiFetch('/llm/preflight'),
+
     resetModul7: (id) => apiFetch(`/sessions/${id}/reset-m7`, { method: 'POST' }),
 
     // M6 API

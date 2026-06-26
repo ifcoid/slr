@@ -29,7 +29,10 @@ export function startTracking(sessionId) {
     
     const btnRefresh = document.getElementById('btn-refresh');
     if (btnRefresh) {
-        btnRefresh.addEventListener('click', fetchSessionStatus);
+        btnRefresh.addEventListener('click', () => {
+            setButtonLoading(btnRefresh, true); // feedback seketika (jangan tampak nge-freeze)
+            Promise.resolve(fetchSessionStatus()).finally(() => setButtonLoading(btnRefresh, false, '🔄 Refresh'));
+        });
     }
     
     const spinner = document.getElementById('status-spinner');
@@ -343,9 +346,12 @@ function renderApprovalUI(session) {
         // Attach events
         grid.querySelectorAll('.btn-approve-topic').forEach(btn => {
             btn.addEventListener('click', async (e) => {
-                const idx = e.target.dataset.index;
+                const target = e.target;
+                setButtonLoading(target, true); // feedback seketika + anti dobel-klik
+                const idx = target.dataset.index;
                 const selectedTopic = session.suggested_topics[idx];
                 await handleApproval({ selected_topic: selectedTopic });
+                setButtonLoading(target, false); // pulihkan bila gagal (sukses → panel re-render)
             });
         });
     } else {
@@ -421,12 +427,18 @@ function renderApprovalUI(session) {
     toggleHidden('interactive-area', true);
 }
 
+let approvalInFlight = false;
 async function handleApproval(payload) {
+    if (approvalInFlight) return; // anti dobel-klik global untuk semua tombol approve
+    approvalInFlight = true;
+    showToast('⏳ Memproses… agen mulai bekerja (lihat Live Log untuk progres).'); // feedback SEKETIKA
     try {
         await API.approveStep(currentSessionId, payload);
-        showToast('Berhasil disetujui! Agen melanjutkan pekerjaannya.');
+        showToast('✅ Berhasil disetujui! Agen melanjutkan pekerjaannya.');
         fetchSessionStatus(); // re-poll immediately
     } catch (error) {
         showToast(error.message, 'error');
+    } finally {
+        approvalInFlight = false;
     }
 }

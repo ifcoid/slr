@@ -2,7 +2,7 @@
 // Lihat prompt PERSIS + error panggilan LLM yang gagal, edit bila perlu, lalu "Uji Coba"
 // untuk melihat respons/error MENTAH dari provider — pinpoint "error sebelah mana" dan
 // jadikan laporan ke developer langsung actionable. Dipanggil via window.openLLMDebug(sessionId?).
-import { API } from '../api.js';
+import { API, getBaseURL } from '../api.js';
 import { openModal, closeModal, showToast } from '../ui.js';
 
 const MODAL_ID = 'modal-llm-debug';
@@ -114,7 +114,7 @@ function renderState() {
     const el = document.getElementById('llm-debug-state');
     if (!el) return;
     const sid = ctxState.sessionId || window.currentSessionId || '(tidak ada sesi aktif)';
-    el.innerHTML = `🧭 Ikut terkirim otomatis: sesi <strong>${esc(sid)}</strong> · modul/step <strong>${esc(currentStatus() || '-')}</strong> · layar ${window.innerWidth}×${window.innerHeight}`;
+    el.innerHTML = `🧭 Ikut terkirim otomatis: sesi <strong>${esc(sid)}</strong> · modul/step <strong>${esc(currentStatus() || '-')}</strong> · backend <strong>${esc(getBaseURL())}</strong> · layar ${window.innerWidth}×${window.innerHeight}`;
 }
 
 // buildReportText merangkai SELURUH info reproduksi bug — keterangan user + STATE OTOMATIS
@@ -134,6 +134,9 @@ function buildReportText() {
         `waktu      : ${new Date().toISOString()}`,
         `session    : ${sid}`,
         `modul/step : ${currentStatus() || '-'}`,
+        // api_base = BACKEND yang dipakai user → menentukan DB mana sesinya berada. WAJIB ada
+        // agar developer bisa MENEMUKAN sesi (backend bisa lokal/beda per-user). Bukan rahasia.
+        `api_base   : ${getBaseURL()}`,
         `url        : ${location.href}`,
         `viewport   : ${window.innerWidth}x${window.innerHeight}`,
         `userAgent  : ${navigator.userAgent}`,

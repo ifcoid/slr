@@ -227,6 +227,8 @@ export const API = {
 
     // Reproducible Error (xAI): jejak panggilan LLM gagal terakhir + replay prompt ("Uji Coba").
     getLLMDebug: (id) => apiFetch(`/sessions/${id}/llm-debug`),
+    // Snapshot state DB tersanitasi (disisipkan ke laporan bug → tak perlu akses Mongo user).
+    getSessionDiagnostic: (id) => apiFetch(`/sessions/${id}/diagnostic`),
     // replayLLM ASYNC: balas {job_id}; poll getReplayResult sampai {done:true}. Aman utk
     // prompt panjang (generasi lama tak kena timeout proxy).
     replayLLM: (payload) => apiFetch('/llm/replay', { method: 'POST', body: JSON.stringify(payload) }),

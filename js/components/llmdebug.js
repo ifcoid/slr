@@ -158,14 +158,29 @@ function buildReportText() {
 
 // Report Bug: unduh laporan LENGKAP sebagai FILE .txt lalu buka @BugLaporBot — user tinggal
 // LAMPIRKAN file itu & kirim. Bot auto-reply "diterima". Untuk bug tampilan, keterangan wajib.
-function reportBug() {
+async function reportBug() {
     if (!val('llm-debug-note').trim() && !ctxState.error) {
         showToast('Tulis keterangan masalahnya dulu.', 'error');
         document.getElementById('llm-debug-note')?.focus();
         return;
     }
-    const report = buildReportText();
-    const sid = (ctxState.sessionId || window.currentSessionId || 'manual').replace(/[^A-Za-z0-9_-]/g, '');
+    const btn = document.getElementById('llm-debug-report');
+    btn.disabled = true; const orig = btn.textContent; btn.textContent = '⏳ Menyiapkan…';
+    let report = buildReportText();
+    // SISIPKAN snapshot state DB (diagnostic) ke laporan → developer TAK perlu akses Mongo user
+    // (cocok backend lokal; tak bocorkan connection-string). Best-effort.
+    const sidRaw = ctxState.sessionId || window.currentSessionId;
+    if (sidRaw) {
+        try {
+            const diag = await API.getSessionDiagnostic(sidRaw);
+            report += '\n\n════ DIAGNOSTIC DB (state sesi dari backend; tanpa rahasia) ════\n' + JSON.stringify(diag, null, 2) + '\n';
+        } catch (e) {
+            report += `\n\n════ DIAGNOSTIC DB ════\n(gagal mengambil dari backend: ${e.message})\n`;
+        }
+    }
+    btn.disabled = false; btn.textContent = orig;
+
+    const sid = (sidRaw || 'manual').replace(/[^A-Za-z0-9_-]/g, '');
     const fname = `bug-${sid || 'manual'}-${Date.now()}.txt`;
     const url = URL.createObjectURL(new Blob([report], { type: 'text/plain' }));
     const a = document.createElement('a');
@@ -173,9 +188,9 @@ function reportBug() {
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
     setTimeout(() => URL.revokeObjectURL(url), 3000);
     window.open('https://t.me/BugLaporBot', '_blank');
-    showToast(`📎 File "${fname}" terunduh. Di chat @BugLaporBot (terbuka), LAMPIRKAN file itu lalu kirim — bot membalas "diterima".`);
+    showToast(`📎 File "${fname}" terunduh (termasuk state DB). Di chat @BugLaporBot, LAMPIRKAN file itu lalu kirim — bot membalas "diterima".`);
     const box = document.getElementById('llm-debug-result');
-    box.innerHTML = `<div style="font-size:0.82em;color:#9ca3af;margin-bottom:6px;">📎 File <strong>${esc(fname)}</strong> terunduh (berisi SELURUH prompt, tak terpotong). Lampirkan ke <strong>@BugLaporBot</strong> lalu kirim. Cadangan — salin teks ini bila perlu:</div><textarea readonly rows="8" style="width:100%;font-family:monospace;font-size:0.78em;" onclick="this.select()">${esc(report)}</textarea>`;
+    box.innerHTML = `<div style="font-size:0.82em;color:#9ca3af;margin-bottom:6px;">📎 File <strong>${esc(fname)}</strong> terunduh — berisi prompt + <strong>snapshot state DB</strong> (developer tak perlu akses database Anda). Lampirkan ke <strong>@BugLaporBot</strong> lalu kirim. Cadangan — salin teks ini bila perlu:</div><textarea readonly rows="8" style="width:100%;font-family:monospace;font-size:0.78em;" onclick="this.select()">${esc(report)}</textarea>`;
 }
 
 function renderResult(res) {

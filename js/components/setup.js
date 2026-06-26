@@ -329,13 +329,21 @@ export function initSetup() {
             setButtonLoading(btn, true);
             try {
                 await API.updateEmbedConfig(payload);
+                // Tombol SELESAI begitu penyimpanan sukses — jangan gantung menunggu refresh
+                // UI di bawah (loadEmbedConfig = panggilan jaringan) agar tombol tak nyangkut
+                // "Memproses..." padahal toast sudah bilang tersimpan.
+                setButtonLoading(btn, false, 'Simpan Embed Config');
                 showToast('Embed config berhasil disimpan!');
                 document.getElementById('embed-cfg-key').value = '';
-                await loadEmbedConfig();
+                // Refresh best-effort: kegagalan TIDAK boleh memunculkan toast error (simpan sukses).
+                try {
+                    await loadEmbedConfig();
+                } catch (refreshErr) {
+                    console.warn('Refresh setelah simpan Embed config gagal:', refreshErr);
+                }
             } catch (error) {
-                showToast(error.message, 'error');
-            } finally {
                 setButtonLoading(btn, false, 'Simpan Embed Config');
+                showToast(error.message, 'error');
             }
         });
     }

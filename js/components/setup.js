@@ -168,14 +168,55 @@ export function initSetup() {
         return info.default_model ? `${base} · ${info.default_model}` : `${base} · (model default)`;
     };
 
+    // savedRoles = pemetaan peran->provider TERSIMPAN dari server (sumber kebenaran saat membuka
+    // modal). Dipertahankan lintas-buka agar blip jaringan tak menghapus pilihan yang benar.
+    let savedRoles = {};
+
+    // ensureOption menjamin sebuah <option> dengan value tertentu ADA di select. Nilai tersimpan
+    // yang tak ada di daftar PROVIDERS (mis. data lama / provider dihapus dari daftar) kalau tak
+    // disuntik akan diam-diam jatuh ke opsi pertama ('gemini') -> pilihan user "hilang".
+    const ensureOption = (sel, value) => {
+        if (!value) return;
+        if (!Array.from(sel.options).some((o) => o.value === value)) {
+            const opt = document.createElement('option');
+            opt.value = value;
+            opt.textContent = `${formatProviderName(value)} (tersimpan)`;
+            sel.appendChild(opt);
+        }
+    };
+
     const populateRoleSelects = () => {
         ROLE_IDS.forEach((id) => {
             const sel = document.getElementById('role-' + id);
             if (!sel) return;
             const prev = sel.value;
             sel.innerHTML = PROVIDERS.map((p) => `<option value="${p}">${roleOptionLabel(p)}</option>`).join('');
-            if (prev) sel.value = prev; // pertahankan pilihan saat re-render label
+            // Pertahankan pilihan saat re-render label; suntik opsi bila prev di luar PROVIDERS
+            // agar tak diam-diam jatuh ke opsi pertama.
+            if (prev) { ensureOption(sel, prev); sel.value = prev; }
         });
+    };
+
+    // applyRolesToSelects MEMAKSA nilai tersimpan ke tiap select (otoritatif saat membuka modal).
+    const applyRolesToSelects = (roles) => {
+        if (!roles) return;
+        ROLE_IDS.forEach((id) => {
+            const sel = document.getElementById('role-' + id);
+            if (!sel || !roles[id]) return;
+            ensureOption(sel, roles[id]);
+            sel.value = roles[id];
+        });
+    };
+
+    // Ambil roles dengan retry kecil: blip/timeout jaringan TIDAK boleh mengosongkan pilihan
+    // jadi default (penyebab "kadang pilihan LLM tidak terload saat buka Pengaturan").
+    const fetchRolesWithRetry = async (attempts = 3) => {
+        let lastErr;
+        for (let i = 0; i < attempts; i++) {
+            try { return await API.getRoles(); }
+            catch (e) { lastErr = e; await new Promise((r) => setTimeout(r, 400)); }
+        }
+        throw lastErr;
     };
 
     // #1: rekap ringkas peran -> provider · model yang aktif sekarang, agar user yakin
@@ -242,22 +283,25 @@ export function initSetup() {
         // menampilkan "provider · model" (bukan cuma provider).
         await loadLLMConfigs();
         prefillConfigForm();
-        populateRoleSelects();
+        // Ambil roles tersimpan (dengan retry) lalu PAKSA terapkan, agar pilihan langsung benar
+        // dan tak diam-diam jatuh ke default saat satu request gagal.
         try {
-            const r = await API.getRoles();
-            ROLE_IDS.forEach((id) => {
-                const sel = document.getElementById('role-' + id);
-                if (sel && r[id]) sel.value = r[id];
-            });
+            savedRoles = await fetchRolesWithRetry();
         } catch (e) {
-            console.warn('Gagal memuat roles:', e.message);
+            console.warn('Gagal memuat roles (setelah retry):', e.message);
+            // Pertahankan savedRoles terakhir (jangan kosongkan). Beri tahu user agar buka ulang.
+            showToast('Gagal memuat pilihan model dari server (jaringan). Buka Pengaturan lagi untuk memuat ulang.', 'error');
         }
+        populateRoleSelects();           // bangun opsi (preserve prev)
+        applyRolesToSelects(savedRoles); // PAKSA nilai tersimpan (otoritatif saat buka)
         renderRoutingSummary();
+        // Pasang listener SEKALI per select (hindari akumulasi handler tiap kali modal dibuka).
         ROLE_IDS.forEach((id) => {
             const sel = document.getElementById('role-' + id);
-            if (sel) {
+            if (sel && !sel.dataset.listenersBound) {
                 sel.addEventListener('change', renderRoutingSummary);
                 sel.addEventListener('change', markRolesDirty);
+                sel.dataset.listenersBound = '1';
             }
         });
     };

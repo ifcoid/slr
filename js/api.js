@@ -231,6 +231,8 @@ export const API = {
     // prompt panjang (generasi lama tak kena timeout proxy).
     replayLLM: (payload) => apiFetch('/llm/replay', { method: 'POST', body: JSON.stringify(payload) }),
     getReplayResult: (jobId) => apiFetch(`/llm/replay/${jobId}`),
+    // Report Bug: simpan laporan (konteks auto) + dapat deep-link Telegram ke @BugLaporBot.
+    reportBug: (payload) => apiFetch('/report-bug', { method: 'POST', body: JSON.stringify(payload) }),
 
     resetModul7: (id) => apiFetch(`/sessions/${id}/reset-m7`, { method: 'POST' }),
 

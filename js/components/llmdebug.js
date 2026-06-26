@@ -7,6 +7,10 @@ import { openModal, closeModal, showToast } from '../ui.js';
 
 const MODAL_ID = 'modal-llm-debug';
 
+// Konteks laporan: ditangkap OTOMATIS dari jejak error + hasil replay, agar user tak perlu
+// menambah keterangan saat Report Bug.
+const ctxState = { sessionId: '', step: '', error: '', replay: '' };
+
 const esc = (s) => (s || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const val = (id) => (document.getElementById(id) || {}).value || '';
 const setVal = (id, v) => { const el = document.getElementById(id); if (el) el.value = v || ''; };
@@ -32,12 +36,14 @@ function ensureModal() {
         <div class="form-group"><label>User Prompt <span id="llm-debug-user-chars" style="color:#9ca3af;font-size:0.8em;"></span></label><textarea id="llm-debug-user" rows="10" style="width:100%;font-family:monospace;font-size:0.82em;"></textarea></div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
             <button id="llm-debug-run" class="btn btn-primary">🧪 Uji Coba</button>
-            <span style="font-size:0.8em;color:#9ca3af;">Mengirim prompt NYATA ke provider (config tersimpan / override).</span>
+            <button id="llm-debug-report" class="btn" style="background:rgba(245,158,11,0.18);color:#fcd34d;border:1px solid rgba(245,158,11,0.3);" title="Kirim laporan bug (konteks otomatis) ke @BugLaporBot — tanpa perlu menambah keterangan">📨 Report Bug ke Telegram</button>
+            <span style="font-size:0.8em;color:#9ca3af;">Uji Coba = panggil provider. Report Bug = kirim ke developer via @BugLaporBot.</span>
         </div>
         <div id="llm-debug-result" style="margin-top:12px;"></div>
     </div>`;
     document.body.appendChild(el);
     document.getElementById('llm-debug-close').addEventListener('click', () => closeModal(MODAL_ID));
+    document.getElementById('llm-debug-report').addEventListener('click', reportBug);
     const sys = document.getElementById('llm-debug-system');
     const usr = document.getElementById('llm-debug-user');
     const updChars = () => {
@@ -90,7 +96,42 @@ async function pollReplay(jobId, box) {
     box.innerHTML = '<div style="color:#fca5a5;">⏱️ Replay belum selesai dalam 10 menit — provider kemungkinan sangat lambat / hang. Coba potong prompt lalu uji lagi.</div>';
 }
 
+// Kirim laporan bug: konteks (sesi/step/provider/model/error/prompt/hasil replay) DITANGKAP
+// OTOMATIS. Backend menyimpan + balas deep-link Telegram; buka agar user tap "Start" ke bot.
+async function reportBug() {
+    const btn = document.getElementById('llm-debug-report');
+    const payload = {
+        session_id: ctxState.sessionId || window.currentSessionId || '',
+        step: ctxState.step || '',
+        provider: val('llm-debug-provider').trim(),
+        model: val('llm-debug-model').trim(),
+        error: ctxState.error || '',
+        system_prompt: val('llm-debug-system'),
+        user_prompt: val('llm-debug-user'),
+        replay_result: ctxState.replay || '',
+        app_version: 'slr-web',
+    };
+    btn.disabled = true; const orig = btn.textContent; btn.textContent = '⏳ Mengirim…';
+    try {
+        const res = await API.reportBug(payload);
+        if (res && res.telegram_url) {
+            window.open(res.telegram_url, '_blank');
+            showToast(`📨 Laporan tersimpan (ID ${res.id}). Telegram terbuka — tap "Start" untuk kirim ke @BugLaporBot.`);
+        } else {
+            showToast('📨 Laporan bug tersimpan. Terima kasih!');
+        }
+    } catch (e) {
+        showToast('Gagal report bug: ' + e.message, 'error');
+    } finally {
+        btn.disabled = false; btn.textContent = orig;
+    }
+}
+
 function renderResult(res) {
+    // Simpan ringkas hasil replay agar ikut terkirim saat Report Bug (konteks otomatis).
+    ctxState.replay = res.ok
+        ? `[OK ${res.response_chars || 0} char, ${res.duration_ms || 0}ms] ${(res.response || '').slice(0, 2000)}`
+        : `[ERROR ${res.duration_ms || 0}ms] ${res.error || ''}`;
     const box = document.getElementById('llm-debug-result');
     const meta = `<div style="font-size:0.8em;color:#9ca3af;margin-bottom:6px;">model: <strong>${esc(res.model) || '(default)'}</strong> · prompt ${res.prompt_chars || 0} char · ${res.duration_ms || 0} ms · respons ${res.response_chars || 0} char</div>`;
     if (res.ok) {
@@ -109,6 +150,8 @@ window.openLLMDebug = async (sessionId) => {
     setVal('llm-debug-system', ''); setVal('llm-debug-user', '');
     document.getElementById('llm-debug-result').innerHTML = '';
     meta.innerHTML = '';
+    ctxState.sessionId = sessionId || window.currentSessionId || '';
+    ctxState.step = ''; ctxState.error = ''; ctxState.replay = '';
     openModal(MODAL_ID);
 
     const sid = sessionId || window.currentSessionId;
@@ -124,6 +167,8 @@ window.openLLMDebug = async (sessionId) => {
             meta.innerHTML = '<div style="padding:8px 10px;background:rgba(59,130,246,0.1);border-left:3px solid #60a5fa;border-radius:6px;font-size:0.85em;color:#cbd5e1;">Belum ada panggilan LLM yang gagal tercatat untuk sesi ini. Anda tetap bisa uji manual: isi provider & prompt.</div>';
             return;
         }
+        ctxState.step = t.step || '';
+        ctxState.error = t.error || '';
         setVal('llm-debug-provider', t.provider);
         setVal('llm-debug-model', t.model);
         setVal('llm-debug-system', t.system_prompt);

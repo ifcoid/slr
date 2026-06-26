@@ -1076,6 +1076,7 @@ export function renderApprovalContent(area, session, handleApproval) {
                 <div style="background: rgba(234, 179, 8, 0.15); padding: 15px; border-radius: 8px; border-left: 4px solid #eab308; margin-bottom: 15px;">
                     <h4 style="color: #fcd34d; margin-top: 0; margin-bottom: 8px;"><i class="fa fa-exclamation-triangle"></i> API Reviewer Belum Siap</h4>
                     <p style="color: #fef3c7; font-size: 0.9em; margin: 0;">${session.system_error}</p>
+                    <div style="margin-top:10px;"><button onclick="window.openLLMDebug('${session.id}')" class="btn btn-secondary" style="padding:3px 10px;font-size:0.82em;" title="Lapor bug / lihat error LLM persis & uji coba (Reproducible Error)">🐞 Lapor / Debug Bug</button></div>
                 </div>
             `;
         }
@@ -1150,6 +1151,7 @@ export function renderApprovalContent(area, session, handleApproval) {
                 <div style="background: rgba(0,0,0,0.3); padding: 10px; margin-top: 10px; border-radius: 4px; font-family: monospace; font-size: 0.8em; color: #ef4444; max-height: 100px; overflow-y: auto;">
                     ${session.system_error}
                 </div>
+                <div style="margin-top:10px;"><button onclick="window.openLLMDebug('${session.id}')" class="btn btn-secondary" style="padding:3px 10px;font-size:0.82em;" title="Lapor bug / lihat error LLM persis & uji coba (Reproducible Error)">🐞 Lapor / Debug Bug</button></div>
             </div>`;
         }
 

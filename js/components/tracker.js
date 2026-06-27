@@ -7,6 +7,12 @@ let pollingInterval = null;
 let currentSessionId = null;
 let ws = null;
 let lastRenderedStatus = null;
+// Resilience koneksi Mongo flaky (Atlas i/o timeout intermiten — kasus balqis/Salwa):
+// jangan tampilkan error pada poll gagal PERTAMA; poll tiap 3s ITU sendiri sudah jadi retry.
+// Error panel hanya muncul setelah GAGAL BERUNTUN, supaya blip transien self-heal di poll berikutnya.
+let pollFailStreak = 0;
+let fetchInFlight = false; // cegah poll tumpang-tindih saat backend lambat (request menumpuk)
+const POLL_FAIL_THRESHOLD = 3;
 
 export function startTracking(sessionId) {
     currentSessionId = sessionId;
@@ -144,12 +150,15 @@ export function stopTracking() {
 
 async function fetchSessionStatus() {
     if (!currentSessionId) return;
-    
+    if (fetchInFlight) return; // poll sebelumnya masih jalan (backend lambat) — jangan menumpuk
+    fetchInFlight = true;
+
     const displayStatus = document.getElementById('display-status');
     const spinner = document.getElementById('status-spinner');
-    
+
     try {
         const session = await API.getSession(currentSessionId);
+        pollFailStreak = 0; // sukses → reset hitungan kegagalan beruntun
         displayStatus.textContent = session.status || 'UNKNOWN';
 
         // Titik merah REAKTIF di tombol Pengaturan: nyala HANYA bila error LLM-terkait
@@ -279,24 +288,30 @@ async function fetchSessionStatus() {
             toggleHidden('interactive-area', true); // Show the interactive area
         }
     } catch (error) {
-        // JANGAN diam: gagal memuat sesi (mis. backend tak balas, sesi 404, Mongo lambat/timeout)
-        // dulu hanya di-console.error → UI nyangkut di "Menunggu..." seolah hang (bug balqis).
-        // Surface ke user + tombol coba lagi, agar jelas & bisa lapor.
-        console.error('Failed to poll status:', error);
-        const ds = document.getElementById('display-status');
-        if (ds) ds.textContent = 'Gagal memuat status sesi';
-        const area = document.getElementById('interactive-area');
-        if (area) {
-            area.innerHTML = `
-                <div style="background: rgba(239, 68, 68, 0.1); border-left: 4px solid #ef4444; padding: 1rem; border-radius: 4px;">
-                    <h4 style="color:#ef4444;margin-top:0;">Tidak bisa memuat sesi</h4>
-                    <p style="font-size:0.9em;margin:0 0 10px;">Backend tidak merespons atau sesi tak ditemukan. Cek backend (api base URL di Pengaturan) hidup & ID sesi benar.<br><span style="color:#fca5a5;font-size:0.85em;">${(error && error.message) ? error.message.replace(/</g,'&lt;') : 'error tidak diketahui'}</span></p>
-                    <button class="btn btn-primary" onclick="window.location.reload()">🔄 Muat Ulang</button>
-                    <button class="btn btn-secondary" style="margin-left:8px;" onclick="window.openLLMDebug()" title="Lapor bug dengan diagnostic">🐞 Lapor Bug</button>
-                </div>`;
-            toggleHidden('interactive-area', true);
+        // Gagal poll. Koneksi Mongo bisa flaky (Atlas i/o timeout intermiten) → blip TUNGGAL
+        // jangan langsung munculkan panel error (poll berikutnya 3s lagi biasanya sukses).
+        // Tampilkan error hanya setelah GAGAL BERUNTUN >= ambang (bukan hang diam, bukan galak).
+        pollFailStreak++;
+        console.warn(`Poll gagal (${pollFailStreak}/${POLL_FAIL_THRESHOLD}):`, error && error.message);
+        if (pollFailStreak >= POLL_FAIL_THRESHOLD) {
+            const ds = document.getElementById('display-status');
+            if (ds) ds.textContent = 'Gagal memuat status sesi';
+            const area = document.getElementById('interactive-area');
+            if (area) {
+                area.innerHTML = `
+                    <div style="background: rgba(239, 68, 68, 0.1); border-left: 4px solid #ef4444; padding: 1rem; border-radius: 4px;">
+                        <h4 style="color:#ef4444;margin-top:0;">Tidak bisa memuat sesi</h4>
+                        <p style="font-size:0.9em;margin:0 0 10px;">Backend tidak merespons / sesi tak ditemukan / koneksi database lambat (timeout) setelah ${pollFailStreak}× percobaan. Cek backend (api base URL di Pengaturan) hidup, koneksi internet/Mongo stabil, & ID sesi benar.<br><span style="color:#fca5a5;font-size:0.85em;">${(error && error.message) ? error.message.replace(/</g,'&lt;') : 'error tidak diketahui'}</span></p>
+                        <button class="btn btn-primary" onclick="window.location.reload()">🔄 Muat Ulang</button>
+                        <button class="btn btn-secondary" style="margin-left:8px;" onclick="window.openLLMDebug()" title="Lapor bug dengan diagnostic">🐞 Lapor Bug</button>
+                    </div>`;
+                toggleHidden('interactive-area', true);
+            }
+            toggleHidden('status-spinner', false);
         }
-        toggleHidden('status-spinner', false);
+        // belum mencapai ambang → biarkan UI sebelumnya (spinner/last state), poll berikutnya retry.
+    } finally {
+        fetchInFlight = false;
     }
 }
 

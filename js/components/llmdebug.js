@@ -200,6 +200,24 @@ async function reportBug() {
     }
     btn.disabled = false; btn.textContent = orig;
 
+    // AUTO-SCREENSHOT: capture viewport saat user klik Report Bug (best-effort).
+    // Load html2canvas on-demand, convert ke base64 JPEG (lebih kecil dari PNG).
+    try {
+        if (!window.html2canvas) {
+            await new Promise((resolve, reject) => {
+                const s = document.createElement('script');
+                s.src = 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';
+                s.onload = resolve; s.onerror = reject;
+                document.head.appendChild(s);
+            });
+        }
+        const canvas = await window.html2canvas(document.body, { scale: 0.7, useCORS: true, logging: false });
+        const b64 = canvas.toDataURL('image/jpeg', 0.6).split(',')[1];
+        report += '\n\n════ SCREENSHOT (base64 JPEG) ════\n' + b64 + '\n';
+    } catch (e) {
+        report += `\n\n════ SCREENSHOT ════\n(gagal capture: ${e.message})\n`;
+    }
+
     const sid = (sidRaw || 'manual').replace(/[^A-Za-z0-9_-]/g, '');
     const fname = `bug-${sid || 'manual'}-${Date.now()}.txt`;
     const url = URL.createObjectURL(new Blob([report], { type: 'text/plain' }));

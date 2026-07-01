@@ -182,7 +182,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         toggleHidden('section-tracker', true);
         // Langsung mulai tracking tanpa harus submit form
         startTracking(activeSessionId);
+    } else {
+        // Belum ada sesi aktif → tampilkan picker "pilih sesi" (di atas form buat-baru),
+        // supaya user bisa MEMILIH sesi lama alih-alih terpaksa membuat baru.
+        renderSessionPicker();
     }
+
+    // Tombol muat-ulang daftar sesi.
+    const btnRefreshSessions = document.getElementById('btn-refresh-sessions');
+    if (btnRefreshSessions) btnRefreshSessions.addEventListener('click', () => renderSessionPicker());
 
     // 3. Initialize Session Creation logic
     initSession((sessionId) => {
@@ -208,6 +216,56 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     console.log('Agentic SLR Orchestrator - Frontend Initialized');
 });
+
+// --- Session picker (pilih sesi setelah login) ---
+function escapeHTML(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, c => (
+        { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+    ));
+}
+
+function openExistingSession(sessionId) {
+    localStorage.setItem('activeSessionId', sessionId);
+    toggleHidden('section-new-session', false);
+    toggleHidden('section-tracker', true);
+    startTracking(sessionId);
+}
+
+async function renderSessionPicker() {
+    const picker = document.getElementById('session-picker');
+    const list = document.getElementById('session-list');
+    if (!picker || !list) return;
+    list.innerHTML = '<p style="opacity:0.7;">Memuat daftar sesi…</p>';
+    toggleHidden('session-picker', true); // pastikan terlihat
+    try {
+        const res = await API.listSessions();
+        const sessions = (res && res.sessions) || [];
+        if (sessions.length === 0) {
+            // Tidak ada sesi lama → sembunyikan picker, biarkan hanya form buat-baru.
+            toggleHidden('session-picker', false);
+            return;
+        }
+        list.innerHTML = sessions.map(s => {
+            const id = escapeHTML(s.id);
+            const topic = escapeHTML(s.topic || s.id);
+            const status = escapeHTML(s.status || '-');
+            let when = '';
+            try { if (s.updated_at) when = new Date(s.updated_at).toLocaleString(); } catch (e) {}
+            return `
+            <button type="button" class="btn session-item" data-session-id="${id}"
+                style="text-align:left; display:flex; flex-direction:column; gap:2px; padding:12px 14px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); width:100%;">
+                <span style="font-weight:600;">${topic}</span>
+                <span style="font-size:0.82em; opacity:0.7;">🆔 ${id} · <span style="color:#38bdf8;">${status}</span>${when ? ' · ' + escapeHTML(when) : ''}</span>
+            </button>`;
+        }).join('');
+        list.querySelectorAll('.session-item').forEach(btn => {
+            btn.addEventListener('click', () => openExistingSession(btn.getAttribute('data-session-id')));
+        });
+    } catch (e) {
+        // Surface error (jangan telan) — user perlu tahu kenapa daftar tak muncul.
+        list.innerHTML = `<p style="color:#fca5a5;">Gagal memuat daftar sesi: ${escapeHTML(e.message || e)}. Coba "Muat ulang".</p>`;
+    }
+}
 
 // Global functions for Extraction Viewer Modal
 window.showExtractionModal = async function(filterAmbiguous = false) {

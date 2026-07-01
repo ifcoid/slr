@@ -78,6 +78,8 @@ export const API = {
     }),
 
     // Session API
+    listSessions: () => apiFetch('/sessions'),
+
     createSession: (id, topic) => apiFetch('/sessions', {
         method: 'POST',
         body: JSON.stringify({ id, topic })

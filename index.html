@@ -95,6 +95,16 @@
         </section>
         <!-- Dashboard Section: Create Session -->
         <section id="section-new-session" class="glass-panel card">
+            <!-- Session picker: pilih sesi yang sudah ada (di-render oleh js/main.js setelah login) -->
+            <div id="session-picker" class="hidden" style="margin-bottom: 24px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
+                    <h2 style="margin:0;">Lanjutkan Sesi</h2>
+                    <button id="btn-refresh-sessions" class="btn btn-icon" title="Muat ulang daftar sesi">🔄 Muat ulang</button>
+                </div>
+                <p style="opacity:0.7; margin:6px 0 12px;">Pilih sesi riset yang sudah ada, atau buat sesi baru di bawah.</p>
+                <div id="session-list" style="display:flex; flex-direction:column; gap:8px;"></div>
+                <hr style="border:none; border-top:1px solid rgba(255,255,255,0.08); margin:20px 0;">
+            </div>
             <h2>Mulai Sesi Riset Baru</h2>
             <form id="form-new-session">
                 <div class="form-group">

@@ -238,6 +238,8 @@ export const API = {
 
     resetModul7: (id) => apiFetch(`/sessions/${id}/reset-m7`, { method: 'POST' }),
 
+    rerunQA: (id) => apiFetch(`/sessions/${id}/m7/rerun-qa`, { method: 'POST' }),
+
     // M6 API
     syncQdrant: (id) => apiFetch(`/sessions/${id}/m6/sync-qdrant`, {
         method: 'POST'

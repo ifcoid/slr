@@ -2238,6 +2238,7 @@ export function renderApprovalContent(area, session, handleApproval) {
 
             <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap;">
                 <button id="btn-m7-recalc-qa" class="btn" style="background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4);" title="Recalculate ERROR papers yang memiliki skor R1+R2 valid tanpa mengulang seluruh proses QA">🔄 Recalculate ERROR Papers</button>
+                <button id="btn-m7-rerun-qa" class="btn" style="background: rgba(168, 85, 247, 0.2); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.4);" title="Jalankan ULANG seluruh proses QA dari awal (pilih tool → kalibrasi → rating) untuk memperbaiki panduan rater & kappa. Data ekstraksi PDF DIPERTAHANKAN (beda dari Drop Modul 7).">🔁 Jalankan Ulang Seluruh Proses QA</button>
                 <button id="btn-m7-download-md" class="btn" style="background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4);" title="Unduh laporan QA & Sensitivitas dalam format Markdown untuk dibagikan ke LLM lain">⬇️ Unduh Report (.md)</button>
                 <button id="btn-m7-resume-qa" class="btn" style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4);" title="Klik ini jika Anda baru saja menghapus & re-upload PDF untuk melanjutkan penilaian QA pada paper yang tersisa saja.">▶️ Lanjutkan QA (Hanya Sisa PDF)</button>
                 <button class="btn" style="background: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.4);" onclick="if(confirm('Anda yakin ingin men-drop Modul 7 dan mengulang dari nol? Semua data ekstraksi PDF dan skor QA akan dihapus permanen!')) window.resetModul7()">⚠️ Drop Modul 7</button>
@@ -2264,6 +2265,24 @@ export function renderApprovalContent(area, session, handleApproval) {
                         alert("Gagal recalculate: " + e.message);
                         btnRecalcQA.disabled = false;
                         btnRecalcQA.innerHTML = '🔄 Recalculate ERROR Papers';
+                    }
+                });
+            }
+
+            const btnRerunQA = document.getElementById('btn-m7-rerun-qa');
+            if (btnRerunQA) {
+                btnRerunQA.addEventListener('click', async () => {
+                    if (!confirm('Jalankan ULANG seluruh proses QA dari awal?\n\nIni akan MENGHAPUS semua skor QA, kalibrasi, dan threshold saat ini, lalu memulai lagi dari pemilihan tool → kalibrasi → rating.\n\nData ekstraksi PDF (framework + hasil ekstraksi) TETAP DIPERTAHANKAN.\n\nGunakan ini untuk memperbaiki panduan rater & kappa. Lanjutkan?')) return;
+                    try {
+                        btnRerunQA.disabled = true;
+                        btnRerunQA.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Memulai ulang QA...';
+                        const data = await API.rerunQA(session.id);
+                        alert(data.message || 'Proses QA dijalankan ulang. Pantau Live Log.');
+                        window.location.reload();
+                    } catch(e) {
+                        alert("Gagal menjalankan ulang QA: " + (e.message || e));
+                        btnRerunQA.disabled = false;
+                        btnRerunQA.innerHTML = '🔁 Jalankan Ulang Seluruh Proses QA';
                     }
                 });
             }

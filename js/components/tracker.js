@@ -215,7 +215,7 @@ async function fetchSessionStatus() {
                 </div>
 
                 <div style="margin-top: 20px; padding: 15px; background: rgba(13, 148, 136, 0.1); border: 1px solid rgba(13, 148, 136, 0.3); border-radius: 8px;">
-                    <h5 style="margin-top: 0; color: #5eead4; margin-bottom: 10px;">💡 Alternatif: Selesaikan via MCP (AI Agent Eksternal)</h5>
+                    <h5 style="margin-top: 0; color: #5eead4; margin-bottom: 10px;"><span class="ico ico-bulb"></span> Alternatif: Selesaikan via MCP (AI Agent Eksternal)</h5>
                     <p style="font-size: 0.85em; margin-bottom: 10px; color: #d6d3d1;">AI Agent eksternal membutuhkan konfigurasi server terlebih dahulu sebelum bisa merespons *prompt*. Silakan lakukan langkah berikut:</p>
                     <strong style="font-size: 0.85em; color: #d6d3d1;">1. Buka Pengaturan "Add MCP Server" di AI Anda, lalu Paste JSON ini:</strong>
                     <div style="background: #1c1917; padding: 8px; border-radius: 4px; font-family: monospace; font-size: 0.8em; color: #a7f3d0; white-space: pre-wrap; margin-bottom: 10px;">{
@@ -227,7 +227,7 @@ async function fetchSessionStatus() {
 }</div>
                     <strong style="font-size: 0.85em; color: #d6d3d1;">2. Setelah di-Save, gunakan Prompt berikut di chat:</strong>
                     <div style="background: #1c1917; padding: 8px; border-radius: 4px; font-family: monospace; font-size: 0.8em; color: #fde047; white-space: pre-wrap;">"Tolong cek daftar MCP tools yang kamu miliki sekarang, seharusnya ada tool berawalan 'mcp_nsa_supervisor'. Jika ada, gunakan tool tersebut. Panggil 'get_screener_briefing' dengan session_id '${session.id || currentSessionId}', lalu panggil 'get_pending_disagreements' dengan session_id yang sama. Berikan tabel perbandingannya, dan tunggu persetujuan saya sebelum memanggil 'submit_supervisor_resolution'."</div>
-                    <div style="margin-top: 10px; font-size: 0.85em; color: #f87171;"><strong>Penting:</strong> Setelah AI berhasil melakukan submit, klik tombol <strong>"🔄 Coba Lagi (Retry)"</strong> di atas agar sistem memuat ulang status terbaru.</div>
+                    <div style="margin-top: 10px; font-size: 0.85em; color: #f87171;"><strong>Penting:</strong> Setelah AI berhasil melakukan submit, klik tombol <strong>"<span class="ico ico-refresh"></span> Coba Lagi (Retry)"</strong> di atas agar sistem memuat ulang status terbaru.</div>
                 </div>
             `;
             toggleHidden('interactive-area', true);
@@ -345,7 +345,7 @@ function renderApprovalUI(session) {
             </div>
             <p style="font-size: 0.8em; color: #64748b; margin-bottom: 0;">
                 <i class="fas fa-robot"></i> Jika hasil berantakan (seperti judul/field kosong), artinya model LLM gagal mengikuti instruksi JSON karena prompt terlalu panjang/memaksa. 
-                Anda bisa mengganti model LLM di menu <strong>⚙️ Settings</strong> di pojok kanan atas, lalu coba revisi kembali.
+                Anda bisa mengganti model LLM di menu <strong><span class="ico ico-settings"></span> Settings</strong> di pojok kanan atas, lalu coba revisi kembali.
             </p>
         `;
         area.appendChild(infoBox);

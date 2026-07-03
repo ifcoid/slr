@@ -23,15 +23,15 @@ function ensureModal() {
     el.innerHTML = `
     <div class="glass-panel modal-content" style="max-width:920px;">
         <div class="modal-header">
-            <h2>🐞 Lapor / Debug Bug</h2>
+            <h2><span class="ico ico-bug"></span> Lapor / Debug Bug</h2>
             <button class="btn-close" id="llm-debug-close">&times;</button>
         </div>
         <p style="font-size:0.85em;color:#9ca3af;margin:0 0 12px;">Lapor masalah APA PUN — tampilan/UX (mis. "tombol toast tak muncul") atau error LLM. Cukup tulis keterangan; <strong>state (modul/step, sesi, browser) ditambahkan OTOMATIS</strong>. Untuk error LLM, detail prompt & error terisi sendiri dan bisa di-Uji Coba.</p>
         <div id="llm-debug-meta"></div>
-        <div class="form-group"><label>📝 Keterangan masalah <span style="color:#9ca3af;font-size:0.8em;">(jelaskan singkat apa yang salah)</span></label><textarea id="llm-debug-note" rows="3" style="width:100%;" placeholder='mis. "Klik Sync, toast tidak muncul dan tombol diam"'></textarea></div>
+        <div class="form-group"><label><span class="ico ico-file"></span> Keterangan masalah <span style="color:#9ca3af;font-size:0.8em;">(jelaskan singkat apa yang salah)</span></label><textarea id="llm-debug-note" rows="3" style="width:100%;" placeholder='mis. "Klik Sync, toast tidak muncul dan tombol diam"'></textarea></div>
         <div id="llm-debug-state" style="font-size:0.78em;color:#9ca3af;margin-bottom:10px;"></div>
         <details id="llm-debug-tech" style="margin-bottom:10px;">
-            <summary style="cursor:pointer;color:#5eead4;font-size:0.85em;">🔧 Detail teknis LLM (prompt &amp; error) — terisi otomatis bila lapor dari error LLM; bisa Uji Coba</summary>
+            <summary style="cursor:pointer;color:#5eead4;font-size:0.85em;"><span class="ico ico-settings"></span> Detail teknis LLM (prompt &amp; error) — terisi otomatis bila lapor dari error LLM; bisa Uji Coba</summary>
             <div style="margin-top:10px;">
                 <div style="display:flex;gap:10px;flex-wrap:wrap;">
                     <div class="form-group" style="flex:1;min-width:160px;"><label>Provider</label><input id="llm-debug-provider" type="text" placeholder="mis. groq / gemini / mistral"></div>
@@ -114,7 +114,7 @@ function renderState() {
     const el = document.getElementById('llm-debug-state');
     if (!el) return;
     const sid = ctxState.sessionId || window.currentSessionId || '(tidak ada sesi aktif)';
-    el.innerHTML = `🧭 Ikut terkirim otomatis: sesi <strong>${esc(sid)}</strong> · modul/step <strong>${esc(currentStatus() || '-')}</strong> · backend <strong>${esc(getBaseURL())}</strong> · layar ${window.innerWidth}×${window.innerHeight}`;
+    el.innerHTML = `<span class="ico ico-info"></span> Ikut terkirim otomatis: sesi <strong>${esc(sid)}</strong> · modul/step <strong>${esc(currentStatus() || '-')}</strong> · backend <strong>${esc(getBaseURL())}</strong> · layar ${window.innerWidth}×${window.innerHeight}`;
 }
 
 // buildReportText merangkai SELURUH info reproduksi bug — keterangan user + STATE OTOMATIS
@@ -228,7 +228,7 @@ async function reportBug() {
     window.open('https://t.me/BugLaporBot', '_blank');
     showToast(`📎 File "${fname}" terunduh (termasuk state DB). Di chat @BugLaporBot, LAMPIRKAN file itu lalu kirim — bot membalas "diterima".`);
     const box = document.getElementById('llm-debug-result');
-    box.innerHTML = `<div style="font-size:0.82em;color:#9ca3af;margin-bottom:6px;">📎 File <strong>${esc(fname)}</strong> terunduh — berisi prompt + <strong>snapshot state DB</strong> (developer tak perlu akses database Anda). Lampirkan ke <strong>@BugLaporBot</strong> lalu kirim. Cadangan — salin teks ini bila perlu:</div><textarea readonly rows="8" style="width:100%;font-family:monospace;font-size:0.78em;" onclick="this.select()">${esc(report)}</textarea>`;
+    box.innerHTML = `<div style="font-size:0.82em;color:#9ca3af;margin-bottom:6px;"><span class="ico ico-file"></span> File <strong>${esc(fname)}</strong> terunduh — berisi prompt + <strong>snapshot state DB</strong> (developer tak perlu akses database Anda). Lampirkan ke <strong>@BugLaporBot</strong> lalu kirim. Cadangan — salin teks ini bila perlu:</div><textarea readonly rows="8" style="width:100%;font-family:monospace;font-size:0.78em;" onclick="this.select()">${esc(report)}</textarea>`;
 }
 
 function renderResult(res) {

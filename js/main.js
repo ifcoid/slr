@@ -111,7 +111,7 @@ function initConnectionCheck() {
             const btnSettingsHeader = document.getElementById('btn-settings');
             if (btnSettingsHeader) {
                 btnSettingsHeader.style.color = '#10b981';
-                btnSettingsHeader.innerHTML = '⚙️ Configured';
+                btnSettingsHeader.innerHTML = '<span class="ico ico-settings"></span> Configured';
             }
         } else {
             showToast('Backend masih tidak terhubung', 'error');
@@ -159,7 +159,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     } else {
         if (btnSettings) {
             btnSettings.style.color = '#10b981';
-            btnSettings.innerHTML = '⚙️ Configured';
+            btnSettings.innerHTML = '<span class="ico ico-settings"></span> Configured';
         }
     }
 
@@ -255,7 +255,7 @@ async function renderSessionPicker() {
             <button type="button" class="btn session-item" data-session-id="${id}"
                 style="text-align:left; display:flex; flex-direction:column; gap:2px; padding:12px 14px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); width:100%;">
                 <span style="font-weight:600;">${topic}</span>
-                <span style="font-size:0.82em; opacity:0.7;">🆔 ${id} · <span style="color:#38bdf8;">${status}</span>${when ? ' · ' + escapeHTML(when) : ''}</span>
+                <span style="font-size:0.82em; opacity:0.7;"><span class="ico ico-info"></span> ${id} · <span style="color:#38bdf8;">${status}</span>${when ? ' · ' + escapeHTML(when) : ''}</span>
             </button>`;
         }).join('');
         list.querySelectorAll('.session-item').forEach(btn => {

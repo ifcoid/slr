@@ -231,7 +231,7 @@ export function initHealthDashboard() {
 
             <!-- MCP GUIDE BOX -->
             <div style="margin-top: 30px; padding: 20px; background: rgba(13, 148, 136, 0.1); border: 1px solid rgba(13, 148, 136, 0.3); border-radius: 8px;">
-                <h3 style="margin-top: 0; color: #5eead4; font-size: 1.1em; margin-bottom: 15px;">🔌 Mode Pasif: Integrasi MCP Server</h3>
+                <h3 style="margin-top: 0; color: #5eead4; font-size: 1.1em; margin-bottom: 15px;"><span class="ico ico-power"></span> Mode Pasif: Integrasi MCP Server</h3>
                 <p style="font-size: 0.9em; margin-bottom: 10px; color: #e2e8f0;">
                     Jika semua API LLM di atas penuh/error (terutama saat *weekend*), Anda bisa menggunakan **Mode Pasif** dengan menghubungkan AI eksternal Anda (misal: Claude Desktop, Cursor, atau *agent* lainnya) ke NSA.
                 </p>

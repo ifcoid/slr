@@ -17,7 +17,7 @@ function correctionsAuditHtml(session) {
         <td style="padding:4px 6px;border-bottom:1px solid rgba(255,255,255,0.06);font-size:0.78em;color:#a8a29e;white-space:nowrap;">${esc((c.at || '').slice(0, 10))}</td>
     </tr>`).join('');
     return `<details style="margin-bottom:12px;background:rgba(245,158,11,0.06);border-left:3px solid #f59e0b;border-radius:6px;padding:10px;">
-        <summary style="cursor:pointer;color:#fcd34d;font-weight:bold;">🧾 Audit Koreksi Include/Exclude (${cor.length}: ${reincl} re-include, ${excl} exclude)</summary>
+        <summary style="cursor:pointer;color:#fcd34d;font-weight:bold;"><span class="ico ico-file"></span> Audit Koreksi Include/Exclude (${cor.length}: ${reincl} re-include, ${excl} exclude)</summary>
         <p style="font-size:0.82em;color:#d6d3d1;margin:8px 0;">Jejak koreksi keputusan full-text pasca-screening (deviasi protokol terdokumentasi). Angka PRISMA sudah mencerminkan keputusan FINAL; ini provenance untuk audit/Q1, juga otomatis masuk narasi Methods.</p>
         <table style="width:100%;border-collapse:collapse;font-size:0.85em;">
             <tr style="color:#9ca3af;text-align:left;"><th style="padding:4px 6px;">Paper</th><th style="padding:4px 6px;text-align:center;">Perubahan</th><th style="padding:4px 6px;">Alasan</th><th style="padding:4px 6px;">Tgl</th></tr>
@@ -132,9 +132,9 @@ export function renderApprovalContent(area, session, handleApproval) {
             </div>`;
         html = wrapCard('Modul 1 — Fondasi Teori & Aturan Global (Briefing)', `
             <p style="margin-top:0; color:#9ca3af; font-size:0.88em;">Topik: <strong style="color:#d1d5db;">${f.topic_context || session.topic || '-'}</strong></p>
-            ${fSection('📚 Fondasi Teori SLR (disesuaikan topik · AI)', f.theory_markdown, '#5eead4')}
+            ${fSection('<span class="ico ico-book"></span> Fondasi Teori SLR (disesuaikan topik · AI)', f.theory_markdown, '#5eead4')}
             ${fSection('🤖 Etika & Kapabilitas AI (kanonik)', f.ai_practice_markdown, '#c4b5fd')}
-            ${fSection('📐 Aturan Global SLR + CoWork (kanonik)', f.global_rules_markdown, '#6ee7b7')}
+            ${fSection('<span class="ico ico-settings"></span> Aturan Global SLR + CoWork (kanonik)', f.global_rules_markdown, '#6ee7b7')}
         `);
 
     } else if (status === 'M2_STEP2_WAITING_APPROVAL' && session.prior_reviews_matrix) {
@@ -173,7 +173,7 @@ export function renderApprovalContent(area, session, handleApproval) {
         const guidanceHtml = guidance ? `
             <div style="background:rgba(13, 148, 136,0.08); padding:12px; border-radius:6px; border-left:3px solid #0d9488; margin-bottom:12px;">
                 <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:6px;">
-                    <strong style="color:#5eead4; font-size:0.9em;">🔎 Cara menemukan & memverifikasi artikelnya</strong>
+                    <strong style="color:#5eead4; font-size:0.9em;"><span class="ico ico-search"></span> Cara menemukan & memverifikasi artikelnya</strong>
                     <button type="button" id="btn-pr-copy-guide" class="btn btn-secondary" style="padding:3px 9px; font-size:0.78em;"><span class="ico ico-copy"></span> Salin query</button>
                 </div>
                 <p id="pr-guide-text" style="font-size:0.85em; color:#d6d3d1; margin:0; white-space:pre-wrap; line-height:1.5;">${escTxt(guidance)}</p>
@@ -242,7 +242,7 @@ export function renderApprovalContent(area, session, handleApproval) {
                 if (out.length === 0) { showToast('Minimal satu review dengan Author/Year.', 'error'); return; }
                 try {
                     saveBtn.disabled = true;
-                    saveBtn.textContent = '💾 Menyimpan...';
+                    saveBtn.innerHTML = '<span class="ico ico-save"></span> Menyimpan...';
                     const res = await API.savePriorReviews(session.id, out);
                     const v = out.filter(r => r.verification === 'VERIFIED').length;
                     showToast(`✅ ${out.length} review tersimpan (${v} terverifikasi).`);
@@ -250,7 +250,7 @@ export function renderApprovalContent(area, session, handleApproval) {
                     showToast('Gagal menyimpan matriks: ' + err.message, 'error');
                 } finally {
                     saveBtn.disabled = false;
-                    saveBtn.textContent = '💾 Simpan Matriks';
+                    saveBtn.innerHTML = '<span class="ico ico-save"></span> Simpan Matriks';
                 }
             });
         }, 0);
@@ -711,7 +711,7 @@ export function renderApprovalContent(area, session, handleApproval) {
     } else if (status === 'M4_STEP1_WAITING_INPUT') {
         const ssInfo = session.search_log ? `
             <div style="background: rgba(13, 148, 136, 0.1); border-left: 4px solid #0d9488; padding: 15px; margin-bottom: 1.5rem; border-radius: 4px;">
-                <h5 style="color: #5eead4; margin-top: 0; margin-bottom: 8px;">ℹ️ Referensi Search String (Final)</h5>
+                <h5 style="color: #5eead4; margin-top: 0; margin-bottom: 8px;"><span class="ico ico-info"></span> Referensi Search String (Final)</h5>
                 <p style="font-size: 0.9em; margin-bottom: 8px;">Silakan <em>copy-paste</em> kueri di bawah ini ke <a href="https://www.scopus.com/pages/search/publications?type=advanced" target="_blank" style="color: #5eead4; font-weight: bold; text-decoration: underline;">Scopus Advanced Search ↗</a> untuk mengeksekusi pencarian akhir:</p>
                 <div style="background: #1e1e1e; padding: 10px; border-radius: 4px; font-family: monospace; color: #5eead4; font-size: 0.9em; margin-bottom: 10px; overflow-x: auto; white-space: pre-wrap;">
                     ${session.search_string?.scopus_query || session.search_log.search_string_final}
@@ -869,7 +869,7 @@ export function renderApprovalContent(area, session, handleApproval) {
 
         let refHtml = `
             <div style="background: rgba(13, 148, 136, 0.1); border-left: 4px solid #0d9488; padding: 15px; margin-bottom: 1.5rem; border-radius: 4px;">
-                <h5 style="color: #5eead4; margin-top: 0; margin-bottom: 8px;">ℹ️ Referensi Kueri & Panduan Ekspor</h5>
+                <h5 style="color: #5eead4; margin-top: 0; margin-bottom: 8px;"><span class="ico ico-info"></span> Referensi Kueri & Panduan Ekspor</h5>
                 
                 <div style="margin-bottom: 15px;">
                     <strong style="color: #d6d3d1;"><a href="https://www.scopus.com/pages/search/publications?type=advanced" target="_blank" style="color: #5eead4; text-decoration: underline;">Scopus ↗</a></strong>
@@ -1109,7 +1109,7 @@ export function renderApprovalContent(area, session, handleApproval) {
                         <li>Semua panggilan LLM gagal karena timeout, rate limit, atau provider sedang down</li>
                         <li>Provider API dinonaktifkan (<code>is_active: false</code>) di database</li>
                     </ul>
-                    <p style="color: #fef3c7; font-size: 0.9em; margin-bottom: 0;">Silakan buka <strong>⚙️ Pengaturan</strong> → konfigurasikan API Key pada <em>Reviewer 1</em> dan <em>Reviewer 2</em>, lalu kirim instruksi revisi kosong untuk mengulangi kalibrasi.</p>
+                    <p style="color: #fef3c7; font-size: 0.9em; margin-bottom: 0;">Silakan buka <strong><span class="ico ico-settings"></span> Pengaturan</strong> → konfigurasikan API Key pada <em>Reviewer 1</em> dan <em>Reviewer 2</em>, lalu kirim instruksi revisi kosong untuk mengulangi kalibrasi.</p>
                 </div>
             `;
         } else if (kal) {
@@ -1546,7 +1546,7 @@ export function renderApprovalContent(area, session, handleApproval) {
         // HITL: revisi aturan scope PICO (klarifikasi batas) lalu audit ulang konsisten.
         const scopeEditor = `
             <details style="margin-bottom:15px; background:rgba(13, 148, 136,0.06); padding:12px; border-radius:6px; border-left:3px solid #0d9488;">
-                <summary style="cursor:pointer; color:#5eead4; font-weight:bold;">⚙ Revisi Aturan Scope PICO (untuk audit konsisten)</summary>
+                <summary style="cursor:pointer; color:#5eead4; font-weight:bold;"><span class="ico ico-settings"></span> Revisi Aturan Scope PICO (untuk audit konsisten)</summary>
                 <p style="font-size:0.83em; color:#d6d3d1; margin:8px 0;">Tulis klarifikasi batas kriteria yang akan diterapkan SERAGAM ke seluruh paper saat audit ulang (mis. "Klasifikasi penyakit klinis dari sinyal otak DIHITUNG sebagai decoding"; "Denoising/super-resolution/harmonisasi DIKECUALIKAN"). Aturan ini milik sesi Anda — sistem tidak meng-hardcode kriteria apa pun.</p>
                 <textarea id="audit-scope-rules" placeholder="Satu aturan per baris..." style="width:100%; min-height:90px; padding:8px; border-radius:4px; background:rgba(255,255,255,0.05); color:white; border:1px solid rgba(255,255,255,0.1); resize:vertical;">${(session.audit_scope_rules || '').replace(/</g, '&lt;')}</textarea>
                 <button id="btn-audit-scope-save" class="btn btn-primary" style="margin-top:8px;"><span class="ico ico-save"></span> Simpan Aturan & Audit Ulang Konsisten</button>
@@ -1578,7 +1578,7 @@ export function renderApprovalContent(area, session, handleApproval) {
                     } catch (err) {
                         alert('Gagal menyimpan aturan scope: ' + err.message);
                         btnScope.disabled = false;
-                        btnScope.innerHTML = '💾 Simpan Aturan & Audit Ulang Konsisten';
+                        btnScope.innerHTML = '<span class="ico ico-save"></span> Simpan Aturan & Audit Ulang Konsisten';
                     }
                 });
             }
@@ -1607,7 +1607,7 @@ export function renderApprovalContent(area, session, handleApproval) {
                     } catch (err) {
                         alert('Gagal menyimpan koreksi audit: ' + err.message);
                         btn.disabled = false;
-                        btn.innerHTML = '💾 Simpan Koreksi Audit & Hitung Ulang';
+                        btn.innerHTML = '<span class="ico ico-save"></span> Simpan Koreksi Audit & Hitung Ulang';
                     }
                 });
             }, 0);
@@ -1700,7 +1700,7 @@ export function renderApprovalContent(area, session, handleApproval) {
                             btn.disabled = true; btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Menyimpan...';
                             await API.resolveConflicts(session.id, { stage: 'fulltext', resolutions });
                             window.location.reload();
-                        } catch (err) { alert('Gagal: ' + err.message); btn.disabled = false; btn.innerHTML = '💾 Simpan Resolusi Full-text'; }
+                        } catch (err) { alert('Gagal: ' + err.message); btn.disabled = false; btn.innerHTML = '<span class="ico ico-save"></span> Simpan Resolusi Full-text'; }
                     });
                 }
             } catch (e) {
@@ -1750,7 +1750,7 @@ export function renderApprovalContent(area, session, handleApproval) {
             ${ready ? `<details style="margin-top:12px;"><summary style="cursor:pointer;color:#6ee7b7;font-weight:bold;">Extraction Readiness Checklist</summary><div style="font-size:0.88em;margin-top:8px;">${formatMarkdown(ready)}</div></details>` : ''}
             ${inacc ? `<details style="margin-top:8px;"><summary style="cursor:pointer;color:#fca5a5;font-weight:bold;">Inaccessible Impact</summary><div style="font-size:0.88em;margin-top:8px;">${formatMarkdown(inacc)}</div></details>` : ''}
             <details id="recode-panel" style="margin-top:8px;">
-                <summary style="cursor:pointer;color:#fcd34d;font-weight:bold;">🏷️ Re-code Alasan Eksklusi (rapikan tabel PRISMA)</summary>
+                <summary style="cursor:pointer;color:#fcd34d;font-weight:bold;"><span class="ico ico-copy"></span> Re-code Alasan Eksklusi (rapikan tabel PRISMA)</summary>
                 <div style="font-size:0.85em;margin-top:8px;">
                     <p style="color:#d6d3d1;margin:0 0 8px 0;">Ganti kode kabur (mis. "OTHER") ke kode spesifik berdasar bukti tiap paper. Menyimpan akan <strong>menyusun ulang</strong> ringkasan Modul 6 dengan kode baru.</p>
                     <button id="btn-load-recode" class="btn" style="background:#6366f1;color:#fff;">Muat Daftar Eksklusi</button>
@@ -1773,9 +1773,9 @@ export function renderApprovalContent(area, session, handleApproval) {
             <p><strong>Framework:</strong> <span style="color:#6ee7b7;">${fw.framework}</span></p>
             ${fw.system_prompt ? `
             <details style="margin-bottom:15px; background:rgba(0,0,0,0.2); padding:10px; border-radius:8px;">
-                <summary style="cursor:pointer; color:#5eead4; font-weight:bold; font-size: 0.85em;">🔍 xAI: Lihat Prompt Dibalik Keputusan Ini</summary>
+                <summary style="cursor:pointer; color:#5eead4; font-weight:bold; font-size: 0.85em;"><span class="ico ico-search"></span> xAI: Lihat Prompt Dibalik Keputusan Ini</summary>
                 <div style="margin-top:10px; font-size:0.8em; color:#d6d3d1; max-height: 250px; overflow-y: auto;">
-                    ${fw.model_used ? `<p style="color:#fcd34d; margin-bottom:5px;"><strong>🧠 LLM Model:</strong> ${fw.model_used}</p>` : ''}
+                    ${fw.model_used ? `<p style="color:#fcd34d; margin-bottom:5px;"><strong><span class="ico ico-ai"></span> LLM Model:</strong> ${fw.model_used}</p>` : ''}
                     <strong>System Prompt (Instruksi Agent):</strong><br>
                     <pre style="white-space: pre-wrap; font-family: monospace; background: rgba(0,0,0,0.3); padding: 8px; border-radius: 4px; margin-top: 5px; margin-bottom: 10px;">${(fw.system_prompt || '').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>
                     <strong>User Prompt (Konteks Riset Anda):</strong><br>
@@ -1823,14 +1823,14 @@ export function renderApprovalContent(area, session, handleApproval) {
                 if (cols.length === 0) { showToast('Minimal satu kolom dengan key terisi.', 'error'); return; }
                 try {
                     saveBtn.disabled = true;
-                    saveBtn.textContent = '💾 Menyimpan...';
+                    saveBtn.innerHTML = '<span class="ico ico-save"></span> Menyimpan...';
                     await API.saveFrameworkColumns(session.id, cols);
                     showToast(`✅ ${cols.length} kolom tersimpan. Klik Setuju untuk mulai ekstraksi.`);
                 } catch (err) {
                     showToast('Gagal menyimpan kolom: ' + err.message, 'error');
                 } finally {
                     saveBtn.disabled = false;
-                    saveBtn.textContent = '💾 Simpan Kolom';
+                    saveBtn.innerHTML = '<span class="ico ico-save"></span> Simpan Kolom';
                 }
             });
         }, 0);
@@ -1848,7 +1848,7 @@ export function renderApprovalContent(area, session, handleApproval) {
                 <p style="margin:8px 0 0;color:#fecaca;">Pipeline sengaja <strong>berhenti di sini</strong> agar Anda sempat memperbaiki provider sebelum lanjut. Data ekstraksi <strong>${l.total_extracted || 0} paper</strong> sudah <strong>TERSIMPAN &amp; AMAN</strong> — tidak akan hilang.</p>
             </div>
             <div style="margin-bottom:14px;">
-                <strong style="color:#fcd34d;">🔎 Detail error (yang harus diperbaiki):</strong>
+                <strong style="color:#fcd34d;"><span class="ico ico-search"></span> Detail error (yang harus diperbaiki):</strong>
                 <pre style="white-space:pre-wrap;font-family:monospace;font-size:0.82em;background:rgba(0,0,0,0.35);padding:10px;border-radius:6px;margin-top:6px;color:#fecaca;max-height:260px;overflow-y:auto;">${esc(detail)}</pre>
                 ${l.model_refine_protocol ? `<p style="font-size:0.82em;color:#a8a29e;margin-top:4px;">Model Reviewer 2 saat ini: <strong style="color:#d6d3d1;">${esc(l.model_refine_protocol)}</strong></p>` : ''}
             </div>
@@ -1856,8 +1856,8 @@ export function renderApprovalContent(area, session, handleApproval) {
                 <strong style="color:#5eead4;">Langkah perbaikan:</strong>
                 <ol style="margin:6px 0 0;padding-left:20px;line-height:1.6;">
                     <li>Buka <strong>Pengaturan</strong> → role <strong>Reviewer 2</strong>, perbaiki API key / nama model / base URL.</li>
-                    <li>Klik <strong>🧪 Test Model</strong> sampai hijau (✓).</li>
-                    <li>Kembali ke sini, klik <strong>🔁 Ulangi Verifikasi</strong>.</li>
+                    <li>Klik <strong><span class="ico ico-flask"></span> Test Model</strong> sampai hijau (✓).</li>
+                    <li>Kembali ke sini, klik <strong><span class="ico ico-repeat"></span> Ulangi Verifikasi</strong>.</li>
                 </ol>
                 <p style="margin:8px 0 0;color:#a8a29e;">Penyebab umum: nama model salah/terkunci (404), API key salah (401), atau kuota habis (429).</p>
             </div>
@@ -1883,7 +1883,7 @@ export function renderApprovalContent(area, session, handleApproval) {
             });
             fwHtml = `
             <details style="margin-bottom:15px; background:rgba(0,0,0,0.2); padding:10px; border-radius:8px;">
-                <summary style="cursor:pointer; color:#6ee7b7; font-weight:bold;">📋 Lihat Protokol Ekstraksi Saat Ini</summary>
+                <summary style="cursor:pointer; color:#6ee7b7; font-weight:bold;"><span class="ico ico-copy"></span> Lihat Protokol Ekstraksi Saat Ini</summary>
                 <div style="margin-top:10px; font-size:0.9em;">
                     <p><strong>Framework:</strong> ${session.framework_selection.framework}</p>
                     <table style="width:100%;border-collapse:collapse;font-size:0.85em;margin-top:8px;">
@@ -1896,10 +1896,10 @@ export function renderApprovalContent(area, session, handleApproval) {
 
         let xaiHtml = `
             <details style="margin-bottom:15px; background:rgba(0,0,0,0.2); padding:10px; border-radius:8px;">
-                <summary style="cursor:pointer; color:#5eead4; font-weight:bold; font-size: 0.85em;">🔍 xAI: Lihat Langkah AI, Prompt & Model Dibalik Ekstraksi Ini</summary>
+                <summary style="cursor:pointer; color:#5eead4; font-weight:bold; font-size: 0.85em;"><span class="ico ico-search"></span> xAI: Lihat Langkah AI, Prompt & Model Dibalik Ekstraksi Ini</summary>
                 <div style="margin-top:10px; font-size:0.8em; color:#d6d3d1; max-height: 400px; overflow-y: auto;">
                     <div style="margin-bottom:15px; padding-bottom:10px; border-bottom: 1px solid rgba(255,255,255,0.1);">
-                        <strong style="color:#5eead4; display:block; margin-bottom:5px;">📋 Langkah-Langkah yang Dilakukan Agent AI (Step 2):</strong>
+                        <strong style="color:#5eead4; display:block; margin-bottom:5px;"><span class="ico ico-copy"></span> Langkah-Langkah yang Dilakukan Agent AI (Step 2):</strong>
                         <ol style="margin:0; padding-left:20px; color:#a8a29e; line-height: 1.4;">
                             <li style="margin-bottom:4px;"><strong>Persiapan RAG:</strong> AI memuat indeks vektor teks penuh (full-text) dari PDF yang telah diunduh di Modul 6.</li>
                             <li style="margin-bottom:4px;"><strong>Ekstraksi Massal (Reviewer 1):</strong> Model Ekstraksi membaca secara iteratif setiap paper dan mengekstrak data spesifik berdasarkan definisi operasional dan struktur framework (Prompt).</li>
@@ -1908,8 +1908,8 @@ export function renderApprovalContent(area, session, handleApproval) {
                             <li><strong>Kalkulasi Disagreement:</strong> Tingkat kerancuan dihitung untuk menentukan apakah ekstraksi dapat dilanjutkan atau memerlukan perbaikan manual (Refine Protocol).</li>
                         </ol>
                     </div>
-                    ${l.model_extraction ? `<p style="color:#fcd34d; margin-bottom:5px;"><strong>🧠 LLM Model Ekstraksi (Reviewer 1):</strong> ${l.model_extraction}</p>` : ''}
-                    ${l.model_refine_protocol ? `<p style="color:#fcd34d; margin-bottom:5px;"><strong>🧠 LLM Model Refine Protocol (Reviewer 2):</strong> ${l.model_refine_protocol}</p>` : ''}
+                    ${l.model_extraction ? `<p style="color:#fcd34d; margin-bottom:5px;"><strong><span class="ico ico-ai"></span> LLM Model Ekstraksi (Reviewer 1):</strong> ${l.model_extraction}</p>` : ''}
+                    ${l.model_refine_protocol ? `<p style="color:#fcd34d; margin-bottom:5px;"><strong><span class="ico ico-ai"></span> LLM Model Refine Protocol (Reviewer 2):</strong> ${l.model_refine_protocol}</p>` : ''}
                     ${l.system_prompt ? `
                     <strong style="margin-top:10px; display:block;">System Prompt (Instruksi Agent Ekstraksi):</strong>
                     <pre style="white-space: pre-wrap; font-family: monospace; background: rgba(0,0,0,0.3); padding: 8px; border-radius: 4px; margin-top: 5px; margin-bottom: 10px;">${(l.system_prompt || '').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>
@@ -1938,7 +1938,7 @@ export function renderApprovalContent(area, session, handleApproval) {
             <p><strong>Pengecekan Kualitas (Cross-check):</strong> AI kedua (Reviewer 2) ${verifyFailed ? '<span style="color:#fca5a5;">GAGAL memverifikasi (0 paper)</span>' : `telah mengambil sampel acak ${l.verified_sample || 0} paper untuk diperiksa ulang`}. <br>
             <strong>Tingkat Perbedaan Pemahaman:</strong> <a href="#" onclick="window.showExtractionModal(true); return false;" style="color:${rateColor};font-weight:bold;text-decoration:underline;cursor:pointer;" title="Klik untuk memfilter dan HANYA melihat paper yang rancu/kuning di Tabel Ekstraksi">${rate}%</a></p>
             <p><strong>Temuan Kerancuan:</strong> Terdapat ${l.ambiguous_count || 0} isian data (seperti metodologi, hasil, atau variabel lainnya) yang ditandai ambigu/membingungkan oleh Reviewer 2. Isian yang ambigu ini akan ditandai dengan <strong>warna kuning</strong> pada Tabel Ekstraksi di bawah.</p>
-            ${(l.failed_count || 0) > 0 ? `<p style="padding:8px 12px;background:rgba(239,68,68,0.12);border-left:3px solid #ef4444;border-radius:6px;color:#fca5a5;"><strong>⚠️ ${l.failed_count} paper gagal/kosong</strong> (ERROR / hasil kosong / tanpa full-text). Klik <strong>🔁 Ekstrak Ulang Paper Gagal/Kosong</strong> di bawah untuk mengulang HANYA paper ini (paper baik dipertahankan, hemat kuota).</p>` : ''}
+            ${(l.failed_count || 0) > 0 ? `<p style="padding:8px 12px;background:rgba(239,68,68,0.12);border-left:3px solid #ef4444;border-radius:6px;color:#fca5a5;"><strong>⚠️ ${l.failed_count} paper gagal/kosong</strong> (ERROR / hasil kosong / tanpa full-text). Klik <strong><span class="ico ico-repeat"></span> Ekstrak Ulang Paper Gagal/Kosong</strong> di bawah untuk mengulang HANYA paper ini (paper baik dipertahankan, hemat kuota).</p>` : ''}
             <p style="font-size:0.85em;color:#a8a29e;">${l.nr_note || ''}</p>
             <div style="margin-top: 15px; text-align: center; display: flex; gap: 10px; justify-content: center; flex-wrap:wrap;">
                 <button class="btn btn-secondary" onclick="window.showExtractionModal()" style="flex:1;min-width:160px;"><span class="ico ico-chart"></span> Lihat Tabel Ekstraksi</button>
@@ -2190,7 +2190,7 @@ export function renderApprovalContent(area, session, handleApproval) {
                     <div style="font-size: 0.75em; color: #a8a29e; margin-top: 4px;">${q.categorization || ''}</div>
                 </div>
                 <div style="background: rgba(255,255,255,0.05); padding: 8px 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1);" title="Jika 0.000, kemungkinan belum cukup sampel untuk cross-check, atau rater kedua belum selesai.">
-                    <div style="font-size: 0.75em; color: #a8a29e; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 4px;">Dual-rater κ <span style="cursor:help; font-size: 1.2em;">ℹ️</span></div>
+                    <div style="font-size: 0.75em; color: #a8a29e; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 4px;">Dual-rater κ <span style="cursor:help; font-size: 1.2em;"><span class="ico ico-info"></span> </span></div>
                     <div style="font-size: 1.1em; font-weight: bold; color: ${q.kappa >= 0.6 ? '#4ade80' : '#fca5a5'};">${(q.kappa || 0).toFixed(3)}</div>
                 </div>
             </div>
@@ -2264,7 +2264,7 @@ export function renderApprovalContent(area, session, handleApproval) {
                     } catch(e) {
                         alert("Gagal recalculate: " + e.message);
                         btnRecalcQA.disabled = false;
-                        btnRecalcQA.innerHTML = '🔄 Recalculate ERROR Papers';
+                        btnRecalcQA.innerHTML = '<span class="ico ico-refresh"></span> Recalculate ERROR Papers';
                     }
                 });
             }
@@ -2282,7 +2282,7 @@ export function renderApprovalContent(area, session, handleApproval) {
                     } catch(e) {
                         alert("Gagal menjalankan ulang QA: " + (e.message || e));
                         btnRerunQA.disabled = false;
-                        btnRerunQA.innerHTML = '🔁 Jalankan Ulang Seluruh Proses QA';
+                        btnRerunQA.innerHTML = '<span class="ico ico-repeat"></span> Jalankan Ulang Seluruh Proses QA';
                     }
                 });
             }
@@ -2355,9 +2355,9 @@ ${sens || 'Tidak tersedia'}
             <p style="margin-top:10px;font-size:0.9em;"><strong>Heterogeneity:</strong> ${sp.heterogeneity_verdict || '-'} | <strong>Meta-analysis:</strong> <span style="color:#6ee7b7;">${sp.meta_feasibility || '-'}</span></p>
             ${sumMd.includes('ERROR') ? `<div style="margin-top: 12px;"><button id="btn-m7-retry-qa" class="btn" style="background:#fbbf24; color:#1c1917; width:100%; border:none; padding:10px; border-radius:6px; font-weight:bold; cursor:pointer;"><span class="ico ico-refresh"></span> Ulangi Penilaian QA untuk Studi yang ERROR</button></div>` : ''}
             <details style="margin-top:12px; background:rgba(0,0,0,0.2); padding:10px; border-radius:8px; border-left:3px solid #5eead4;">
-                <summary style="cursor:pointer; color:#5eead4; font-weight:bold; font-size:0.85em;">🔍 xAI: Lihat Model & Prompt Synthesis Prep</summary>
+                <summary style="cursor:pointer; color:#5eead4; font-weight:bold; font-size:0.85em;"><span class="ico ico-search"></span> xAI: Lihat Model & Prompt Synthesis Prep</summary>
                 <div style="margin-top:10px; font-size:0.8em; color:#d6d3d1; max-height:250px; overflow-y:auto;">
-                    ${sp.model_used ? `<p style="color:#fcd34d; margin-bottom:5px;"><strong>🧠 LLM Model:</strong> ${sp.model_used}</p>` : ''}
+                    ${sp.model_used ? `<p style="color:#fcd34d; margin-bottom:5px;"><strong><span class="ico ico-ai"></span> LLM Model:</strong> ${sp.model_used}</p>` : ''}
                     <strong>System Prompt (Instruksi Agent):</strong><br>
                     <pre style="white-space:pre-wrap; font-family:monospace; background:rgba(0,0,0,0.3); padding:8px; border-radius:4px; margin-top:5px;">${(sp.system_prompt || '').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>
                 </div>
@@ -2403,7 +2403,7 @@ ATURAN EDGES:
                 <p style="margin:0; font-size:0.85em; color:#d6d3d1;">Knowledge Graph dari ${totalGraphed} paper telah berhasil diekstrak dan disimpan ke Neo4j AuraDB. Graph berisi nodes (Paper, Author, Method, Dataset, Metric, Conclusion) dan edges (relasi antar entitas) yang siap untuk query dan visualisasi.</p>
             </div>
             <details style="margin-top:12px; background:rgba(0,0,0,0.2); padding:10px; border-radius:8px; border-left:3px solid #5eead4;">
-                <summary style="cursor:pointer; color:#5eead4; font-weight:bold; font-size:0.85em;">🔍 xAI: Lihat System Prompt Graph Extraction</summary>
+                <summary style="cursor:pointer; color:#5eead4; font-weight:bold; font-size:0.85em;"><span class="ico ico-search"></span> xAI: Lihat System Prompt Graph Extraction</summary>
                 <div style="margin-top:10px; font-size:0.8em; color:#d6d3d1; max-height:300px; overflow-y:auto;">
                     <strong>System Prompt (Instruksi Agent untuk Graph Extraction):</strong><br>
                     <pre style="white-space:pre-wrap; font-family:monospace; background:rgba(0,0,0,0.3); padding:8px; border-radius:4px; margin-top:5px;">${graphSysPrompt.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>
@@ -2468,9 +2468,9 @@ ATURAN EDGES:
         if (decModel || decPrompt || srPrompt) {
             xaiSection = `
             <details style="margin-top:12px; background:rgba(0,0,0,0.2); padding:10px; border-radius:8px; border-left:3px solid #5eead4;">
-                <summary style="cursor:pointer; color:#5eead4; font-weight:bold; font-size:0.85em;">🔍 xAI: Lihat Model & Prompt Synthesis (Kaidah xAI)</summary>
+                <summary style="cursor:pointer; color:#5eead4; font-weight:bold; font-size:0.85em;"><span class="ico ico-search"></span> xAI: Lihat Model & Prompt Synthesis (Kaidah xAI)</summary>
                 <div style="margin-top:10px; font-size:0.8em; color:#d6d3d1; max-height:350px; overflow-y:auto;">
-                    ${decModel ? `<p style="color:#fcd34d; margin-bottom:5px;"><strong>🧠 LLM Model:</strong> ${decModel}</p>` : ''}
+                    ${decModel ? `<p style="color:#fcd34d; margin-bottom:5px;"><strong><span class="ico ico-ai"></span> LLM Model:</strong> ${decModel}</p>` : ''}
                     ${decPrompt ? `<div style="margin-bottom:12px;"><strong style="color:#5eead4;">System Prompt (Path Decision Agent):</strong><pre style="white-space:pre-wrap; font-family:monospace; background:rgba(0,0,0,0.3); padding:8px; border-radius:4px; margin-top:5px;">${decPrompt.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre></div>` : ''}
                     ${srPrompt ? `<div><strong style="color:#5eead4;">System Prompt (Synthesis Agent):</strong><pre style="white-space:pre-wrap; font-family:monospace; background:rgba(0,0,0,0.3); padding:8px; border-radius:4px; margin-top:5px;">${srPrompt.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre></div>` : ''}
                     ${!decPrompt && !srPrompt ? `<p style="color:#a8a29e; font-style:italic;">Data prompt tidak direkam pada sesi lama.</p>` : ''}
@@ -2519,9 +2519,9 @@ ATURAN EDGES:
         if (gradeModel || gradePrompt) {
             xaiSection = `
             <details style="margin-top:12px; background:rgba(0,0,0,0.2); padding:10px; border-radius:8px; border-left:3px solid #5eead4;">
-                <summary style="cursor:pointer; color:#5eead4; font-weight:bold; font-size:0.85em;">🔍 xAI: Lihat Model & Prompt GRADE (Kaidah xAI)</summary>
+                <summary style="cursor:pointer; color:#5eead4; font-weight:bold; font-size:0.85em;"><span class="ico ico-search"></span> xAI: Lihat Model & Prompt GRADE (Kaidah xAI)</summary>
                 <div style="margin-top:10px; font-size:0.8em; color:#d6d3d1; max-height:350px; overflow-y:auto;">
-                    ${gradeModel ? `<p style="color:#fcd34d; margin-bottom:5px;"><strong>🧠 LLM Model:</strong> ${gradeModel}</p>` : ''}
+                    ${gradeModel ? `<p style="color:#fcd34d; margin-bottom:5px;"><strong><span class="ico ico-ai"></span> LLM Model:</strong> ${gradeModel}</p>` : ''}
                     ${gradePrompt ? `<div><strong style="color:#5eead4;">System Prompt (GRADE Agent):</strong><pre style="white-space:pre-wrap; font-family:monospace; background:rgba(0,0,0,0.3); padding:8px; border-radius:4px; margin-top:5px;">${gradePrompt.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre></div>` : ''}
                     ${!gradePrompt ? `<p style="color:#a8a29e; font-style:italic;">Data prompt tidak direkam pada sesi lama.</p>` : ''}
                 </div>
@@ -2568,9 +2568,9 @@ ATURAN EDGES:
         if (ipModel || ipPrompt) {
             xaiSection = `
             <details style="margin-top:12px; background:rgba(0,0,0,0.2); padding:10px; border-radius:8px; border-left:3px solid #5eead4;">
-                <summary style="cursor:pointer; color:#5eead4; font-weight:bold; font-size:0.85em;">🔍 xAI: Lihat Model & Prompt Interpretation (Kaidah xAI)</summary>
+                <summary style="cursor:pointer; color:#5eead4; font-weight:bold; font-size:0.85em;"><span class="ico ico-search"></span> xAI: Lihat Model & Prompt Interpretation (Kaidah xAI)</summary>
                 <div style="margin-top:10px; font-size:0.8em; color:#d6d3d1; max-height:350px; overflow-y:auto;">
-                    ${ipModel ? `<p style="color:#fcd34d; margin-bottom:5px;"><strong>🧠 LLM Model:</strong> ${ipModel}</p>` : ''}
+                    ${ipModel ? `<p style="color:#fcd34d; margin-bottom:5px;"><strong><span class="ico ico-ai"></span> LLM Model:</strong> ${ipModel}</p>` : ''}
                     ${ipPrompt ? `<div><strong style="color:#5eead4;">System Prompt (Interpretation Agent):</strong><pre style="white-space:pre-wrap; font-family:monospace; background:rgba(0,0,0,0.3); padding:8px; border-radius:4px; margin-top:5px;">${ipPrompt.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre></div>` : ''}
                     ${!ipPrompt ? `<p style="color:#a8a29e; font-style:italic;">Data prompt tidak direkam pada sesi lama.</p>` : ''}
                 </div>
@@ -2587,7 +2587,7 @@ ATURAN EDGES:
                 <button id="btn-dl-interp-md" class="btn btn-secondary" style="padding:8px 16px; font-size:0.9em;"><span class="ico ico-download"></span> Download Laporan Lengkap (Markdown)</button>
             </div>
             <div style="margin-top: 12px; background: rgba(13, 148, 136, 0.1); border: 1px solid rgba(13, 148, 136, 0.4); border-radius: 8px; padding: 12px 16px;">
-                <p style="margin: 0 0 8px 0; font-size: 0.9em; color: #5eead4; font-weight: bold;">📊 Rekomendasi: Jalankan Bibliometric SLNA</p>
+                <p style="margin: 0 0 8px 0; font-size: 0.9em; color: #5eead4; font-weight: bold;"><span class="ico ico-chart"></span> Rekomendasi: Jalankan Bibliometric SLNA</p>
                 <p style="margin: 0 0 10px 0; font-size: 0.85em; color: #d6d3d1; line-height: 1.5;">Sangat disarankan menjalankan analisis Bibliometric/SLNA (Science Landscape Network Analysis) sebelum lanjut ke Modul 9. SLNA memberikan validasi lintas-metode (triangulasi) terhadap temuan sintesis naratif Anda, memperkuat argumen di bagian Discussion, serta mengidentifikasi research gaps berbasis peta jejaring kolaborasi ilmiah.</p>
                 <button id="btn-run-slna" class="btn" style="background:#0d9488;color:#fff;width:100%;padding:10px;font-weight:bold;font-size:0.95em;"><span class="ico ico-chart"></span> Jalankan Bibliometric SLNA (Sangat Direkomendasikan)</button>
             </div>
@@ -2616,7 +2616,7 @@ ATURAN EDGES:
                     b.disabled = true; b.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Memulai SLNA...';
                     await API.reviseStep(session.id, 'Run Bibliometric SLNA', 'M8B_INIT');
                     window.location.reload();
-                } catch (err) { alert('Gagal: ' + err.message); b.disabled = false; b.textContent = '📊 Jalankan Bibliometric SLNA (Sangat Direkomendasikan)'; }
+                } catch (err) { alert('Gagal: ' + err.message); b.disabled = false; b.innerHTML = '<span class="ico ico-chart"></span> Jalankan Bibliometric SLNA (Sangat Direkomendasikan)'; }
             });
         }, 100);
 
@@ -2870,7 +2870,7 @@ ATURAN EDGES:
         html = wrapCard('Modul 9 — Draft Grup A (Methods · Results · Discussion · Future Research)', `
             ${correctionsAuditHtml(session)}
             <div style="background:rgba(13, 148, 136,0.08);border:1px solid rgba(13, 148, 136,0.3);border-radius:6px;padding:10px 12px;margin-bottom:12px;font-size:0.82em;color:#5eead4;">
-                <strong>🧠 xAI Info:</strong> Hasil ditulis oleh model Brain (lihat Pengaturan → Model Routing). Proses: 3-pass per section (Draft → Verification → Style Cleanup). Jika output tidak ada \\cite{}, kemungkinan model kurang capable — ganti Brain ke GPT-4o/Claude Sonnet/Gemini Pro.
+                <strong><span class="ico ico-ai"></span> xAI Info:</strong> Hasil ditulis oleh model Brain (lihat Pengaturan → Model Routing). Proses: 3-pass per section (Draft → Verification → Style Cleanup). Jika output tidak ada \\cite{}, kemungkinan model kurang capable — ganti Brain ke GPT-4o/Claude Sonnet/Gemini Pro.
             </div>
             ${sec('Methods', ms.methods)}${sec('Results', ms.results)}${sec('Discussion', ms.discussion)}${sec('Future Research', ms.future_research)}
             <p style="margin-top:10px;font-size:0.9em;color:#4ade80;"><em>Approve untuk lanjut menulis Introduction/Conclusions/Abstract/Title; atau revisi untuk tulis ulang grup ini.</em></p>
@@ -2881,7 +2881,7 @@ ATURAN EDGES:
         const sec = (t, c) => `<details style="margin-top:8px;"><summary style="cursor:pointer;color:#5eead4;font-weight:bold;">${t} (${(c || '').length} char)</summary><div style="font-size:0.88em;margin-top:6px;max-height:340px;overflow:auto;">${formatMarkdown(c || '(kosong)')}</div></details>`;
         html = wrapCard('Modul 9 — Draft Grup B (Introduction · Conclusions · Abstract · Title)', `
             <div style="background:rgba(13, 148, 136,0.08);border:1px solid rgba(13, 148, 136,0.3);border-radius:6px;padding:10px 12px;margin-bottom:12px;font-size:0.82em;color:#5eead4;">
-                <strong>🧠 xAI Info:</strong> Hasil ditulis oleh model Brain (lihat Pengaturan → Model Routing). Proses: 3-pass per section (Draft → Verification → Style Cleanup). Jika output tidak ada \\cite{}, kemungkinan model kurang capable — ganti Brain ke GPT-4o/Claude Sonnet/Gemini Pro.
+                <strong><span class="ico ico-ai"></span> xAI Info:</strong> Hasil ditulis oleh model Brain (lihat Pengaturan → Model Routing). Proses: 3-pass per section (Draft → Verification → Style Cleanup). Jika output tidak ada \\cite{}, kemungkinan model kurang capable — ganti Brain ke GPT-4o/Claude Sonnet/Gemini Pro.
             </div>
             ${sec('Introduction', ms.introduction)}${sec('Conclusions', ms.conclusions)}${sec('Abstract', ms.abstract)}${sec('Title (alternatif)', ms.title)}
             <p style="margin-top:10px;font-size:0.9em;color:#4ade80;"><em>Approve untuk compile akhir (references Crossref + audit + PRISMA + .tex).</em></p>
@@ -2898,7 +2898,7 @@ ATURAN EDGES:
             </div>
             <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 6px; font-size: 0.88em; max-height: 360px; overflow-y: auto;">${formatMarkdown(ms.final || 'Menunggu data...')}</div>
             <details style="margin-top:10px;border:1px solid rgba(99,102,241,0.3);border-radius:6px;padding:8px;">
-                <summary style="cursor:pointer;color:#a5b4fc;font-weight:bold;">🧠 xAI: 3-Pass Compilation Pipeline</summary>
+                <summary style="cursor:pointer;color:#a5b4fc;font-weight:bold;"><span class="ico ico-ai"></span> xAI: 3-Pass Compilation Pipeline</summary>
                 <div style="font-size:0.85em;margin-top:8px;color:#d6d3d1;line-height:1.6;">
                     <p><strong>Pass 1 — Draft Generation:</strong> AI generates each manuscript section (Methods, Results, Discussion, Future Research) independently based on extracted data, synthesis results, and research questions.</p>
                     <p style="margin-top:6px;"><strong>Pass 2 — Integration & Coherence:</strong> All sections are merged into a single document. A coherence audit checks logical flow, citation consistency, and cross-reference integrity across sections.</p>
@@ -2910,7 +2910,7 @@ ATURAN EDGES:
                 <div style="font-size:0.85em;margin-top:6px;max-height:300px;overflow:auto;">${formatMarkdown(ms.coherence_audit || '(Belum tersedia)')}</div>
             </details>
             <details style="margin-top:6px;border:1px solid rgba(110,231,183,0.3);border-radius:6px;padding:8px;">
-                <summary style="cursor:pointer;color:#6ee7b7;font-weight:bold;">📋 PRISMA 2020 Checklist</summary>
+                <summary style="cursor:pointer;color:#6ee7b7;font-weight:bold;"><span class="ico ico-copy"></span> PRISMA 2020 Checklist</summary>
                 <div style="font-size:0.85em;margin-top:6px;max-height:300px;overflow:auto;">${formatMarkdown(ms.prisma_checklist || '(Belum tersedia)')}</div>
             </details>
             <p style="margin-top:10px;font-size:0.9em;color:#4ade80;"><em>Approve untuk menutup pipeline (COMPLETED).</em></p>
@@ -3171,7 +3171,7 @@ ATURAN EDGES:
                                 await API.recodeExclusions(session.id, recodes);
                                 alert('Re-code disimpan. Menyusun ulang ringkasan Modul 6...');
                                 window.location.reload();
-                            } catch (e) { alert('Gagal menyimpan: ' + e.message); btnS.disabled = false; btnS.textContent = '💾 Simpan Re-code & Susun Ulang'; }
+                            } catch (e) { alert('Gagal menyimpan: ' + e.message); btnS.disabled = false; btnS.innerHTML = '<span class="ico ico-save"></span> Simpan Re-code & Susun Ulang'; }
                         });
                     } catch (e) { alert('Gagal memuat: ' + e.message); }
                     finally { btnLoadRecode.disabled = false; btnLoadRecode.textContent = 'Muat Daftar Eksklusi'; }
@@ -3293,7 +3293,7 @@ ATURAN EDGES:
                     } catch (err) {
                         alert("Gagal re-extract: " + err.message);
                         btnM7ReextractFailed.disabled = false;
-                        btnM7ReextractFailed.textContent = '🔁 Ekstrak Ulang Paper Gagal/Kosong';
+                        btnM7ReextractFailed.innerHTML = '<span class="ico ico-repeat"></span> Ekstrak Ulang Paper Gagal/Kosong';
                     }
                 });
             }
@@ -3329,7 +3329,7 @@ ATURAN EDGES:
                         } catch (err) {
                             alert("Gagal mengulangi QA: " + err.message);
                             btnM7RetryQA.disabled = false;
-                            btnM7RetryQA.textContent = '🔄 Ulangi Penilaian QA untuk Studi yang ERROR';
+                            btnM7RetryQA.innerHTML = '<span class="ico ico-refresh"></span> Ulangi Penilaian QA untuk Studi yang ERROR';
                         }
                     }
                 });
@@ -3365,7 +3365,7 @@ ATURAN EDGES:
                         } catch (err) {
                             alert("Gagal audit ulang: " + err.message);
                             btnM5Reaudit.disabled = false;
-                            btnM5Reaudit.innerHTML = '🔁 Audit Ulang (PICO, cakupan penuh)';
+                            btnM5Reaudit.innerHTML = '<span class="ico ico-repeat"></span> Audit Ulang (PICO, cakupan penuh)';
                         }
                     }
                 });
@@ -3660,7 +3660,7 @@ ATURAN EDGES:
                         <div class="step-number">1</div>
                         <div class="step-content">
                             <h4 class="step-title">Unduh Daftar Referensi</h4>
-                            <p class="step-desc">Klik tombol <span class="step-highlight">⬇️ Unduh CSV</span> di tabel di bawah untuk mendapatkan daftar tautan PDF dari paper yang terbuka (Open Access).</p>
+                            <p class="step-desc">Klik tombol <span class="step-highlight"><span class="ico ico-download"></span> Unduh CSV</span> di tabel di bawah untuk mendapatkan daftar tautan PDF dari paper yang terbuka (Open Access).</p>
                         </div>
                     </div>
                     <div class="step-item">
@@ -3687,7 +3687,7 @@ ATURAN EDGES:
                         <div class="step-number">4</div>
                         <div class="step-content">
                             <h4 class="step-title">Sinkronisasi Akhir</h4>
-                            <p class="step-desc">Setelah Colab sukses memompa vektor ke <span class="step-highlight">Qdrant</span>, tekan tombol <span class="step-highlight">🔄 Sinkronkan dengan Qdrant</span> di tabel bawah untuk memperbarui status ini.</p>
+                            <p class="step-desc">Setelah Colab sukses memompa vektor ke <span class="step-highlight">Qdrant</span>, tekan tombol <span class="step-highlight"><span class="ico ico-refresh"></span> Sinkronkan dengan Qdrant</span> di tabel bawah untuk memperbarui status ini.</p>
                         </div>
                     </div>
                 </div>
@@ -3909,7 +3909,7 @@ ATURAN EDGES:
                 btnSync.addEventListener('click', async () => {
                     // ASYNC: backend mulai job & balas {started}; kita POLL hasilnya. Scroll Qdrant
                     // + cocokkan bisa lama → hindari timeout proxy + beri feedback seketika.
-                    const resetBtn = () => { btnSync.disabled = false; btnSync.innerHTML = '🔄 Sinkronisasi dengan Qdrant DB'; };
+                    const resetBtn = () => { btnSync.disabled = false; btnSync.innerHTML = '<span class="ico ico-refresh"></span> Sinkronisasi dengan Qdrant DB'; };
                     btnSync.disabled = true;
                     btnSync.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Syncing… (lihat Live Log)';
                     showToast('🔄 Sinkronisasi Qdrant dimulai — bisa beberapa menit. Lihat progres di Live Log.');
@@ -3954,7 +3954,7 @@ ATURAN EDGES:
                         alert('Export failed: ' + err.message);
                     } finally {
                         btnExportCsv.disabled = false;
-                        btnExportCsv.innerHTML = '⬇️ Export CSV';
+                        btnExportCsv.innerHTML = '<span class="ico ico-download"></span> Export CSV';
                     }
                 });
             }
@@ -4037,7 +4037,7 @@ ATURAN EDGES:
                             <div id="m6-details-modal" style="position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(15, 23, 42, 0.9); display: flex; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(8px);">
                                 <div style="background: #292524; width: 90%; max-width: 1200px; max-height: 90vh; border-radius: 12px; display: flex; flex-direction: column; border: 1px solid #44403c; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
                                     <div style="padding: 20px; border-bottom: 1px solid #44403c; display: flex; justify-content: space-between; align-items: center;">
-                                        <h2 style="margin: 0; color: white; font-size: 1.25rem;">📋 Status Akuisisi Teks Penuh (${data.total} Dokumen)</h2>
+                                        <h2 style="margin: 0; color: white; font-size: 1.25rem;"><span class="ico ico-copy"></span> Status Akuisisi Teks Penuh (${data.total} Dokumen)</h2>
                                         <div style="display: flex; gap: 15px; align-items: center;">
                                             <button id="btn-modal-export-csv" class="btn" style="background: #14b8a6; color: white; padding: 8px 16px; font-size: 0.9rem;"><span class="ico ico-download"></span> Unduh CSV</button>
                                             <button id="btn-close-m6-modal" style="background: transparent; border: none; color: #a8a29e; font-size: 1.5rem; cursor: pointer;">&times;</button>
@@ -4091,7 +4091,7 @@ ATURAN EDGES:
                                 alert(err.message);
                             } finally {
                                 btnExport.disabled = false;
-                                btnExport.innerHTML = '⬇️ Unduh CSV';
+                                btnExport.innerHTML = '<span class="ico ico-download"></span> Unduh CSV';
                             }
                         });
 
@@ -4117,7 +4117,7 @@ ATURAN EDGES:
                                     await loadPapersTable();
                                 } catch (err) {
                                     alert(err.message);
-                                    btn.innerHTML = '🗑️ Hapus Vektor (Fix PDF)';
+                                    btn.innerHTML = '<span class="ico ico-trash"></span> Hapus Vektor (Fix PDF)';
                                     btn.disabled = false;
                                 }
                             } else if (e.target.classList.contains('btn-mark-inacc')) {
@@ -4174,7 +4174,7 @@ ATURAN EDGES:
                         alert("Gagal memuat data: " + e.message);
                     } finally {
                         btnDetails.disabled = false;
-                        btnDetails.innerHTML = '📋 Status PDF & Vektor (Modal)';
+                        btnDetails.innerHTML = '<span class="ico ico-copy"></span> Status PDF & Vektor (Modal)';
                     }
                 });
             }
@@ -4259,7 +4259,7 @@ window.openScreeningCorrection = async (sessionId) => {
     overlay.innerHTML = `
         <div class="glass-panel" style="max-width:880px;width:92%;max-height:88vh;display:flex;flex-direction:column;padding:18px;border-radius:10px;background:#1c1917;">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-                <h3 style="margin:0;">⏪ Koreksi Include/Exclude (Full-Text)</h3>
+                <h3 style="margin:0;"><span class="ico ico-back"></span> Koreksi Include/Exclude (Full-Text)</h3>
                 <button id="sc-close" class="btn-close" style="background:none;border:none;color:#d6d3d1;font-size:1.4em;cursor:pointer;">&times;</button>
             </div>
             <p style="font-size:0.82em;color:#fcd34d;background:rgba(245,158,11,0.08);padding:8px 10px;border-radius:6px;border-left:3px solid #f59e0b;margin:0 0 8px;">
@@ -4338,7 +4338,7 @@ window.openScreeningCorrection = async (sessionId) => {
             setTimeout(() => window.location.reload(), 900);
         } catch (e) {
             showToast('Gagal: ' + e.message, 'error');
-            btn.disabled = false; btn.textContent = '💾 Terapkan Koreksi';
+            btn.disabled = false; btn.innerHTML = '<span class="ico ico-save"></span> Terapkan Koreksi';
         }
     });
 };
@@ -4389,7 +4389,7 @@ window.showQAXAIModal = async (btn) => {
                 <div style="background: #292524; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); width: 90vw; max-width: 1200px; height: 85vh; display: flex; flex-direction: column; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);">
                     <div style="padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); border-top-left-radius: 12px; border-top-right-radius: 12px;">
                         <h3 style="margin:0; color:#fca5a5; display:flex; align-items:center; gap:10px;">
-                            <span>🔍</span> xAI: Transparansi Keputusan Dual-Rater
+                            <span><span class="ico ico-search"></span> </span> xAI: Transparansi Keputusan Dual-Rater
                         </h3>
                         <div style="display:flex; align-items:center; gap:15px;">
                             <button id="btn-xai-sync" style="background: #0d9488; border: none; color: white; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.85em; font-weight: bold; display: flex; align-items: center; gap: 5px; transition: background 0.2s;"><span class="ico ico-refresh"></span> Sinkronisasi Qdrant</button>
@@ -4399,7 +4399,7 @@ window.showQAXAIModal = async (btn) => {
                     <div style="padding: 20px; overflow-y: auto; flex: 1;">
                         ${qaPromptData ? `
                             <details style="margin-bottom: 20px; background: rgba(13, 148, 136, 0.08); border: 1px solid rgba(13, 148, 136, 0.3); border-radius: 8px; padding: 0;">
-                                <summary style="padding: 12px 15px; cursor: pointer; color: #5eead4; font-weight: bold; font-size: 0.9em; user-select: none;">📋 System Prompt Rater (xAI Transparency)</summary>
+                                <summary style="padding: 12px 15px; cursor: pointer; color: #5eead4; font-weight: bold; font-size: 0.9em; user-select: none;"><span class="ico ico-copy"></span> System Prompt Rater (xAI Transparency)</summary>
                                 <div style="padding: 12px 15px; border-top: 1px solid rgba(13, 148, 136, 0.2);">
                                     <div style="margin-bottom: 8px; font-size: 0.8em; color: #a8a29e;">
                                         <strong>Tool:</strong> ${qaPromptData.tool || '-'} | <strong>Kategorisasi:</strong> ${qaPromptData.categorization || '-'} | <strong>Threshold:</strong> ${qaPromptData.threshold || '-'}%
@@ -4578,9 +4578,9 @@ window.showQAXAIModal = async (btn) => {
                                         <br/><strong style="color:#f8fafc">Judul:</strong> ${paperTitle}
                                     </li>
                                     <li>Klik tautan berikut untuk membuka Colab secara langsung:
-                                        <br/><a href="${colabLink}" target="_blank" style="color:#5eead4; text-decoration:underline; font-weight:bold; display:inline-block; margin-top:8px;">🚀 Buka Notebook PEDE di Google Colab</a>
+                                        <br/><a href="${colabLink}" target="_blank" style="color:#5eead4; text-decoration:underline; font-weight:bold; display:inline-block; margin-top:8px;"><span class="ico ico-external"></span> Buka Notebook PEDE di Google Colab</a>
                                     </li>
-                                    <li>Setelah re-upload sukses, tekan tombol <strong>🔄 Sinkronisasi Qdrant</strong> di pojok kanan atas jendela layar ini, lalu klik <strong>⚠️ Ulangi Modul 7</strong> di layar utama untuk mengulang proses QA.</li>
+                                    <li>Setelah re-upload sukses, tekan tombol <strong><span class="ico ico-refresh"></span> Sinkronisasi Qdrant</strong> di pojok kanan atas jendela layar ini, lalu klik <strong>⚠️ Ulangi Modul 7</strong> di layar utama untuk mengulang proses QA.</li>
                                 </ol>
                                 <div style="text-align: right; margin-top: 25px;">
                                     <button id="btn-close-success-modal" style="background: #34d399; color: #1c1917; border: none; padding: 8px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: background 0.2s;">Saya Mengerti</button>
@@ -4623,7 +4623,7 @@ window.showQAXAIModal = async (btn) => {
                 } catch(e) {
                     alert(e.message);
                     btnXaiSync.disabled = false;
-                    btnXaiSync.innerHTML = '🔄 Sinkronisasi Qdrant';
+                    btnXaiSync.innerHTML = '<span class="ico ico-refresh"></span> Sinkronisasi Qdrant';
                 }
             });
         }
@@ -4632,7 +4632,7 @@ window.showQAXAIModal = async (btn) => {
     } finally {
         if (btn) {
             btn.disabled = false;
-            btn.innerHTML = '🔍 Buka Detail Keputusan Rater (xAI)';
+            btn.innerHTML = '<span class="ico ico-search"></span> Buka Detail Keputusan Rater (xAI)';
         }
     }
 };
@@ -4688,7 +4688,7 @@ window.downloadQAXAIMarkdown = async (btn) => {
     } finally {
         if (btn) {
             btn.disabled = false;
-            btn.innerHTML = '⬇️ Download Detail Keputusan (Markdown)';
+            btn.innerHTML = '<span class="ico ico-download"></span> Download Detail Keputusan (Markdown)';
         }
     }
 };

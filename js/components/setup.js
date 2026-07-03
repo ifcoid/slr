@@ -39,7 +39,7 @@ export function initSetup() {
             
             if (btnSettings) {
                 btnSettings.style.color = '#10b981';
-                btnSettings.innerHTML = '⚙️ Configured';
+                btnSettings.innerHTML = '<span class="ico ico-settings"></span> Configured';
             }
         });
     }
@@ -136,7 +136,7 @@ export function initSetup() {
             if (hint) hint.innerHTML = '✓ Provider ini sudah dikonfigurasi. Kosongkan API Key untuk mempertahankan yang lama.';
             if (modelSel) modelSel.innerHTML = info.default_model
                 ? `<option value="${info.default_model}">${info.default_model} (tersimpan)</option>`
-                : '<option value="">Klik 🔄 Muat Model</option>';
+                : '<option value="">Klik Muat Model dulu</option>';
             if (info.base_url && llmBaseUrlInput) llmBaseUrlInput.value = info.base_url;
         } else {
             if (keyInput) keyInput.placeholder = 'Masukkan API Key...';
@@ -463,7 +463,7 @@ export function initSetup() {
             openModal('modal-settings');
             document.getElementById('settings-error-dot')?.classList.add('hidden'); // sudah dilihat
             const alertBox = document.getElementById('llm-health-alert');
-            if (alertBox) alertBox.innerHTML = '<div style="font-size:0.85em; color:#9ca3af;">🩺 Memeriksa status provider…</div>';
+            if (alertBox) alertBox.innerHTML = '<div style="font-size:0.85em; color:#9ca3af;"><span class="ico ico-health"></span> Memeriksa status provider…</div>';
             loadGitHubConfig();
             loadEmbedConfig();
             loadScopusConfig();
@@ -538,7 +538,7 @@ export function initSetup() {
                 model: (document.getElementById('llm-model') || {}).value || '',
             };
             setButtonLoading(btnTestModel, true);
-            if (status) status.innerHTML = `<span style="color:#9ca3af;">🧪 Menguji panggilan nyata ke model ${opts.model || provider}… (bisa ~10-30 dtk)</span>`;
+            if (status) status.innerHTML = `<span style="color:#9ca3af;"><span class="ico ico-flask"></span> Menguji panggilan nyata ke model ${opts.model || provider}… (bisa ~10-30 dtk)</span>`;
             try {
                 const res = await API.testModel(provider, opts);
                 if (res.ok) {

@@ -11,15 +11,15 @@
 // laporan bug). Stepper hanya MENAMBAH lapisan manusiawi di atasnya.
 
 export const MODULES = [
-    { n: 1, title: 'Fondasi Teori & Aturan Global', short: 'Fondasi', icon: '📚' },
-    { n: 2, title: 'Topik & PICO', short: 'Topik & PICO', icon: '🎯' },
-    { n: 3, title: 'Strategi Pencarian (Kueri)', short: 'Kueri', icon: '🔍' },
-    { n: 4, title: 'Impor & Deduplikasi', short: 'Impor', icon: '📥' },
-    { n: 5, title: 'Skrining Judul/Abstrak', short: 'Skrining', icon: '📄' },
-    { n: 6, title: 'Skrining Teks Lengkap', short: 'Teks Lengkap', icon: '📖' },
-    { n: 7, title: 'Ekstraksi Data & QA', short: 'Ekstraksi & QA', icon: '🧪' },
-    { n: 8, title: 'Sintesis & GRADE', short: 'Sintesis', icon: '🧩' },
-    { n: 9, title: 'Manuskrip', short: 'Manuskrip', icon: '📝' },
+    { n: 1, title: 'Fondasi Teori & Aturan Global', short: 'Fondasi' },
+    { n: 2, title: 'Topik & PICO', short: 'Topik & PICO' },
+    { n: 3, title: 'Strategi Pencarian (Kueri)', short: 'Kueri' },
+    { n: 4, title: 'Impor & Deduplikasi', short: 'Impor' },
+    { n: 5, title: 'Skrining Judul/Abstrak', short: 'Skrining' },
+    { n: 6, title: 'Skrining Teks Lengkap', short: 'Teks Lengkap' },
+    { n: 7, title: 'Ekstraksi Data & QA', short: 'Ekstraksi & QA' },
+    { n: 8, title: 'Sintesis & GRADE', short: 'Sintesis' },
+    { n: 9, title: 'Manuskrip', short: 'Manuskrip' },
 ];
 
 function esc(s) {
@@ -66,13 +66,13 @@ const PHASES = [
 // humanizeStatus: { line, sub, raw } untuk baris orientasi manusiawi.
 export function humanizeStatus(status) {
     if (!status) return { line: 'Menunggu…', sub: '', raw: '' };
-    if (status === 'COMPLETED') return { line: '✅ Semua modul selesai', sub: 'SLR selesai — siap ekspor/manuskrip', raw: status };
+    if (status === 'COMPLETED') return { line: 'Semua modul selesai', sub: 'SLR selesai — siap ekspor/manuskrip', raw: status };
     const n = currentModuleNum(status);
     const mod = MODULES.find(m => m.n === n);
     const step = currentStepNum(status);
     let phase = 'sedang diproses';
     for (const [re, ph] of PHASES) { if (re.test(status)) { phase = ph; break; } }
-    const line = mod ? `${mod.icon} Modul ${n} · ${mod.title}` : String(status);
+    const line = mod ? `Modul ${n} · ${mod.title}` : String(status);
     const sub = (step ? `Langkah ${step} — ` : '') + phase;
     return { line, sub, raw: String(status) };
 }
@@ -162,7 +162,7 @@ export function showModulePeek(n, session) {
     overlay.innerHTML = `
         <div class="peek-modal" role="dialog" aria-modal="true">
             <div class="peek-header">
-                <span>${mod.icon} Modul ${n} — ${esc(mod.title)} <span class="peek-ro">read-only</span></span>
+                <span>Modul ${n} — ${esc(mod.title)} <span class="peek-ro">read-only</span></span>
                 <button type="button" class="peek-close" aria-label="Tutup">✕</button>
             </div>
             <div class="peek-body">${body}</div>

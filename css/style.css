@@ -1,18 +1,19 @@
 :root {
-    --bg-color: #0f172a; /* Midnight Blue */
-    --surface-color: rgba(30, 41, 59, 0.7); /* Glass surface */
-    --surface-border: rgba(255, 255, 255, 0.1);
-    --text-primary: #f8fafc;
-    --text-secondary: #94a3b8;
-    --primary-color: #3b82f6; /* Blue */
-    --primary-hover: #2563eb;
-    --accent-color: #8b5cf6; /* Purple */
+    --bg-color: #1c1917;              /* Stone 950 — warm near-black */
+    --surface-color: #292524;         /* Stone 800 — solid panel */
+    --surface-2: #322d2a;             /* elevated surface (hover) */
+    --surface-border: rgba(255, 255, 255, 0.08);
+    --text-primary: #fafaf9;          /* Stone 50 */
+    --text-secondary: #a8a29e;        /* Stone 400 */
+    --primary-color: #0d9488;         /* Teal 600 — actions */
+    --primary-hover: #0f766e;         /* Teal 700 */
+    --accent-color: #14b8a6;          /* Teal 500 — highlights */
     --danger-color: #ef4444;
     --success-color: #10b981;
     --warning-color: #f59e0b;
     --font-family: 'Inter', sans-serif;
-    --border-radius: 12px;
-    --transition: all 0.3s ease;
+    --border-radius: 10px;
+    --transition: all 0.2s ease;
 }
 
 * {
@@ -32,14 +33,13 @@ body {
     overflow-x: hidden;
 }
 
-/* Dynamic Background Mesh */
+/* Subtle neutral depth — no colored aurora (editorial, bukan AI-app) */
 .background-mesh {
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
     z-index: -1;
-    background-image: 
-        radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.15) 0px, transparent 50%),
-        radial-gradient(at 100% 100%, rgba(139, 92, 246, 0.15) 0px, transparent 50%);
+    background-image:
+        radial-gradient(at 50% -10%, rgba(255, 255, 255, 0.025) 0px, transparent 55%);
     background-attachment: fixed;
 }
 
@@ -51,9 +51,7 @@ h1, h2, h3, h4 {
 }
 
 h1 span {
-    background: linear-gradient(to right, var(--primary-color), var(--accent-color));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    color: var(--accent-color);
 }
 
 .text-highlight {
@@ -92,10 +90,8 @@ hr {
 .main-header.scrolled {
     padding: 0.75rem 2rem;
     background: var(--surface-color);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--surface-border);
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.4);
 }
 
 .main-header h1 {
@@ -107,14 +103,12 @@ hr {
     font-size: 1.25rem;
 }
 
-/* Glassmorphism */
+/* Solid panels — border tipis + elevasi halus (bukan kaca blur) */
 .glass-panel {
     background: var(--surface-color);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
     border: 1px solid var(--surface-border);
     border-radius: var(--border-radius);
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 12px 28px -18px rgba(0, 0, 0, 0.6);
 }
 
 .card {
@@ -139,7 +133,7 @@ label {
 input, textarea, select {
     width: 100%;
     padding: 0.75rem 1rem;
-    background: rgba(15, 23, 42, 0.6);
+    background: rgba(0, 0, 0, 0.22);
     border: 1px solid var(--surface-border);
     border-radius: 8px;
     color: var(--text-primary);
@@ -150,7 +144,7 @@ input, textarea, select {
 input:focus, textarea:focus, select:focus {
     outline: none;
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+    box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.28);
 }
 
 select option {
@@ -191,7 +185,7 @@ small {
 
 .btn-primary:hover {
     background: var(--primary-hover);
-    box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
+    box-shadow: 0 2px 10px -2px rgba(0, 0, 0, 0.5);
 }
 
 .btn-secondary {
@@ -208,13 +202,13 @@ small {
     background: var(--success-color);
     color: white;
 }
-.btn-success:hover { background: #059669; box-shadow: 0 0 15px rgba(16, 185, 129, 0.4); }
+.btn-success:hover { background: #059669; box-shadow: 0 2px 10px -2px rgba(0, 0, 0, 0.5); }
 
 .btn-danger {
     background: var(--danger-color);
     color: white;
 }
-.btn-danger:hover { background: #dc2626; box-shadow: 0 0 15px rgba(239, 68, 68, 0.4); }
+.btn-danger:hover { background: #dc2626; box-shadow: 0 2px 10px -2px rgba(0, 0, 0, 0.5); }
 
 .btn-icon {
     background: transparent;
@@ -300,7 +294,7 @@ small {
 
 .option-card:hover {
     border-color: var(--accent-color);
-    background: rgba(139, 92, 246, 0.05);
+    background: rgba(20, 184, 166, 0.06);
     transform: translateY(-2px);
 }
 
@@ -312,8 +306,8 @@ small {
 }
 
 .badge {
-    background: rgba(139, 92, 246, 0.2);
-    color: #c4b5fd;
+    background: rgba(20, 184, 166, 0.16);
+    color: #5eead4;
     padding: 0.25rem 0.75rem;
     border-radius: 9999px;
     font-size: 0.8rem;
@@ -401,8 +395,7 @@ small {
 }
 
 .toast {
-    background: var(--surface-color);
-    backdrop-filter: blur(12px);
+    background: var(--surface-2);
     border: 1px solid var(--surface-border);
     border-left: 4px solid var(--primary-color);
     padding: 1rem 1.5rem;
@@ -609,7 +602,7 @@ code {
 .step-node.step-current .step-dot {
     border-color: var(--primary-color); color: #fff;
     background: var(--primary-color);
-    box-shadow: 0 0 0 4px rgba(59,130,246,0.25);
+    box-shadow: 0 0 0 4px rgba(13,148,136,0.28);
 }
 .step-node.step-current .step-label { font-weight: 600; }
 
@@ -642,7 +635,7 @@ code {
     width: min(780px, 96vw);
     max-height: 86vh;
     display: flex; flex-direction: column;
-    background: #0f172a;
+    background: var(--surface-color);
     border: 1px solid var(--surface-border);
     border-radius: var(--border-radius);
     box-shadow: 0 24px 60px rgba(0,0,0,0.5);
@@ -670,4 +663,33 @@ code {
 .peek-foot {
     padding: 10px 18px; border-top: 1px solid var(--surface-border);
     font-size: 0.72rem; color: var(--text-secondary);
+}
+
+/* ============================================================
+   Aksesibilitas & polish editorial (fokus keyboard, motion, lebar layar)
+   ============================================================ */
+
+/* Fokus keyboard yang terlihat pada elemen klik custom (bukan hanya input) */
+.btn:focus-visible,
+.btn-icon:focus-visible,
+.option-card:focus-visible,
+.step-node:focus-visible,
+.peek-close:focus-visible {
+    outline: 2px solid var(--accent-color);
+    outline-offset: 2px;
+}
+
+/* Hormati preferensi kurangi-gerak (a11y + hilangkan kesan gimmick) */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* Layar lebar: beri ruang lebih agar tabel/log tak sempit di tengah */
+@media (min-width: 1280px) {
+    .container { max-width: 1080px; }
 }

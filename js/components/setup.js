@@ -98,7 +98,7 @@ export function initSetup() {
             case 'ALIVE': return ' <span title="Sehat" style="color:#4ade80;">🟢</span>';
             case 'UNAUTHORIZED': return ' <span title="API key invalid" style="color:#f87171;">🔴 key invalid</span>';
             case 'QUOTA_EXCEEDED': return ' <span title="Kuota habis" style="color:#facc15;">🟡 kuota habis</span>';
-            default: return ' <span title="Error/timeout" style="color:#cbd5e1;">⚪ error</span>';
+            default: return ' <span title="Error/timeout" style="color:#d6d3d1;">⚪ error</span>';
         }
     };
 
@@ -268,7 +268,7 @@ export function initSetup() {
             box.innerHTML = `<div style="background:rgba(16,185,129,0.1); border-left:3px solid #10b981; padding:8px 10px; border-radius:6px; font-size:0.85em; color:#6ee7b7;">🟢 Semua provider yang dipakai sehat.</div>`;
             return;
         }
-        box.innerHTML = `<div style="background:rgba(239,68,68,0.1); border-left:3px solid #ef4444; padding:10px; border-radius:6px; font-size:0.85em; color:#fca5a5;">⚠ <strong>${problems.length} provider bermasalah</strong> (kemungkinan penyebab error pipeline):<ul style="margin:6px 0 0 0; padding-left:18px;">${problems.map((p) => `<li>${p}</li>`).join('')}</ul><div style="margin-top:6px; color:#cbd5e1;">Perbaiki API Key / ganti provider di bawah, atau pindah role ke provider yang sehat.</div></div>`;
+        box.innerHTML = `<div style="background:rgba(239,68,68,0.1); border-left:3px solid #ef4444; padding:10px; border-radius:6px; font-size:0.85em; color:#fca5a5;">⚠ <strong>${problems.length} provider bermasalah</strong> (kemungkinan penyebab error pipeline):<ul style="margin:6px 0 0 0; padding-left:18px;">${problems.map((p) => `<li>${p}</li>`).join('')}</ul><div style="margin-top:6px; color:#d6d3d1;">Perbaiki API Key / ganti provider di bawah, atau pindah role ke provider yang sehat.</div></div>`;
     };
 
     // Muat health (panggilan jaringan, bisa beberapa detik) lalu segarkan badge + banner.
@@ -519,7 +519,7 @@ export function initSetup() {
                 selectModel.innerHTML = '<option value="">Gagal memuat model</option>';
                 if (status) status.innerHTML = `<span style="color:#fca5a5;">✗ Gagal (API key/koneksi?): ${error.message}</span>`;
             } finally {
-                setButtonLoading(btnFetchModels, false, '🔄 Muat Model');
+                setButtonLoading(btnFetchModels, false, '<span class="ico ico-refresh"></span> Muat Model');
             }
         });
     }
@@ -551,7 +551,7 @@ export function initSetup() {
             } catch (e) {
                 if (status) status.innerHTML = `<span style="color:#fca5a5;">✗ Gagal menguji: ${e.message}</span>`;
             } finally {
-                setButtonLoading(btnTestModel, false, '🧪 Test Model');
+                setButtonLoading(btnTestModel, false, '<span class="ico ico-flask"></span> Test Model');
             }
         });
     }

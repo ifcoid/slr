@@ -43,13 +43,15 @@ export function closeModal(modalId) {
     }, 300);
 }
 
-export function setButtonLoading(btn, isLoading, originalText = '') {
+export function setButtonLoading(btn, isLoading, originalHTML = '') {
     if (isLoading) {
-        btn.dataset.originalText = btn.textContent;
+        // Simpan innerHTML (bukan textContent) agar ikon SVG (.ico span) pulih utuh
+        // saat selesai — textContent akan membuang span ikonnya.
+        btn.dataset.originalHtml = btn.innerHTML;
         btn.innerHTML = `<span class="spinner" style="width:16px; height:16px; border-width:2px; display:inline-block; margin-right:8px; vertical-align:middle;"></span> Memproses...`;
         btn.disabled = true;
     } else {
-        btn.textContent = originalText || btn.dataset.originalText || 'Submit';
+        btn.innerHTML = originalHTML || btn.dataset.originalHtml || 'Submit';
         btn.disabled = false;
     }
 }

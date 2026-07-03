@@ -31,7 +31,7 @@ function ensureModal() {
         <div class="form-group"><label>📝 Keterangan masalah <span style="color:#9ca3af;font-size:0.8em;">(jelaskan singkat apa yang salah)</span></label><textarea id="llm-debug-note" rows="3" style="width:100%;" placeholder='mis. "Klik Sync, toast tidak muncul dan tombol diam"'></textarea></div>
         <div id="llm-debug-state" style="font-size:0.78em;color:#9ca3af;margin-bottom:10px;"></div>
         <details id="llm-debug-tech" style="margin-bottom:10px;">
-            <summary style="cursor:pointer;color:#60a5fa;font-size:0.85em;">🔧 Detail teknis LLM (prompt &amp; error) — terisi otomatis bila lapor dari error LLM; bisa Uji Coba</summary>
+            <summary style="cursor:pointer;color:#5eead4;font-size:0.85em;">🔧 Detail teknis LLM (prompt &amp; error) — terisi otomatis bila lapor dari error LLM; bisa Uji Coba</summary>
             <div style="margin-top:10px;">
                 <div style="display:flex;gap:10px;flex-wrap:wrap;">
                     <div class="form-group" style="flex:1;min-width:160px;"><label>Provider</label><input id="llm-debug-provider" type="text" placeholder="mis. groq / gemini / mistral"></div>
@@ -39,11 +39,11 @@ function ensureModal() {
                 </div>
                 <div class="form-group"><label>System Prompt <span id="llm-debug-sys-chars" style="color:#9ca3af;font-size:0.8em;"></span></label><textarea id="llm-debug-system" rows="5" style="width:100%;font-family:monospace;font-size:0.82em;"></textarea></div>
                 <div class="form-group"><label>User Prompt <span id="llm-debug-user-chars" style="color:#9ca3af;font-size:0.8em;"></span></label><textarea id="llm-debug-user" rows="10" style="width:100%;font-family:monospace;font-size:0.82em;"></textarea></div>
-                <button id="llm-debug-run" class="btn btn-primary">🧪 Uji Coba (replay ke provider)</button>
+                <button id="llm-debug-run" class="btn btn-primary"><span class="ico ico-flask"></span> Uji Coba (replay ke provider)</button>
             </div>
         </details>
         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-            <button id="llm-debug-report" class="btn" style="background:rgba(245,158,11,0.18);color:#fcd34d;border:1px solid rgba(245,158,11,0.3);" title="Unduh file laporan (state otomatis) lalu lampirkan ke @BugLaporBot">📨 Report Bug ke Telegram</button>
+            <button id="llm-debug-report" class="btn" style="background:rgba(245,158,11,0.18);color:#fcd34d;border:1px solid rgba(245,158,11,0.3);" title="Unduh file laporan (state otomatis) lalu lampirkan ke @BugLaporBot"><span class="ico ico-file"></span> Report Bug ke Telegram</button>
             <span style="font-size:0.8em;color:#9ca3af;">Unduh file laporan → lampirkan ke @BugLaporBot (bot balas "diterima").</span>
         </div>
         <div id="llm-debug-result" style="margin-top:12px;"></div>
@@ -239,7 +239,7 @@ function renderResult(res) {
     const box = document.getElementById('llm-debug-result');
     const meta = `<div style="font-size:0.8em;color:#9ca3af;margin-bottom:6px;">model: <strong>${esc(res.model) || '(default)'}</strong> · prompt ${res.prompt_chars || 0} char · ${res.duration_ms || 0} ms · respons ${res.response_chars || 0} char</div>`;
     if (res.ok) {
-        box.innerHTML = meta + `<div style="padding:8px 10px;background:rgba(34,197,94,0.1);border-left:3px solid #22c55e;border-radius:6px;color:#86efac;margin-bottom:6px;">✓ Provider MEMBALAS (${res.response_chars} char). Prompt ini OK untuk provider/model ini — jika error aslinya hilang, berarti penyebabnya pada prompt/ukuran tadi.</div><pre style="white-space:pre-wrap;font-family:monospace;font-size:0.8em;background:rgba(0,0,0,0.35);padding:10px;border-radius:6px;max-height:340px;overflow:auto;color:#cbd5e1;">${esc(res.response)}</pre>`;
+        box.innerHTML = meta + `<div style="padding:8px 10px;background:rgba(34,197,94,0.1);border-left:3px solid #22c55e;border-radius:6px;color:#86efac;margin-bottom:6px;">✓ Provider MEMBALAS (${res.response_chars} char). Prompt ini OK untuk provider/model ini — jika error aslinya hilang, berarti penyebabnya pada prompt/ukuran tadi.</div><pre style="white-space:pre-wrap;font-family:monospace;font-size:0.8em;background:rgba(0,0,0,0.35);padding:10px;border-radius:6px;max-height:340px;overflow:auto;color:#d6d3d1;">${esc(res.response)}</pre>`;
     } else {
         box.innerHTML = meta + `<div style="padding:8px 10px;background:rgba(239,68,68,0.12);border-left:3px solid #ef4444;border-radius:6px;color:#fca5a5;margin-bottom:6px;">✗ ERROR dari provider — inilah yang dilaporkan ke developer (sudah tereproduksi):</div><pre style="white-space:pre-wrap;font-family:monospace;font-size:0.8em;background:rgba(0,0,0,0.35);padding:10px;border-radius:6px;max-height:340px;overflow:auto;color:#fecaca;">${esc(res.error)}</pre>`;
     }
@@ -273,7 +273,7 @@ window.openLLMDebug = async (sessionId) => {
         const res = await API.getLLMDebug(sid);
         const t = res.trace;
         if (!t) {
-            meta.innerHTML = '<div style="padding:8px 10px;background:rgba(59,130,246,0.1);border-left:3px solid #60a5fa;border-radius:6px;font-size:0.85em;color:#cbd5e1;">Belum ada panggilan LLM yang gagal tercatat untuk sesi ini. Anda tetap bisa uji manual: isi provider & prompt.</div>';
+            meta.innerHTML = '<div style="padding:8px 10px;background:rgba(13, 148, 136,0.1);border-left:3px solid #5eead4;border-radius:6px;font-size:0.85em;color:#d6d3d1;">Belum ada panggilan LLM yang gagal tercatat untuk sesi ini. Anda tetap bisa uji manual: isi provider & prompt.</div>';
             return;
         }
         ctxState.step = t.step || '';
@@ -288,7 +288,7 @@ window.openLLMDebug = async (sessionId) => {
         meta.innerHTML = `<div style="padding:10px 12px;background:rgba(239,68,68,0.1);border-left:3px solid #ef4444;border-radius:6px;margin-bottom:12px;font-size:0.85em;color:#fca5a5;">
             <strong>Jejak error terakhir</strong> — step <strong>${esc(t.step)}</strong> · fungsi ${esc(t.agent_func)} · provider <strong>${esc(t.provider)}</strong> · model <strong>${esc(t.model)}</strong> · ${t.prompt_chars} char · ${esc(when)}
             <div style="margin-top:6px;color:#fecaca;white-space:pre-wrap;"><strong>Error:</strong> ${esc(t.error)}</div>
-            <div style="margin-top:6px;color:#cbd5e1;">Klik <strong>Uji Coba</strong> untuk mereproduksi. Tip: potong User Prompt (full-text) lalu uji lagi — jika jadi sukses, kemungkinan context window model terlampaui.</div>
+            <div style="margin-top:6px;color:#d6d3d1;">Klik <strong>Uji Coba</strong> untuk mereproduksi. Tip: potong User Prompt (full-text) lalu uji lagi — jika jadi sukses, kemungkinan context window model terlampaui.</div>
         </div>`;
     } catch (e) {
         meta.innerHTML = `<div style="color:#fca5a5;font-size:0.85em;">Gagal memuat jejak: ${esc(e.message)}</div>`;

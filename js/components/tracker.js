@@ -38,7 +38,7 @@ export function startTracking(sessionId) {
     if (btnRefresh) {
         btnRefresh.addEventListener('click', () => {
             setButtonLoading(btnRefresh, true); // feedback seketika (jangan tampak nge-freeze)
-            Promise.resolve(fetchSessionStatus()).finally(() => setButtonLoading(btnRefresh, false, '🔄 Refresh'));
+            Promise.resolve(fetchSessionStatus()).finally(() => setButtonLoading(btnRefresh, false, '<span class="ico ico-refresh"></span> Refresh'));
         });
     }
     
@@ -210,23 +210,23 @@ async function fetchSessionStatus() {
                 <div style="background: rgba(239, 68, 68, 0.1); border-left: 4px solid #ef4444; padding: 1rem; border-radius: 4px; margin-bottom: 1rem;">
                     <h4 style="color: #ef4444; margin-top: 0;">Sistem Mengalami Kendala <span style="font-size: 0.8em; color: #666;">[v1.0.1 - 09 Juni 2026]</span></h4>
                     <p style="margin-bottom: 1rem; font-size: 0.9rem;">${session.system_error || 'Silakan cek log terminal untuk detail error.'}</p>
-                    <button id="btn-retry-error" class="btn btn-primary">🔄 Coba Lagi (Retry)</button>
-                    <button onclick="window.openLLMDebug('${session.id || currentSessionId}')" class="btn btn-secondary" style="margin-left:8px;" title="Lapor bug / lihat prompt+error LLM persis & uji coba (Reproducible Error)">🐞 Lapor / Debug Bug</button>
+                    <button id="btn-retry-error" class="btn btn-primary"><span class="ico ico-refresh"></span> Coba Lagi (Retry)</button>
+                    <button onclick="window.openLLMDebug('${session.id || currentSessionId}')" class="btn btn-secondary" style="margin-left:8px;" title="Lapor bug / lihat prompt+error LLM persis & uji coba (Reproducible Error)"><span class="ico ico-bug"></span> Lapor / Debug Bug</button>
                 </div>
 
-                <div style="margin-top: 20px; padding: 15px; background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 8px;">
-                    <h5 style="margin-top: 0; color: #60a5fa; margin-bottom: 10px;">💡 Alternatif: Selesaikan via MCP (AI Agent Eksternal)</h5>
-                    <p style="font-size: 0.85em; margin-bottom: 10px; color: #cbd5e1;">AI Agent eksternal membutuhkan konfigurasi server terlebih dahulu sebelum bisa merespons *prompt*. Silakan lakukan langkah berikut:</p>
-                    <strong style="font-size: 0.85em; color: #cbd5e1;">1. Buka Pengaturan "Add MCP Server" di AI Anda, lalu Paste JSON ini:</strong>
-                    <div style="background: #0f172a; padding: 8px; border-radius: 4px; font-family: monospace; font-size: 0.8em; color: #a7f3d0; white-space: pre-wrap; margin-bottom: 10px;">{
+                <div style="margin-top: 20px; padding: 15px; background: rgba(13, 148, 136, 0.1); border: 1px solid rgba(13, 148, 136, 0.3); border-radius: 8px;">
+                    <h5 style="margin-top: 0; color: #5eead4; margin-bottom: 10px;">💡 Alternatif: Selesaikan via MCP (AI Agent Eksternal)</h5>
+                    <p style="font-size: 0.85em; margin-bottom: 10px; color: #d6d3d1;">AI Agent eksternal membutuhkan konfigurasi server terlebih dahulu sebelum bisa merespons *prompt*. Silakan lakukan langkah berikut:</p>
+                    <strong style="font-size: 0.85em; color: #d6d3d1;">1. Buka Pengaturan "Add MCP Server" di AI Anda, lalu Paste JSON ini:</strong>
+                    <div style="background: #1c1917; padding: 8px; border-radius: 4px; font-family: monospace; font-size: 0.8em; color: #a7f3d0; white-space: pre-wrap; margin-bottom: 10px;">{
   "mcpServers": {
     "nsa-supervisor": {
       "url": "${getBaseURL()}/mcp/sse"
     }
   }
 }</div>
-                    <strong style="font-size: 0.85em; color: #cbd5e1;">2. Setelah di-Save, gunakan Prompt berikut di chat:</strong>
-                    <div style="background: #0f172a; padding: 8px; border-radius: 4px; font-family: monospace; font-size: 0.8em; color: #fde047; white-space: pre-wrap;">"Tolong cek daftar MCP tools yang kamu miliki sekarang, seharusnya ada tool berawalan 'mcp_nsa_supervisor'. Jika ada, gunakan tool tersebut. Panggil 'get_screener_briefing' dengan session_id '${session.id || currentSessionId}', lalu panggil 'get_pending_disagreements' dengan session_id yang sama. Berikan tabel perbandingannya, dan tunggu persetujuan saya sebelum memanggil 'submit_supervisor_resolution'."</div>
+                    <strong style="font-size: 0.85em; color: #d6d3d1;">2. Setelah di-Save, gunakan Prompt berikut di chat:</strong>
+                    <div style="background: #1c1917; padding: 8px; border-radius: 4px; font-family: monospace; font-size: 0.8em; color: #fde047; white-space: pre-wrap;">"Tolong cek daftar MCP tools yang kamu miliki sekarang, seharusnya ada tool berawalan 'mcp_nsa_supervisor'. Jika ada, gunakan tool tersebut. Panggil 'get_screener_briefing' dengan session_id '${session.id || currentSessionId}', lalu panggil 'get_pending_disagreements' dengan session_id yang sama. Berikan tabel perbandingannya, dan tunggu persetujuan saya sebelum memanggil 'submit_supervisor_resolution'."</div>
                     <div style="margin-top: 10px; font-size: 0.85em; color: #f87171;"><strong>Penting:</strong> Setelah AI berhasil melakukan submit, klik tombol <strong>"🔄 Coba Lagi (Retry)"</strong> di atas agar sistem memuat ulang status terbaru.</div>
                 </div>
             `;
@@ -243,7 +243,7 @@ async function fetchSessionStatus() {
                             fetchSessionStatus();
                         } catch(e) {
                             showToast(e.message, 'error');
-                            setButtonLoading(btnRetry, false, '🔄 Coba Lagi (Retry)');
+                            setButtonLoading(btnRetry, false, '<span class="ico ico-refresh"></span> Coba Lagi (Retry)');
                         }
                     });
                 }
@@ -260,7 +260,7 @@ async function fetchSessionStatus() {
                     </p>
                     <form id="form-force-revise" style="margin-top: 0.5rem;">
                         <textarea id="input-force-feedback" rows="2" placeholder="Tulis instruksi revisi paksa di sini..." required style="width: 100%; border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 4px; padding: 8px; background: rgba(0,0,0,0.2); color: white; resize: vertical; font-family: inherit; margin-bottom: 8px;"></textarea>
-                        <button type="submit" class="btn btn-danger" style="width: 100%; font-weight: bold; padding: 10px;">🛑 MATIKAN PROSES & ULANGI DENGAN REVISI INI</button>
+                        <button type="submit" class="btn btn-danger" style="width: 100%; font-weight: bold; padding: 10px;"><span class="ico ico-stop"></span> MATIKAN PROSES & ULANGI DENGAN REVISI INI</button>
                     </form>
                 </div>
             `;
@@ -308,8 +308,8 @@ async function fetchSessionStatus() {
                     <div style="background: rgba(239, 68, 68, 0.1); border-left: 4px solid #ef4444; padding: 1rem; border-radius: 4px;">
                         <h4 style="color:#ef4444;margin-top:0;">Tidak bisa memuat sesi</h4>
                         <p style="font-size:0.9em;margin:0 0 10px;">Backend tidak merespons / sesi tak ditemukan / koneksi database lambat (timeout) setelah ${pollFailStreak}× percobaan. Cek backend (api base URL di Pengaturan) hidup, koneksi internet/Mongo stabil, & ID sesi benar.<br><span style="color:#fca5a5;font-size:0.85em;">${(error && error.message) ? error.message.replace(/</g,'&lt;') : 'error tidak diketahui'}</span></p>
-                        <button class="btn btn-primary" onclick="window.location.reload()">🔄 Muat Ulang</button>
-                        <button class="btn btn-secondary" style="margin-left:8px;" onclick="window.openLLMDebug()" title="Lapor bug dengan diagnostic">🐞 Lapor Bug</button>
+                        <button class="btn btn-primary" onclick="window.location.reload()"><span class="ico ico-refresh"></span> Muat Ulang</button>
+                        <button class="btn btn-secondary" style="margin-left:8px;" onclick="window.openLLMDebug()" title="Lapor bug dengan diagnostic"><span class="ico ico-bug"></span> Lapor Bug</button>
                     </div>`;
                 toggleHidden('interactive-area', true);
             }
@@ -339,8 +339,8 @@ function renderApprovalUI(session) {
         const infoBox = document.createElement('div');
         infoBox.style.cssText = "background: rgba(30, 41, 59, 0.5); padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.1);";
         infoBox.innerHTML = `
-            <p style="margin-top:0; font-size: 0.9em; color: #94a3b8;"><i class="fas fa-history"></i> <strong>Prompt Terakhir yang Digunakan:</strong></p>
-            <div style="background: rgba(0,0,0,0.2); padding: 10px; border-radius: 4px; font-style: italic; font-size: 0.85em; color: #cbd5e1; margin-bottom: 10px;">
+            <p style="margin-top:0; font-size: 0.9em; color: #a8a29e;"><i class="fas fa-history"></i> <strong>Prompt Terakhir yang Digunakan:</strong></p>
+            <div style="background: rgba(0,0,0,0.2); padding: 10px; border-radius: 4px; font-style: italic; font-size: 0.85em; color: #d6d3d1; margin-bottom: 10px;">
                 ${session.feedback ? session.feedback : session.topic}
             </div>
             <p style="font-size: 0.8em; color: #64748b; margin-bottom: 0;">
@@ -359,12 +359,12 @@ function renderApprovalUI(session) {
             card.innerHTML = `
                 <div class="option-header">
                     <span class="badge">Opsi ${idx + 1}</span>
-                    <span class="badge" style="background: rgba(59, 130, 246, 0.2); color: #93c5fd;">${topic.type || 'TIPE A'}</span>
+                    <span class="badge" style="background: rgba(13, 148, 136, 0.2); color: #5eead4;">${topic.type || 'TIPE A'}</span>
                 </div>
                 <div class="option-body">
                     <p><strong>Judul:</strong> ${topic.name || '<span style="color:#ef4444;font-style:italic;">[Gagal diekstrak dari LLM]</span>'}</p>
                     <p><strong>Gap:</strong> ${topic.gap || '<span style="color:#ef4444;font-style:italic;">[Gagal diekstrak dari LLM]</span>'}</p>
-                    <div style="background: rgba(59, 130, 246, 0.1); padding: 10px; border-radius: 4px; border-left: 3px solid #3b82f6; margin: 10px 0;">
+                    <div style="background: rgba(13, 148, 136, 0.1); padding: 10px; border-radius: 4px; border-left: 3px solid #0d9488; margin: 10px 0;">
                         <p style="margin: 0; font-size: 0.9em;"><strong>Alasan Klasifikasi (${topic.type || 'TIPE A'}):</strong> ${topic.type_reason || ''}</p>
                     </div>
                     <p><strong>Bukti/Konteks (Evidence):</strong> ${topic.evidence || ''}</p>

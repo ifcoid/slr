@@ -163,7 +163,7 @@ export function showModulePeek(n, session) {
         <div class="peek-modal" role="dialog" aria-modal="true">
             <div class="peek-header">
                 <span>Modul ${n} — ${esc(mod.title)} <span class="peek-ro">read-only</span></span>
-                <button type="button" class="peek-close" aria-label="Tutup">✕</button>
+                <button type="button" class="peek-close" aria-label="Tutup"><span class="ico ico-close"></span></button>
             </div>
             <div class="peek-body">${body}</div>
             <div class="peek-foot">Tampilan hanya-baca. Untuk mengubah keputusan, gunakan gerbang HITL (Approve/Revisi) pada langkah aktif — bukan dari sini (menjaga protokol a-priori).</div>

@@ -48,7 +48,7 @@ function showConnectionModal(errorDetail) {
     const errorEl = document.getElementById('connection-error-detail');
     if (errorDetail) {
         const baseURL = getBaseURL();
-        errorEl.innerHTML = `Detail: Tidak dapat terhubung ke <a href="${baseURL}" target="_blank" style="color: #60a5fa; text-decoration: underline;">${baseURL}</a>`;
+        errorEl.innerHTML = `Detail: Tidak dapat terhubung ke <a href="${baseURL}" target="_blank" style="color: #5eead4; text-decoration: underline;">${baseURL}</a>`;
         errorEl.style.display = 'block';
     } else {
         errorEl.style.display = 'none';
@@ -385,7 +385,7 @@ window.showAmbiguityResolutionModal = async function() {
         let html = `
         <div style="margin-bottom: 20px; text-align: center;">
             <button id="btn-auto-resolve-all" class="btn btn-primary" onclick="runAutoResolveAll()" style="font-size: 1.1em; padding: 10px 20px; background-color: #10b981; border-color: #059669; box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.2);">
-                🤖 Auto-Resolve Semua Ambigu
+                <span class="ico ico-ai"></span> Auto-Resolve Semua Ambigu
             </button>
             <p id="progress-auto-resolve-all" style="margin-top: 10px; color: #9ca3af; font-size: 0.9em;"></p>
         </div>
@@ -417,8 +417,8 @@ window.showAmbiguityResolutionModal = async function() {
                     <div style="display: flex; gap: 10px; align-items: center;">
                         <input type="text" id="input-${ext._id}-${fieldKey}" class="input-modern" style="flex: 1; padding: 8px;" placeholder="Ketik nilai yang benar secara manual di sini..." value="${rawVal !== '[NOT REPORTED]' && rawVal !== 'AMBIGUOUS' ? rawVal : ''}">
                         
-                        <button class="btn btn-secondary" onclick="saveManualResolution('${ext._id}', '${fieldKey}')" style="border-color: #3b82f6; color: #60a5fa;">💾 Save (Manual)</button>
-                        <button class="btn btn-secondary" onclick="runAutoResolve('${ext._id}', '${fieldKey}')" style="border-color: #eab308; color: #fef08a;">🤖 Auto-Resolve (AI)</button>
+                        <button class="btn btn-secondary" onclick="saveManualResolution('${ext._id}', '${fieldKey}')" style="border-color: #0d9488; color: #5eead4;"><span class="ico ico-save"></span> Save (Manual)</button>
+                        <button class="btn btn-secondary" onclick="runAutoResolve('${ext._id}', '${fieldKey}')" style="border-color: #eab308; color: #fef08a;"><span class="ico ico-ai"></span> Auto-Resolve (AI)</button>
                     </div>
                     <div id="loader-${ext._id}-${fieldKey}" class="hidden" style="margin-top: 10px; color: #9ca3af; font-size: 0.85em;">Sedang memproses dengan LLM...</div>
                 </div>`;

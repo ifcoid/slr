@@ -13,17 +13,17 @@ function correctionsAuditHtml(session) {
     const rows = cor.map(c => `<tr>
         <td style="padding:4px 6px;border-bottom:1px solid rgba(255,255,255,0.06);font-size:0.85em;">${esc(c.title) || esc(c.doi) || '-'}</td>
         <td style="padding:4px 6px;border-bottom:1px solid rgba(255,255,255,0.06);text-align:center;white-space:nowrap;"><span style="color:#fca5a5;">${esc(c.from) || '?'}</span> → <span style="color:${c.to === 'INCLUDE' ? '#6ee7b7' : '#fca5a5'};font-weight:bold;">${esc(c.to)}</span></td>
-        <td style="padding:4px 6px;border-bottom:1px solid rgba(255,255,255,0.06);font-size:0.85em;color:#cbd5e1;">${esc(c.reason)}</td>
-        <td style="padding:4px 6px;border-bottom:1px solid rgba(255,255,255,0.06);font-size:0.78em;color:#94a3b8;white-space:nowrap;">${esc((c.at || '').slice(0, 10))}</td>
+        <td style="padding:4px 6px;border-bottom:1px solid rgba(255,255,255,0.06);font-size:0.85em;color:#d6d3d1;">${esc(c.reason)}</td>
+        <td style="padding:4px 6px;border-bottom:1px solid rgba(255,255,255,0.06);font-size:0.78em;color:#a8a29e;white-space:nowrap;">${esc((c.at || '').slice(0, 10))}</td>
     </tr>`).join('');
     return `<details style="margin-bottom:12px;background:rgba(245,158,11,0.06);border-left:3px solid #f59e0b;border-radius:6px;padding:10px;">
         <summary style="cursor:pointer;color:#fcd34d;font-weight:bold;">🧾 Audit Koreksi Include/Exclude (${cor.length}: ${reincl} re-include, ${excl} exclude)</summary>
-        <p style="font-size:0.82em;color:#cbd5e1;margin:8px 0;">Jejak koreksi keputusan full-text pasca-screening (deviasi protokol terdokumentasi). Angka PRISMA sudah mencerminkan keputusan FINAL; ini provenance untuk audit/Q1, juga otomatis masuk narasi Methods.</p>
+        <p style="font-size:0.82em;color:#d6d3d1;margin:8px 0;">Jejak koreksi keputusan full-text pasca-screening (deviasi protokol terdokumentasi). Angka PRISMA sudah mencerminkan keputusan FINAL; ini provenance untuk audit/Q1, juga otomatis masuk narasi Methods.</p>
         <table style="width:100%;border-collapse:collapse;font-size:0.85em;">
             <tr style="color:#9ca3af;text-align:left;"><th style="padding:4px 6px;">Paper</th><th style="padding:4px 6px;text-align:center;">Perubahan</th><th style="padding:4px 6px;">Alasan</th><th style="padding:4px 6px;">Tgl</th></tr>
             ${rows}
         </table>
-        <button onclick="window.exportCorrectionsAudit('${session.id}')" class="btn btn-secondary" style="margin-top:8px;padding:3px 9px;font-size:0.8em;">📥 Export CSV</button>
+        <button onclick="window.exportCorrectionsAudit('${session.id}')" class="btn btn-secondary" style="margin-top:8px;padding:3px 9px;font-size:0.8em;"><span class="ico ico-import"></span> Export CSV</button>
     </details>`;
 }
 
@@ -99,7 +99,7 @@ export function renderApprovalContent(area, session, handleApproval) {
 
     const wrapCard = (title, content) => `
         <div style="background: rgba(255,255,255,0.05); padding: 1.5rem; border-radius: 8px; margin-bottom: 1rem;">
-            <h4 style="margin-top: 0; color: #60a5fa; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem;">${title}</h4>
+            <h4 style="margin-top: 0; color: #5eead4; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem;">${title}</h4>
             ${content}
         </div>
     `;
@@ -108,7 +108,7 @@ export function renderApprovalContent(area, session, handleApproval) {
         if (!md) return '';
         
         // Percantik teks gaya === JUDUL ===
-        md = md.replace(/^===\s*(.*?)\s*===$/gm, '\n\n<div style="background: linear-gradient(90deg, rgba(59, 130, 246, 0.2) 0%, transparent 100%); border-left: 4px solid #3b82f6; padding: 6px 15px; font-weight: bold; color: #93c5fd; font-size: 0.9em; letter-spacing: 1px; text-transform: uppercase; margin: 10px 0; border-radius: 4px; display: block;">$1</div>\n\n');
+        md = md.replace(/^===\s*(.*?)\s*===$/gm, '\n\n<div style="background: linear-gradient(90deg, rgba(13, 148, 136, 0.2) 0%, transparent 100%); border-left: 4px solid #0d9488; padding: 6px 15px; font-weight: bold; color: #5eead4; font-size: 0.9em; letter-spacing: 1px; text-transform: uppercase; margin: 10px 0; border-radius: 4px; display: block;">$1</div>\n\n');
 
         if (window.marked) {
             return window.marked.parse(md);
@@ -132,7 +132,7 @@ export function renderApprovalContent(area, session, handleApproval) {
             </div>`;
         html = wrapCard('Modul 1 — Fondasi Teori & Aturan Global (Briefing)', `
             <p style="margin-top:0; color:#9ca3af; font-size:0.88em;">Topik: <strong style="color:#d1d5db;">${f.topic_context || session.topic || '-'}</strong></p>
-            ${fSection('📚 Fondasi Teori SLR (disesuaikan topik · AI)', f.theory_markdown, '#93c5fd')}
+            ${fSection('📚 Fondasi Teori SLR (disesuaikan topik · AI)', f.theory_markdown, '#5eead4')}
             ${fSection('🤖 Etika & Kapabilitas AI (kanonik)', f.ai_practice_markdown, '#c4b5fd')}
             ${fSection('📐 Aturan Global SLR + CoWork (kanonik)', f.global_rules_markdown, '#6ee7b7')}
         `);
@@ -153,7 +153,7 @@ export function renderApprovalContent(area, session, handleApproval) {
                     <span class="pr-badge" style="font-size:0.75em; font-weight:bold; padding:3px 8px; border-radius:10px; ${verified ? 'background:rgba(16,185,129,0.2);color:#6ee7b7;' : 'background:rgba(245,158,11,0.2);color:#fcd34d;'}">${verified ? '✓ VERIFIED' : '⚠ UNVERIFIED — perlu dicek'}</span>
                     <div style="display:flex; gap:6px;">
                         <button type="button" class="pr-verif-toggle btn" style="padding:3px 9px; font-size:0.8em;">${verified ? 'Tandai UNVERIFIED' : '✓ Tandai VERIFIED'}</button>
-                        <button type="button" class="pr-del btn btn-danger" style="padding:3px 9px; font-size:0.8em;">✕</button>
+                        <button type="button" class="pr-del btn btn-danger" style="padding:3px 9px; font-size:0.8em;"><span class="ico ico-close"></span> </button>
                     </div>
                 </div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 0.9em;">
@@ -171,20 +171,20 @@ export function renderApprovalContent(area, session, handleApproval) {
         const cards = reviews.map(cardHtml).join('');
         const guidance = session.prior_reviews_matrix.search_guidance || '';
         const guidanceHtml = guidance ? `
-            <div style="background:rgba(59,130,246,0.08); padding:12px; border-radius:6px; border-left:3px solid #3b82f6; margin-bottom:12px;">
+            <div style="background:rgba(13, 148, 136,0.08); padding:12px; border-radius:6px; border-left:3px solid #0d9488; margin-bottom:12px;">
                 <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:6px;">
-                    <strong style="color:#93c5fd; font-size:0.9em;">🔎 Cara menemukan & memverifikasi artikelnya</strong>
-                    <button type="button" id="btn-pr-copy-guide" class="btn btn-secondary" style="padding:3px 9px; font-size:0.78em;">📋 Salin query</button>
+                    <strong style="color:#5eead4; font-size:0.9em;">🔎 Cara menemukan & memverifikasi artikelnya</strong>
+                    <button type="button" id="btn-pr-copy-guide" class="btn btn-secondary" style="padding:3px 9px; font-size:0.78em;"><span class="ico ico-copy"></span> Salin query</button>
                 </div>
-                <p id="pr-guide-text" style="font-size:0.85em; color:#cbd5e1; margin:0; white-space:pre-wrap; line-height:1.5;">${escTxt(guidance)}</p>
+                <p id="pr-guide-text" style="font-size:0.85em; color:#d6d3d1; margin:0; white-space:pre-wrap; line-height:1.5;">${escTxt(guidance)}</p>
             </div>` : '';
         html = wrapCard('Review of Prior Reviews (Matrix)', `
             <p style="font-size:0.85em; color:#fcd34d; background:rgba(245,158,11,0.08); padding:10px; border-radius:6px; border-left:3px solid #f59e0b; margin-top:0;">⚠ Usulan ini dibuat <strong>tanpa pencarian web</strong> (dari pengetahuan model). Setiap entri <strong>WAJIB Anda verifikasi</strong> di Scholar/Scopus/WoS memakai panduan di bawah, koreksi bila perlu, lalu tandai <strong>VERIFIED</strong>. Jangan Setuju selama masih ada UNVERIFIED yang belum Anda cek.</p>
             ${guidanceHtml}
             <div id="pr-cards">${cards}</div>
             <div style="margin-top:10px; display:flex; gap:8px;">
-                <button type="button" id="btn-pr-add" class="btn btn-secondary" style="padding:5px 10px;">➕ Tambah Review</button>
-                <button type="button" id="btn-pr-save" class="btn btn-primary" style="padding:5px 10px;">💾 Simpan Matriks</button>
+                <button type="button" id="btn-pr-add" class="btn btn-secondary" style="padding:5px 10px;"><span class="ico ico-plus"></span> Tambah Review</button>
+                <button type="button" id="btn-pr-save" class="btn btn-primary" style="padding:5px 10px;"><span class="ico ico-save"></span> Simpan Matriks</button>
             </div>
         `);
 
@@ -414,7 +414,7 @@ export function renderApprovalContent(area, session, handleApproval) {
                     closeP++;
                 }
 
-                return `<a href="${url}" target="_blank" style="color: #60a5fa; text-decoration: none; border-bottom: 1px dotted #60a5fa;">${domain}</a>` + trailing;
+                return `<a href="${url}" target="_blank" style="color: #5eead4; text-decoration: none; border-bottom: 1px dotted #5eead4;">${domain}</a>` + trailing;
             });
         };
 
@@ -451,8 +451,8 @@ export function renderApprovalContent(area, session, handleApproval) {
             }
 
             rqList += `
-                <li style="margin-bottom: 1rem; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 4px; border-left: 4px solid ${rq.is_orphan ? '#ef4444' : '#3b82f6'};">
-                    <h5 style="margin-top: 0; margin-bottom: 10px; color: #60a5fa; font-size: 1.05em;">RQ ${idx + 1} <span style="color: #a78bfa; font-size: 0.85em; font-weight: normal; margin-left: 10px;">(${rq.type})</span> ${warning}</h5>
+                <li style="margin-bottom: 1rem; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 4px; border-left: 4px solid ${rq.is_orphan ? '#ef4444' : '#0d9488'};">
+                    <h5 style="margin-top: 0; margin-bottom: 10px; color: #5eead4; font-size: 1.05em;">RQ ${idx + 1} <span style="color: #5eead4; font-size: 0.85em; font-weight: normal; margin-left: 10px;">(${rq.type})</span> ${warning}</h5>
                     <div style="margin-bottom: 10px; font-size: 1.1em;">${rq.question}</div>
                     <small style="color: #9ca3af;">Traceability:</small>
                     ${traceHtml}
@@ -483,8 +483,8 @@ export function renderApprovalContent(area, session, handleApproval) {
         if (dbs.matriks_database) {
             dbs.matriks_database.forEach(db => {
                 dbList += `
-                    <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 6px; margin-bottom: 15px; border-left: 4px solid #3b82f6;">
-                        <h5 style="margin-top: 0; color: #93c5fd; font-size: 1.05em;">${db.database}</h5>
+                    <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 6px; margin-bottom: 15px; border-left: 4px solid #0d9488;">
+                        <h5 style="margin-top: 0; color: #5eead4; font-size: 1.05em;">${db.database}</h5>
                         <div style="margin-bottom: 8px;"><strong>Coverage:</strong> ${db.coverage_strength}</div>
                         <div style="margin-bottom: 8px;"><strong>Limitation:</strong> ${db.limitation}</div>
                         <div><strong>Fit dengan Topik:</strong> ${db.fit_dengan_topik}</div>
@@ -495,7 +495,7 @@ export function renderApprovalContent(area, session, handleApproval) {
 
         html = wrapCard('Database Selection', `
             <div style="margin-bottom: 15px;"><strong>Coverage Bidang:</strong><br> ${formatMarkdown(dbs.cek_coverage_bidang)}</div>
-            <h5 style="color: #a78bfa; margin-top: 20px;">Matriks Evaluasi Database</h5>
+            <h5 style="color: #5eead4; margin-top: 20px;">Matriks Evaluasi Database</h5>
             ${dbList}
             <div style="margin-top: 15px; padding: 10px; background: rgba(16, 185, 129, 0.1); border-left: 4px solid #10b981; border-radius: 4px;">
                 <strong>Decision:</strong> <span style="color: #4ade80;">${dbs.decision}</span>
@@ -511,7 +511,7 @@ export function renderApprovalContent(area, session, handleApproval) {
                 const kw = session.keywords[k];
                 if (kw) {
                     kwList += `
-                        <div style="margin-bottom: 1rem; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 4px; border-left: 4px solid #8b5cf6;">
+                        <div style="margin-bottom: 1rem; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 4px; border-left: 4px solid #0d9488;">
                             <h5 style="margin-top: 0; color: #c4b5fd; text-transform: capitalize;">${k}</h5>
                             <strong>Canonical Term:</strong> ${kw.canonical_term || ''}<br>
                             <em>Synonyms:</em> ${kw.main_synonyms ? kw.main_synonyms.join(', ') : ''}<br>
@@ -537,12 +537,12 @@ export function renderApprovalContent(area, session, handleApproval) {
         
         let adaptedHtml = '';
         if (ss.adapted_strings && ss.adapted_strings.length > 0) {
-            adaptedHtml = '<h5 style="color: #a78bfa; margin-top: 20px;">Adapted Strings (Other Databases)</h5>';
+            adaptedHtml = '<h5 style="color: #5eead4; margin-top: 20px;">Adapted Strings (Other Databases)</h5>';
             ss.adapted_strings.forEach(ad => {
                 adaptedHtml += `
                     <div style="margin-bottom: 15px;">
                         <strong>${ad.database}</strong>
-                        <div style="background: #1e1e1e; padding: 10px; border-radius: 4px; font-family: monospace; color: #93c5fd; font-size: 0.9em; margin-top: 5px; overflow-x: auto;">
+                        <div style="background: #1e1e1e; padding: 10px; border-radius: 4px; font-family: monospace; color: #5eead4; font-size: 0.9em; margin-top: 5px; overflow-x: auto;">
                             ${ad.query}
                         </div>
                     </div>
@@ -551,7 +551,7 @@ export function renderApprovalContent(area, session, handleApproval) {
         }
         
         html = wrapCard('Search String (Scopus Utama)', `
-            <div style="background: #1e1e1e; padding: 15px; border-radius: 6px; font-family: monospace; color: #a78bfa; margin-bottom: 1rem; overflow-x: auto;">
+            <div style="background: #1e1e1e; padding: 15px; border-radius: 6px; font-family: monospace; color: #5eead4; margin-bottom: 1rem; overflow-x: auto;">
                 ${ss.scopus_query}
             </div>
             ${adaptedHtml}
@@ -562,7 +562,7 @@ export function renderApprovalContent(area, session, handleApproval) {
     } else if (status === 'M3_STEP4_WAITING_EXECUTION') {
         let execHtml = `
             <div style="background: rgba(255,255,255,0.05); padding: 1.5rem; border-radius: 8px; margin-bottom: 1rem;">
-                <h4 style="color: #60a5fa;">Aksi Diperlukan: Eksekusi Manual Database</h4>
+                <h4 style="color: #5eead4;">Aksi Diperlukan: Eksekusi Manual Database</h4>
                 
                 ${session.search_string && session.search_string.pre_validation ? `
                 <div style="background: rgba(234, 179, 8, 0.1); border-left: 4px solid #eab308; padding: 10px 15px; margin-bottom: 1rem; border-radius: 4px;">
@@ -574,28 +574,28 @@ export function renderApprovalContent(area, session, handleApproval) {
                 ` : ''}
 
                 <p><strong>Query Scopus:</strong></p>
-                <div style="background: #1e1e1e; padding: 15px; border-radius: 6px; font-family: monospace; color: #a78bfa; margin-bottom: 1rem; overflow-x: auto;">
+                <div style="background: #1e1e1e; padding: 15px; border-radius: 6px; font-family: monospace; color: #5eead4; margin-bottom: 1rem; overflow-x: auto;">
                     ${session.search_string ? session.search_string.scopus_query : 'Kueri tidak ditemukan.'}
                 </div>
                 ${session.search_string && session.search_string.adapted_strings ? session.search_string.adapted_strings.map(ad => {
                     let dbLink = '';
-                    if (ad.database.toLowerCase().includes('ieee')) dbLink = ' <a href="https://ieeexplore.ieee.org/search/advanced/command" target="_blank" style="color: #60a5fa; text-decoration: underline; font-size: 0.9em; font-weight: normal;">(Buka IEEE Command Search ↗)</a>';
-                    else if (ad.database.toLowerCase().includes('pubmed')) dbLink = ' <a href="https://pubmed.ncbi.nlm.nih.gov/advanced/" target="_blank" style="color: #60a5fa; text-decoration: underline; font-size: 0.9em; font-weight: normal;">(Buka PubMed Advanced Search ↗)</a>';
-                    else if (ad.database.toLowerCase().includes('web of science')) dbLink = ' <a href="https://www.webofscience.com/wos/alldb/advanced-search" target="_blank" style="color: #60a5fa; text-decoration: underline; font-size: 0.9em; font-weight: normal;">(Buka WoS Advanced Search ↗)</a>';
+                    if (ad.database.toLowerCase().includes('ieee')) dbLink = ' <a href="https://ieeexplore.ieee.org/search/advanced/command" target="_blank" style="color: #5eead4; text-decoration: underline; font-size: 0.9em; font-weight: normal;">(Buka IEEE Command Search ↗)</a>';
+                    else if (ad.database.toLowerCase().includes('pubmed')) dbLink = ' <a href="https://pubmed.ncbi.nlm.nih.gov/advanced/" target="_blank" style="color: #5eead4; text-decoration: underline; font-size: 0.9em; font-weight: normal;">(Buka PubMed Advanced Search ↗)</a>';
+                    else if (ad.database.toLowerCase().includes('web of science')) dbLink = ' <a href="https://www.webofscience.com/wos/alldb/advanced-search" target="_blank" style="color: #5eead4; text-decoration: underline; font-size: 0.9em; font-weight: normal;">(Buka WoS Advanced Search ↗)</a>';
                     return `
                     <p style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 5px;">
                         <strong>Query ${ad.database}:</strong>
                         ${dbLink}
                     </p>
-                    <div style="background: #1e1e1e; padding: 10px; border-radius: 4px; font-family: monospace; color: #93c5fd; font-size: 0.9em; margin-bottom: 1rem; overflow-x: auto;">
+                    <div style="background: #1e1e1e; padding: 10px; border-radius: 4px; font-family: monospace; color: #5eead4; font-size: 0.9em; margin-bottom: 1rem; overflow-x: auto;">
                         ${ad.query}
                     </div>
                     `;
                 }).join('') : ''}
-                <p>Silakan buka <a href="https://www.scopus.com/pages/search/publications?type=advanced" target="_blank" style="color: #60a5fa; text-decoration: underline;">Scopus Advanced Search ↗</a> (serta database lain yang telah Anda pilih), jalankan query masing-masing, aplikasikan filter di bawah ini. Lalu laporkan hasilnya pada kolom yang tersedia:</p>
+                <p>Silakan buka <a href="https://www.scopus.com/pages/search/publications?type=advanced" target="_blank" style="color: #5eead4; text-decoration: underline;">Scopus Advanced Search ↗</a> (serta database lain yang telah Anda pilih), jalankan query masing-masing, aplikasikan filter di bawah ini. Lalu laporkan hasilnya pada kolom yang tersedia:</p>
                 
-                <div style="background: rgba(167, 139, 250, 0.1); border-left: 4px solid #a78bfa; padding: 10px 15px; margin-bottom: 1rem; border-radius: 4px; font-size: 0.9em;">
-                    <strong style="color: #a78bfa;">Filter yang Wajib Diterapkan:</strong>
+                <div style="background: rgba(167, 139, 250, 0.1); border-left: 4px solid #5eead4; padding: 10px 15px; margin-bottom: 1rem; border-radius: 4px; font-size: 0.9em;">
+                    <strong style="color: #5eead4;">Filter yang Wajib Diterapkan:</strong>
                     <ul style="margin-top: 5px; margin-bottom: 0; padding-left: 20px; color: #d1d5db;">
                         <li><strong>Rentang Tahun:</strong> ${session.scope_filters?.rentang_tahun || 'Semua tahun'}</li>
                         <li><strong>Geografis:</strong> ${session.scope_filters?.geografis || 'Global'}</li>
@@ -710,10 +710,10 @@ export function renderApprovalContent(area, session, handleApproval) {
 
     } else if (status === 'M4_STEP1_WAITING_INPUT') {
         const ssInfo = session.search_log ? `
-            <div style="background: rgba(59, 130, 246, 0.1); border-left: 4px solid #3b82f6; padding: 15px; margin-bottom: 1.5rem; border-radius: 4px;">
-                <h5 style="color: #60a5fa; margin-top: 0; margin-bottom: 8px;">ℹ️ Referensi Search String (Final)</h5>
-                <p style="font-size: 0.9em; margin-bottom: 8px;">Silakan <em>copy-paste</em> kueri di bawah ini ke <a href="https://www.scopus.com/pages/search/publications?type=advanced" target="_blank" style="color: #60a5fa; font-weight: bold; text-decoration: underline;">Scopus Advanced Search ↗</a> untuk mengeksekusi pencarian akhir:</p>
-                <div style="background: #1e1e1e; padding: 10px; border-radius: 4px; font-family: monospace; color: #a78bfa; font-size: 0.9em; margin-bottom: 10px; overflow-x: auto; white-space: pre-wrap;">
+            <div style="background: rgba(13, 148, 136, 0.1); border-left: 4px solid #0d9488; padding: 15px; margin-bottom: 1.5rem; border-radius: 4px;">
+                <h5 style="color: #5eead4; margin-top: 0; margin-bottom: 8px;">ℹ️ Referensi Search String (Final)</h5>
+                <p style="font-size: 0.9em; margin-bottom: 8px;">Silakan <em>copy-paste</em> kueri di bawah ini ke <a href="https://www.scopus.com/pages/search/publications?type=advanced" target="_blank" style="color: #5eead4; font-weight: bold; text-decoration: underline;">Scopus Advanced Search ↗</a> untuk mengeksekusi pencarian akhir:</p>
+                <div style="background: #1e1e1e; padding: 10px; border-radius: 4px; font-family: monospace; color: #5eead4; font-size: 0.9em; margin-bottom: 10px; overflow-x: auto; white-space: pre-wrap;">
                     ${session.search_string?.scopus_query || session.search_log.search_string_final}
                 </div>
                 <div style="font-size: 0.85em; color: #d1d5db;">
@@ -724,7 +724,7 @@ export function renderApprovalContent(area, session, handleApproval) {
 
         let initHtml = `
             <div style="background: rgba(255,255,255,0.05); padding: 1.5rem; border-radius: 8px; margin-bottom: 1rem;">
-                <h4 style="color: #60a5fa;">M4: Finalisasi Eksekusi Scopus & Sanity Check</h4>
+                <h4 style="color: #5eead4;">M4: Finalisasi Eksekusi Scopus & Sanity Check</h4>
                 ${ssInfo}
                 <p>Setelah Anda melakukan pencarian di Scopus, mohon lengkapi formulir di bawah ini dengan data aktual:</p>
                 <form id="form-m4-init">
@@ -838,14 +838,14 @@ export function renderApprovalContent(area, session, handleApproval) {
                 if (ad.database.toLowerCase().includes('ieee')) hasIEEE = true;
                 let dbLink = ad.database;
                 if (ad.database.toLowerCase().includes('pubmed')) {
-                    dbLink = `<a href="https://pubmed.ncbi.nlm.nih.gov/advanced/" target="_blank" style="color: #60a5fa; text-decoration: underline;">${ad.database} ↗</a>`;
+                    dbLink = `<a href="https://pubmed.ncbi.nlm.nih.gov/advanced/" target="_blank" style="color: #5eead4; text-decoration: underline;">${ad.database} ↗</a>`;
                 } else if (ad.database.toLowerCase().includes('ieee')) {
-                    dbLink = `<a href="https://ieeexplore.ieee.org/search/advanced/command" target="_blank" style="color: #60a5fa; text-decoration: underline;">${ad.database} ↗</a>`;
+                    dbLink = `<a href="https://ieeexplore.ieee.org/search/advanced/command" target="_blank" style="color: #5eead4; text-decoration: underline;">${ad.database} ↗</a>`;
                 }
                 return `
                 <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.1);">
-                    <strong style="color: #cbd5e1;">${dbLink}</strong>
-                    <div style="background: rgba(0,0,0,0.3); padding: 8px; border-radius: 4px; font-family: monospace; color: #a78bfa; font-size: 0.85em; margin: 4px 0; overflow-x: auto; white-space: pre-wrap;">${ad.query}</div>
+                    <strong style="color: #d6d3d1;">${dbLink}</strong>
+                    <div style="background: rgba(0,0,0,0.3); padding: 8px; border-radius: 4px; font-family: monospace; color: #5eead4; font-size: 0.85em; margin: 4px 0; overflow-x: auto; white-space: pre-wrap;">${ad.query}</div>
                 </div>
             `}).join('');
         }
@@ -860,40 +860,40 @@ export function renderApprovalContent(area, session, handleApproval) {
             
             adaptedHtml += `
                 <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.1);">
-                    <strong style="color: #cbd5e1;"><a href="https://ieeexplore.ieee.org/search/advanced/command" target="_blank" style="color: #60a5fa; text-decoration: underline;">IEEE Xplore ↗</a> (Auto-adapted)</strong>
-                    <div style="background: rgba(0,0,0,0.3); padding: 8px; border-radius: 4px; font-family: monospace; color: #a78bfa; font-size: 0.85em; margin: 4px 0; overflow-x: auto; white-space: pre-wrap;">${ieeeFallback}</div>
+                    <strong style="color: #d6d3d1;"><a href="https://ieeexplore.ieee.org/search/advanced/command" target="_blank" style="color: #5eead4; text-decoration: underline;">IEEE Xplore ↗</a> (Auto-adapted)</strong>
+                    <div style="background: rgba(0,0,0,0.3); padding: 8px; border-radius: 4px; font-family: monospace; color: #5eead4; font-size: 0.85em; margin: 4px 0; overflow-x: auto; white-space: pre-wrap;">${ieeeFallback}</div>
                     <div style="font-size: 0.8em; color: #9ca3af; margin-top: 4px;"><em>Catatan: Simbol wildcard (*) telah dihapus otomatis karena batasan maksimal 10 wildcard dari IEEE. IEEE sudah memiliki fitur auto-stemming.</em></div>
                 </div>
             `;
         }
 
         let refHtml = `
-            <div style="background: rgba(59, 130, 246, 0.1); border-left: 4px solid #3b82f6; padding: 15px; margin-bottom: 1.5rem; border-radius: 4px;">
-                <h5 style="color: #60a5fa; margin-top: 0; margin-bottom: 8px;">ℹ️ Referensi Kueri & Panduan Ekspor</h5>
+            <div style="background: rgba(13, 148, 136, 0.1); border-left: 4px solid #0d9488; padding: 15px; margin-bottom: 1.5rem; border-radius: 4px;">
+                <h5 style="color: #5eead4; margin-top: 0; margin-bottom: 8px;">ℹ️ Referensi Kueri & Panduan Ekspor</h5>
                 
                 <div style="margin-bottom: 15px;">
-                    <strong style="color: #cbd5e1;"><a href="https://www.scopus.com/pages/search/publications?type=advanced" target="_blank" style="color: #60a5fa; text-decoration: underline;">Scopus ↗</a></strong>
-                    <div style="background: rgba(0,0,0,0.3); padding: 8px; border-radius: 4px; font-family: monospace; color: #a78bfa; font-size: 0.85em; margin: 4px 0; overflow-x: auto; white-space: pre-wrap;">${scopusQuery}</div>
+                    <strong style="color: #d6d3d1;"><a href="https://www.scopus.com/pages/search/publications?type=advanced" target="_blank" style="color: #5eead4; text-decoration: underline;">Scopus ↗</a></strong>
+                    <div style="background: rgba(0,0,0,0.3); padding: 8px; border-radius: 4px; font-family: monospace; color: #5eead4; font-size: 0.85em; margin: 4px 0; overflow-x: auto; white-space: pre-wrap;">${scopusQuery}</div>
                     <div style="font-size: 0.8em; color: #9ca3af;"><em>Export: Select All > Export > CSV (centang Citation, Abstract, dsb)</em></div>
                 </div>
                 ${adaptedHtml}
                 
                 <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1);">
-                    <strong style="color: #cbd5e1;">Filter yang Berlaku (Gunakan ini di semua database):</strong>
+                    <strong style="color: #d6d3d1;">Filter yang Berlaku (Gunakan ini di semua database):</strong>
                     <div style="font-size: 0.85em; color: #d1d5db; margin-top: 4px;">${filterText}</div>
                 </div>
                 
                 <div style="margin-top: 15px; font-size: 0.85em; color: #9ca3af;">
                     <strong>Panduan Ekspor Lainnya:</strong><br>
-                    - <a href="https://ieeexplore.ieee.org/search/advanced/command" target="_blank" style="color: #60a5fa; text-decoration: underline;">IEEE Xplore ↗</a>: Command Search > Export > CSV<br>
-                    - <a href="https://pubmed.ncbi.nlm.nih.gov/advanced/" target="_blank" style="color: #60a5fa; text-decoration: underline;">PubMed ↗</a>: Advanced Search > Save > Format: CSV / PubMed (NBIB)<br>
+                    - <a href="https://ieeexplore.ieee.org/search/advanced/command" target="_blank" style="color: #5eead4; text-decoration: underline;">IEEE Xplore ↗</a>: Command Search > Export > CSV<br>
+                    - <a href="https://pubmed.ncbi.nlm.nih.gov/advanced/" target="_blank" style="color: #5eead4; text-decoration: underline;">PubMed ↗</a>: Advanced Search > Save > Format: CSV / PubMed (NBIB)<br>
                 </div>
             </div>
         `;
 
         let importHtml = `
             <div style="background: rgba(255,255,255,0.05); padding: 1.5rem; border-radius: 8px; margin-bottom: 1rem;">
-                <h4 style="color: #60a5fa;">M4: Import Data (Multi-Database)</h4>
+                <h4 style="color: #5eead4;">M4: Import Data (Multi-Database)</h4>
                 ${refHtml}
                 <div style="background: rgba(234, 179, 8, 0.1); border-left: 4px solid #eab308; padding: 15px; margin-bottom: 1.5rem; border-radius: 4px;">
                     <h5 style="color: #eab308; margin-top: 0; margin-bottom: 8px;">⚠️ Peringatan Penting</h5>
@@ -955,7 +955,7 @@ export function renderApprovalContent(area, session, handleApproval) {
         html = wrapCard('Quality Audit & Deduplication Results', `
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                 <div>
-                    <h5 style="color: #a78bfa; margin-top: 0;">Basic Quality Audit</h5>
+                    <h5 style="color: #5eead4; margin-top: 0;">Basic Quality Audit</h5>
                     <p>Total Records: ${audit.total_records || 0}</p>
                     <p>Missing Abstract: ${audit.missing_abstract || 0} 
                         ${audit.missing_abstract_sources && Object.keys(audit.missing_abstract_sources).length > 0 
@@ -981,7 +981,7 @@ export function renderApprovalContent(area, session, handleApproval) {
                     ` : ''}
                 </div>
                 <div>
-                    <h5 style="color: #a78bfa; margin-top: 0;">Deduplication</h5>
+                    <h5 style="color: #5eead4; margin-top: 0;">Deduplication</h5>
                     <p>Total Unique: <span style="color: #4ade80;">${dedup.total_unique || 0}</span></p>
                     <p>Duplicates Removed: <span style="color: #fca5a5;">${dedup.total_duplicates || 0}</span> (Primary/DOI: ${dedup.primary_match || 0}, Secondary/Title: ${dedup.secondary_match || 0})</p>
                     ${dedup.per_database_total && Object.keys(dedup.per_database_total).length > 0 ? `
@@ -1009,13 +1009,13 @@ export function renderApprovalContent(area, session, handleApproval) {
                 </div>
             </div>
             <hr style="border-color: rgba(255,255,255,0.1); margin: 15px 0;">
-            <h5 style="color: #a78bfa; margin-top: 0;">LLM PICO Preview (20 Sampel)</h5>
+            <h5 style="color: #5eead4; margin-top: 0;">LLM PICO Preview (20 Sampel)</h5>
             <p><strong>Match Ratio:</strong> ${pico.match_counts_pct || 0}%</p>
             <p><strong>Verdict:</strong> <span style="color: ${pico.verdict?.includes('PROCEED') ? '#4ade80' : '#fca5a5'};">${pico.verdict || ''}</span></p>
             <p><strong>Recommendation:</strong> ${pico.recommendation || ''}</p>
             ${pico.samples_analyzed && pico.samples_analyzed.length > 0 ? `
                 <details style="margin-top: 15px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 4px;">
-                    <summary style="cursor: pointer; color: #60a5fa; font-weight: bold; margin-bottom: 10px;">Lihat Rincian Penilaian Sampel (${pico.samples_analyzed.length} Paper)</summary>
+                    <summary style="cursor: pointer; color: #5eead4; font-weight: bold; margin-bottom: 10px;">Lihat Rincian Penilaian Sampel (${pico.samples_analyzed.length} Paper)</summary>
                     <div style="max-height: 300px; overflow-y: auto; padding-right: 10px; margin-top: 10px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px;">
                         ${pico.samples_analyzed.map((s, i) => {
                             let color = '#d1d5db'; // default
@@ -1037,7 +1037,7 @@ export function renderApprovalContent(area, session, handleApproval) {
             ` : ''}
             ${session.pico_definitions ? `
                 <details style="margin-top: 10px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 4px;">
-                    <summary style="cursor: pointer; color: #a78bfa; font-weight: bold; margin-bottom: 10px;">Lihat Kriteria PICO yang Berlaku</summary>
+                    <summary style="cursor: pointer; color: #5eead4; font-weight: bold; margin-bottom: 10px;">Lihat Kriteria PICO yang Berlaku</summary>
                     <div style="font-size: 0.85em; padding-right: 10px; margin-top: 10px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px;">
                         ${['P', 'I', 'C', 'O'].map(k => {
                             const p = session.pico_definitions[k.toLowerCase()];
@@ -1076,7 +1076,7 @@ export function renderApprovalContent(area, session, handleApproval) {
                 <div style="background: rgba(234, 179, 8, 0.15); padding: 15px; border-radius: 8px; border-left: 4px solid #eab308; margin-bottom: 15px;">
                     <h4 style="color: #fcd34d; margin-top: 0; margin-bottom: 8px;"><i class="fa fa-exclamation-triangle"></i> API Reviewer Belum Siap</h4>
                     <p style="color: #fef3c7; font-size: 0.9em; margin: 0;">${session.system_error}</p>
-                    <div style="margin-top:10px;"><button onclick="window.openLLMDebug('${session.id}')" class="btn btn-secondary" style="padding:3px 10px;font-size:0.82em;" title="Lapor bug / lihat error LLM persis & uji coba (Reproducible Error)">🐞 Lapor / Debug Bug</button></div>
+                    <div style="margin-top:10px;"><button onclick="window.openLLMDebug('${session.id}')" class="btn btn-secondary" style="padding:3px 10px;font-size:0.82em;" title="Lapor bug / lihat error LLM persis & uji coba (Reproducible Error)"><span class="ico ico-bug"></span> Lapor / Debug Bug</button></div>
                 </div>
             `;
         }
@@ -1087,7 +1087,7 @@ export function renderApprovalContent(area, session, handleApproval) {
             <p><strong>Validation Gap:</strong> ${sb.validation_gap}</p>
             <p><strong>Recommendation:</strong> ${sb.recommendation}</p>
             <hr style="border-color: rgba(255,255,255,0.1); margin: 15px 0;">
-            <h5 style="color: #a78bfa; margin-top: 0;">Briefing Document (Sent to Dual-Agents):</h5>
+            <h5 style="color: #5eead4; margin-top: 0;">Briefing Document (Sent to Dual-Agents):</h5>
             <div style="background: rgba(0,0,0,0.2); padding: 10px; border-radius: 4px; font-size: 0.85em; max-height: 200px; overflow-y: auto;">
                 ${formatMarkdown(sb.briefing_doc)}
             </div>
@@ -1126,14 +1126,14 @@ export function renderApprovalContent(area, session, handleApproval) {
                         <summary style="cursor: pointer; color: #9ca3af; font-size: 0.85em; font-weight: bold;">Lihat Transparansi Perhitungan Matematis (XAI)</summary>
                         <div style="font-size: 0.8em; margin-top: 10px; color: #d1d5db; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                             <div>
-                                <strong style="color: #60a5fa;">Matriks Keputusan:</strong><br>
+                                <strong style="color: #5eead4;">Matriks Keputusan:</strong><br>
                                 - Keduanya INCLUDE: ${kal.both_include || 0}<br>
                                 - Keduanya EXCLUDE: ${kal.both_exclude || 0}<br>
                                 - R1 INC / R2 EXC: ${kal.r1_inc_r2_exc || 0}<br>
                                 - R1 EXC / R2 INC: ${kal.r1_exc_r2_inc || 0}
                             </div>
                             <div>
-                                <strong style="color: #60a5fa;">Variabel Cohen's Kappa:</strong><br>
+                                <strong style="color: #5eead4;">Variabel Cohen's Kappa:</strong><br>
                                 - P(o) [Observed Agreement]: ${kal.po ? kal.po.toFixed(4) : '0.0000'}<br>
                                 - P(e) [Expected Agreement]: ${kal.pe ? kal.pe.toFixed(4) : '0.0000'}<br>
                                 - Rumus Kappa: (P(o) - P(e)) / (1 - P(e))
@@ -1151,7 +1151,7 @@ export function renderApprovalContent(area, session, handleApproval) {
                 <div style="background: rgba(0,0,0,0.3); padding: 10px; margin-top: 10px; border-radius: 4px; font-family: monospace; font-size: 0.8em; color: #ef4444; max-height: 100px; overflow-y: auto;">
                     ${session.system_error}
                 </div>
-                <div style="margin-top:10px;"><button onclick="window.openLLMDebug('${session.id}')" class="btn btn-secondary" style="padding:3px 10px;font-size:0.82em;" title="Lapor bug / lihat error LLM persis & uji coba (Reproducible Error)">🐞 Lapor / Debug Bug</button></div>
+                <div style="margin-top:10px;"><button onclick="window.openLLMDebug('${session.id}')" class="btn btn-secondary" style="padding:3px 10px;font-size:0.82em;" title="Lapor bug / lihat error LLM persis & uji coba (Reproducible Error)"><span class="ico ico-bug"></span> Lapor / Debug Bug</button></div>
             </div>`;
         }
 
@@ -1159,7 +1159,7 @@ export function renderApprovalContent(area, session, handleApproval) {
         if (session.screener_briefing) {
             briefingHtml = `
             <details style="margin-top: 15px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 4px;">
-                <summary style="cursor: pointer; color: #a78bfa; font-weight: bold; display: flex; justify-content: space-between; align-items: center;">
+                <summary style="cursor: pointer; color: #5eead4; font-weight: bold; display: flex; justify-content: space-between; align-items: center;">
                     <span>Lihat Screener Briefing Saat Ini</span>
                     <button id="btn-download-briefing" class="btn" style="padding: 4px 10px; font-size: 0.8em; background: #6b21a8; color: white; border: none; border-radius: 4px; cursor: pointer;" title="Download Screener Briefing Markdown">
                         <i class="fa fa-download"></i> Download .md
@@ -1223,8 +1223,8 @@ export function renderApprovalContent(area, session, handleApproval) {
                             <div style="font-size: 0.85em; margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.1);">
                                 <p style="color: #9ca3af; margin-bottom: 10px;"><strong>Abstract:</strong> ${d.Abstract}</p>
                                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                                    <div style="background: rgba(59, 130, 246, 0.1); padding: 10px; border-radius: 4px; border-left: 3px solid #3b82f6;">
-                                        <strong style="color: #93c5fd;">R1 Decision (Z-AI):</strong> ${d.Screener_1_Decision}<br>
+                                    <div style="background: rgba(13, 148, 136, 0.1); padding: 10px; border-radius: 4px; border-left: 3px solid #0d9488;">
+                                        <strong style="color: #5eead4;">R1 Decision (Z-AI):</strong> ${d.Screener_1_Decision}<br>
                                         <div style="margin-top: 5px; color: #d1d5db;">${d.Screener_1_Notes}</div>
                                     </div>
                                     <div style="background: rgba(16, 185, 129, 0.1); padding: 10px; border-radius: 4px; border-left: 3px solid #10b981;">
@@ -1233,12 +1233,12 @@ export function renderApprovalContent(area, session, handleApproval) {
                                     </div>
                                 </div>
                                 ${d.Conflict_Resolution ? (typeof d.Conflict_Resolution === 'object' ? `
-                                <div style="margin-top: 10px; background: rgba(167, 139, 250, 0.1); padding: 10px; border-radius: 4px; border-left: 3px solid #a78bfa;">
+                                <div style="margin-top: 10px; background: rgba(167, 139, 250, 0.1); padding: 10px; border-radius: 4px; border-left: 3px solid #5eead4;">
                                     <strong style="color: #c4b5fd;">AI Arbitrator Advice:</strong> ${d.Conflict_Resolution.advice}<br>
                                     <div style="margin-top: 5px; color: #e5e7eb;">${d.Conflict_Resolution.analysis}</div>
                                 </div>
                                 ` : `
-                                <div style="margin-top: 10px; background: rgba(167, 139, 250, 0.1); padding: 10px; border-radius: 4px; border-left: 3px solid #a78bfa;">
+                                <div style="margin-top: 10px; background: rgba(167, 139, 250, 0.1); padding: 10px; border-radius: 4px; border-left: 3px solid #5eead4;">
                                     <strong style="color: #c4b5fd;">AI Supervisor:</strong><br>
                                     <div style="margin-top: 5px; color: #e5e7eb; white-space: pre-wrap;">${d.Conflict_Resolution}</div>
                                 </div>
@@ -1287,7 +1287,7 @@ export function renderApprovalContent(area, session, handleApproval) {
         if (session.screener_briefing) {
             briefingHtml = `
             <details style="margin-top: 15px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 4px;">
-                <summary style="cursor: pointer; color: #a78bfa; font-weight: bold; display: flex; justify-content: space-between; align-items: center;">
+                <summary style="cursor: pointer; color: #5eead4; font-weight: bold; display: flex; justify-content: space-between; align-items: center;">
                     <span><i class="fa fa-file-text"></i> Lihat Screener Briefing (Kriteria xAI)</span>
                     <button id="btn-download-briefing-m5s3" class="btn" style="padding: 4px 10px; font-size: 0.8em; background: #6b21a8; color: white; border: none; border-radius: 4px; cursor: pointer;" title="Download Screener Briefing Markdown">
                         <i class="fa fa-download"></i> Download .md
@@ -1298,7 +1298,7 @@ export function renderApprovalContent(area, session, handleApproval) {
                 </div>
             </details>
             <details style="margin-top: 10px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 4px;">
-                <summary style="cursor: pointer; color: #60a5fa; font-weight: bold;">
+                <summary style="cursor: pointer; color: #5eead4; font-weight: bold;">
                     <span><i class="fa fa-info-circle"></i> Cara Kerja AI Supervisor (Neuro Symbolic)</span>
                 </summary>
                 <div style="font-size: 0.85em; margin-top: 10px; color: #d1d5db; line-height: 1.5;">
@@ -1347,8 +1347,8 @@ export function renderApprovalContent(area, session, handleApproval) {
                             <div style="font-size: 0.85em; margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.1);">
                                 <p style="color: #9ca3af; margin-bottom: 10px;"><strong>Abstract:</strong> ${d.Abstract}</p>
                                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                                    <div style="background: rgba(59, 130, 246, 0.1); padding: 10px; border-radius: 4px; border-left: 3px solid #3b82f6;">
-                                        <strong style="color: #93c5fd;">R1 Decision:</strong> ${d.Screener_1_Decision}<br>
+                                    <div style="background: rgba(13, 148, 136, 0.1); padding: 10px; border-radius: 4px; border-left: 3px solid #0d9488;">
+                                        <strong style="color: #5eead4;">R1 Decision:</strong> ${d.Screener_1_Decision}<br>
                                         <div style="margin-top: 5px; color: #d1d5db;">${d.Screener_1_Notes}</div>
                                     </div>
                                     <div style="background: rgba(16, 185, 129, 0.1); padding: 10px; border-radius: 4px; border-left: 3px solid #10b981;">
@@ -1357,19 +1357,19 @@ export function renderApprovalContent(area, session, handleApproval) {
                                     </div>
                                 </div>
                                 ${d.Conflict_Resolution ? (typeof d.Conflict_Resolution === 'object' ? `
-                                <div style="margin-top: 10px; background: rgba(167, 139, 250, 0.1); padding: 10px; border-radius: 4px; border-left: 3px solid #a78bfa;">
+                                <div style="margin-top: 10px; background: rgba(167, 139, 250, 0.1); padding: 10px; border-radius: 4px; border-left: 3px solid #5eead4;">
                                     <strong style="color: #c4b5fd;">AI Arbitrator Advice:</strong> ${d.Conflict_Resolution.advice}<br>
                                     <div style="margin-top: 5px; color: #e5e7eb;">${d.Conflict_Resolution.analysis}</div>
                                 </div>
                                 ` : `
-                                <div style="margin-top: 10px; background: rgba(167, 139, 250, 0.1); padding: 10px; border-radius: 4px; border-left: 3px solid #a78bfa;">
+                                <div style="margin-top: 10px; background: rgba(167, 139, 250, 0.1); padding: 10px; border-radius: 4px; border-left: 3px solid #5eead4;">
                                     <strong style="color: #c4b5fd;">AI Supervisor:</strong><br>
                                     <div style="margin-top: 5px; color: #e5e7eb; white-space: pre-wrap;">${d.Conflict_Resolution}</div>
                                 </div>
                                 `) : ''}
                                 
                                 <div class="conflict-resolution-form" data-paperid="${pid}" style="margin-top: 15px; padding: 15px; background: rgba(0,0,0,0.5); border-radius: 4px; border: 1px solid rgba(255,255,255,0.2);">
-                                    <h6 style="color: #60a5fa; margin-top: 0; margin-bottom: 10px;">Resolusi Anda (HitL)</h6>
+                                    <h6 style="color: #5eead4; margin-top: 0; margin-bottom: 10px;">Resolusi Anda (HitL)</h6>
                                     <div style="display: flex; gap: 15px; margin-bottom: 10px;">
                                         <label style="cursor: pointer; display: flex; align-items: center; gap: 5px;">
                                             <input type="radio" name="fd_${pid}" value="INCLUDE"> <strong style="color:#4ade80">INCLUDE</strong>
@@ -1518,14 +1518,14 @@ export function renderApprovalContent(area, session, handleApproval) {
                     'llm-audit': '🧠 LLM audit'
                 }[src] || src);
                 const flagsHtml = flags.length
-                    ? `<ul style="margin:6px 0 8px 0; padding-left:18px; font-size:0.82em; color:#cbd5e1;">` +
+                    ? `<ul style="margin:6px 0 8px 0; padding-left:18px; font-size:0.82em; color:#d6d3d1;">` +
                         flags.map(f => `<li><strong style="color:#fcd34d;">${srcLabel(f.source)}:</strong> ${f.detail || ''}</li>`).join('') +
                       `</ul>`
-                    : `<div style="font-size:0.85em; color:#cbd5e1; margin:6px 0;">Alasan audit: ${s.reason || ''}</div>`;
+                    : `<div style="font-size:0.85em; color:#d6d3d1; margin:6px 0;">Alasan audit: ${s.reason || ''}</div>`;
                 items += `
                 <div class="pico-audit-form" data-paperid="${s.paper_id}" style="margin-bottom:10px; padding:12px; background:rgba(0,0,0,0.4); border-radius:4px; border:1px solid rgba(239,68,68,0.4);">
                     <div style="font-weight:bold; color:#fcd34d; font-size:0.9em;">${i + 1}. [${s.reason_code || '?'}] ${s.title || '(tanpa judul)'}</div>
-                    <div style="font-size:0.78em; color:#94a3b8; margin:4px 0;">Ditandai oleh ${flags.length || 1} sinyal (xAI):</div>
+                    <div style="font-size:0.78em; color:#a8a29e; margin:4px 0;">Ditandai oleh ${flags.length || 1} sinyal (xAI):</div>
                     ${flagsHtml}
                     <div style="display:flex; gap:15px; margin-bottom:8px; flex-wrap:wrap;">
                         <label style="cursor:pointer;"><input type="radio" name="pa_${s.paper_id}" value="EXCLUDE"> <strong style="color:#fca5a5">EXCLUDE (terima audit)</strong></label>
@@ -1537,19 +1537,19 @@ export function renderApprovalContent(area, session, handleApproval) {
             auditPanel = `
             <div style="background:rgba(239,68,68,0.08); padding:15px; border-radius:6px; border-left:3px solid #ef4444; margin-bottom:15px;">
                 <h5 style="color:#fca5a5; margin:0 0 8px 0;">⚠ Koreksi PICO Audit — ${pendingSlip.length} paper kemungkinan salah-INCLUDE</h5>
-                <p style="font-size:0.85em; color:#cbd5e1; margin:0 0 12px 0;">Audit konsistensi PICO (cakupan ${(session.pico_audit_log && session.pico_audit_log.coverage) || 'penuh'}) menandai paper berikut sebagai kemungkinan salah-INCLUDE. <strong>Modul 5 tidak dapat ditutup sampai semua diputuskan.</strong> EXCLUDE = terima audit (paper dikeluarkan); KEEP = pertahankan INCLUDE dengan justifikasi.</p>
+                <p style="font-size:0.85em; color:#d6d3d1; margin:0 0 12px 0;">Audit konsistensi PICO (cakupan ${(session.pico_audit_log && session.pico_audit_log.coverage) || 'penuh'}) menandai paper berikut sebagai kemungkinan salah-INCLUDE. <strong>Modul 5 tidak dapat ditutup sampai semua diputuskan.</strong> EXCLUDE = terima audit (paper dikeluarkan); KEEP = pertahankan INCLUDE dengan justifikasi.</p>
                 ${items}
-                <button id="btn-pico-audit-save" class="btn btn-success" style="margin-top:6px;">💾 Simpan Koreksi Audit & Hitung Ulang</button>
+                <button id="btn-pico-audit-save" class="btn btn-success" style="margin-top:6px;"><span class="ico ico-save"></span> Simpan Koreksi Audit & Hitung Ulang</button>
             </div>`;
         }
 
         // HITL: revisi aturan scope PICO (klarifikasi batas) lalu audit ulang konsisten.
         const scopeEditor = `
-            <details style="margin-bottom:15px; background:rgba(59,130,246,0.06); padding:12px; border-radius:6px; border-left:3px solid #3b82f6;">
-                <summary style="cursor:pointer; color:#93c5fd; font-weight:bold;">⚙ Revisi Aturan Scope PICO (untuk audit konsisten)</summary>
-                <p style="font-size:0.83em; color:#cbd5e1; margin:8px 0;">Tulis klarifikasi batas kriteria yang akan diterapkan SERAGAM ke seluruh paper saat audit ulang (mis. "Klasifikasi penyakit klinis dari sinyal otak DIHITUNG sebagai decoding"; "Denoising/super-resolution/harmonisasi DIKECUALIKAN"). Aturan ini milik sesi Anda — sistem tidak meng-hardcode kriteria apa pun.</p>
+            <details style="margin-bottom:15px; background:rgba(13, 148, 136,0.06); padding:12px; border-radius:6px; border-left:3px solid #0d9488;">
+                <summary style="cursor:pointer; color:#5eead4; font-weight:bold;">⚙ Revisi Aturan Scope PICO (untuk audit konsisten)</summary>
+                <p style="font-size:0.83em; color:#d6d3d1; margin:8px 0;">Tulis klarifikasi batas kriteria yang akan diterapkan SERAGAM ke seluruh paper saat audit ulang (mis. "Klasifikasi penyakit klinis dari sinyal otak DIHITUNG sebagai decoding"; "Denoising/super-resolution/harmonisasi DIKECUALIKAN"). Aturan ini milik sesi Anda — sistem tidak meng-hardcode kriteria apa pun.</p>
                 <textarea id="audit-scope-rules" placeholder="Satu aturan per baris..." style="width:100%; min-height:90px; padding:8px; border-radius:4px; background:rgba(255,255,255,0.05); color:white; border:1px solid rgba(255,255,255,0.1); resize:vertical;">${(session.audit_scope_rules || '').replace(/</g, '&lt;')}</textarea>
-                <button id="btn-audit-scope-save" class="btn btn-primary" style="margin-top:8px;">💾 Simpan Aturan & Audit Ulang Konsisten</button>
+                <button id="btn-audit-scope-save" class="btn btn-primary" style="margin-top:8px;"><span class="ico ico-save"></span> Simpan Aturan & Audit Ulang Konsisten</button>
             </details>`;
 
         html = wrapCard('Screening Selesai (Modul 5 Summary)', `
@@ -1619,12 +1619,12 @@ export function renderApprovalContent(area, session, handleApproval) {
             ? `Batch ${lastLog.batch_number} | Kappa: <strong style="color:${lastLog.current_kappa >= 0.6 ? '#4ade80' : '#fca5a5'}">${(lastLog.current_kappa || 0).toFixed(3)}</strong> | Disagreements: ${lastLog.disagreement_cases}`
             : 'Memuat ringkasan batch...';
         html = wrapCard('Full-Text Screening — Resolusi Konflik (Modul 6 L2)', `
-            <p style="font-size:0.9em;color:#cbd5e1;margin-top:0;">${kappaInfo}</p>
-            <p style="font-size:0.85em;color:#94a3b8;">Putuskan kasus DISAGREE / UNCERTAIN / pending-RAG di bawah lalu klik <strong>Simpan Resolusi</strong>. Atau klik <strong>Setuju & Lanjut</strong> untuk memproses batch berikutnya / menyelesaikan tahap.</p>
+            <p style="font-size:0.9em;color:#d6d3d1;margin-top:0;">${kappaInfo}</p>
+            <p style="font-size:0.85em;color:#a8a29e;">Putuskan kasus DISAGREE / UNCERTAIN / pending-RAG di bawah lalu klik <strong>Simpan Resolusi</strong>. Atau klik <strong>Setuju & Lanjut</strong> untuk memproses batch berikutnya / menyelesaikan tahap.</p>
             <div id="ft-disagreements" style="background: rgba(239,68,68,0.05); padding: 12px; border-radius:6px; border-left:3px solid #ef4444; margin-top:10px;">
                 <em><i class="fa fa-spinner fa-spin"></i> Memuat kasus konflik full-text...</em>
             </div>
-            <button id="btn-ft-resolve" class="btn btn-success" style="margin-top:12px; display:none;">💾 Simpan Resolusi Full-text</button>
+            <button id="btn-ft-resolve" class="btn btn-success" style="margin-top:12px; display:none;"><span class="ico ico-save"></span> Simpan Resolusi Full-text</button>
         `);
         setTimeout(async () => {
             const cont = document.getElementById('ft-disagreements');
@@ -1651,7 +1651,7 @@ export function renderApprovalContent(area, session, handleApproval) {
                     let crHtml = '';
                     if (cr) {
                         crHtml = `
-                        <div style="margin-top: 10px; background: rgba(167, 139, 250, 0.1); padding: 10px; border-radius: 4px; border-left: 3px solid #a78bfa;">
+                        <div style="margin-top: 10px; background: rgba(167, 139, 250, 0.1); padding: 10px; border-radius: 4px; border-left: 3px solid #5eead4;">
                             <strong style="color: #c4b5fd;">AI Supervisor:</strong><br>
                             <div style="margin-top: 5px; color: #e5e7eb; white-space: pre-wrap; font-size: 0.9em;">${cr}</div>
                         </div>`;
@@ -1662,12 +1662,12 @@ export function renderApprovalContent(area, session, handleApproval) {
                         <div style="font-size:0.95em;margin-bottom:10px;color:#fcd34d;"><strong>${title}</strong></div>
                         
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 0.85em;">
-                            <div style="background: rgba(59, 130, 246, 0.1); padding: 10px; border-radius: 4px; border-left: 3px solid #3b82f6;">
-                                <strong style="color: #93c5fd;">R1 Decision:</strong> ${r1} <span style="color:#94a3b8">(Reason: ${rc1})</span><br>
+                            <div style="background: rgba(13, 148, 136, 0.1); padding: 10px; border-radius: 4px; border-left: 3px solid #0d9488;">
+                                <strong style="color: #5eead4;">R1 Decision:</strong> ${r1} <span style="color:#a8a29e">(Reason: ${rc1})</span><br>
                                 <div style="margin-top: 5px; color: #d1d5db; white-space: pre-wrap;">${n1}</div>
                             </div>
                             <div style="background: rgba(16, 185, 129, 0.1); padding: 10px; border-radius: 4px; border-left: 3px solid #10b981;">
-                                <strong style="color: #6ee7b7;">R2 Decision:</strong> ${r2} <span style="color:#94a3b8">(Reason: ${rc2})</span><br>
+                                <strong style="color: #6ee7b7;">R2 Decision:</strong> ${r2} <span style="color:#a8a29e">(Reason: ${rc2})</span><br>
                                 <div style="margin-top: 5px; color: #d1d5db; white-space: pre-wrap;">${n2}</div>
                             </div>
                         </div>
@@ -1675,7 +1675,7 @@ export function renderApprovalContent(area, session, handleApproval) {
                         ${crHtml}
 
                         <div style="margin-top: 15px; padding-top: 10px; border-top: 1px dashed rgba(255,255,255,0.1);">
-                            <strong style="font-size:0.85em; color:#94a3b8;">Keputusan Anda (HitL):</strong><br>
+                            <strong style="font-size:0.85em; color:#a8a29e;">Keputusan Anda (HitL):</strong><br>
                             <label style="margin-right:15px; cursor:pointer;"><input type="radio" name="ftfd_${pid}" value="INCLUDE"> <span style="color:#4ade80;font-weight:bold;">INCLUDE</span></label>
                             <label style="cursor:pointer;"><input type="radio" name="ftfd_${pid}" value="EXCLUDE"> <span style="color:#fca5a5;font-weight:bold;">EXCLUDE</span></label>
                             <textarea class="ft-notes" rows="2" placeholder="Catatan resolusi..." style="width:100%;margin-top:8px;background:#222;color:#fff;border:1px solid #555;border-radius:4px;padding:8px;font-family:inherit;"></textarea>
@@ -1713,7 +1713,7 @@ export function renderApprovalContent(area, session, handleApproval) {
         html = wrapCard('⏸️ Screening Dijeda — Endpoint Embedding Mati (Modul 6 L2)', `
             <div style="background: rgba(239,68,68,0.08); padding: 14px; border-radius:6px; border-left:3px solid #ef4444;">
                 <p style="margin:0 0 6px;color:#fca5a5;"><strong>Penyebab:</strong> ${reason}</p>
-                <p style="margin:0;font-size:0.88em;color:#cbd5e1;">Screening <strong>tidak</strong> dilanjutkan tanpa embedding (top-k semantik) agar kualitas tetap terjaga — bukan diam-diam degrade.</p>
+                <p style="margin:0;font-size:0.88em;color:#d6d3d1;">Screening <strong>tidak</strong> dilanjutkan tanpa embedding (top-k semantik) agar kualitas tetap terjaga — bukan diam-diam degrade.</p>
             </div>
             <div style="margin-top:12px;">
                 <a href="https://colab.research.google.com/github/ifcoid/pede/blob/main/notebooks/embed_server_colab.ipynb" target="_blank" rel="noopener"
@@ -1721,9 +1721,9 @@ export function renderApprovalContent(area, session, handleApproval) {
                     ▶ Buka Notebook di Google Colab
                 </a>
                 <a href="https://raw.githubusercontent.com/ifcoid/pede/main/notebooks/embed_server_colab.ipynb" target="_blank" rel="noopener"
-                   style="margin-left:10px;color:#94a3b8;font-size:0.85em;">unduh .ipynb</a>
+                   style="margin-left:10px;color:#a8a29e;font-size:0.85em;">unduh .ipynb</a>
             </div>
-            <ol style="font-size:0.88em;color:#cbd5e1;margin-top:12px;padding-left:18px;">
+            <ol style="font-size:0.88em;color:#d6d3d1;margin-top:12px;padding-left:18px;">
                 <li>Klik tombol di atas (bisa di <strong>Chrome Android</strong> juga) → Runtime GPU → <strong>Run all</strong>.</li>
                 <li>Salin <code>EMBED_ENDPOINT</code>, <code>EMBED_API_KEY</code> dari output sel terakhir.</li>
                 <li>Tempel di bawah → <strong>Simpan Endpoint & Lanjut</strong>.</li>
@@ -1732,9 +1732,9 @@ export function renderApprovalContent(area, session, handleApproval) {
                 <input id="embed-endpoint" class="input" placeholder="EMBED_ENDPOINT (mis. https://xxxx.trycloudflare.com/v1)" style="padding:8px;border-radius:6px;width:100%;" />
                 <input id="embed-key" class="input" placeholder="EMBED_API_KEY (kosongkan = pertahankan yang lama)" style="padding:8px;border-radius:6px;width:100%;" />
                 <input id="embed-model" class="input" placeholder="EMBED_MODEL (default BAAI/bge-m3)" style="padding:8px;border-radius:6px;width:100%;" />
-                <span id="embed-msg" style="font-size:0.82em;color:#94a3b8;"></span>
+                <span id="embed-msg" style="font-size:0.82em;color:#a8a29e;"></span>
             </div>
-            <p style="font-size:0.8em;color:#94a3b8;margin-top:10px;">
+            <p style="font-size:0.8em;color:#a8a29e;margin-top:10px;">
                 <em>Catatan Colab: endpoint dipakai sebentar saja di <strong>awal tiap batch</strong>. Sesi Colab gratis putus ~90 menit idle / maks ~12 jam — jaga tetap hidup saat screening, atau restart lalu masukkan endpoint baru saat dijeda lagi.</em>
             </p>
         `);
@@ -1752,7 +1752,7 @@ export function renderApprovalContent(area, session, handleApproval) {
             <details id="recode-panel" style="margin-top:8px;">
                 <summary style="cursor:pointer;color:#fcd34d;font-weight:bold;">🏷️ Re-code Alasan Eksklusi (rapikan tabel PRISMA)</summary>
                 <div style="font-size:0.85em;margin-top:8px;">
-                    <p style="color:#cbd5e1;margin:0 0 8px 0;">Ganti kode kabur (mis. "OTHER") ke kode spesifik berdasar bukti tiap paper. Menyimpan akan <strong>menyusun ulang</strong> ringkasan Modul 6 dengan kode baru.</p>
+                    <p style="color:#d6d3d1;margin:0 0 8px 0;">Ganti kode kabur (mis. "OTHER") ke kode spesifik berdasar bukti tiap paper. Menyimpan akan <strong>menyusun ulang</strong> ringkasan Modul 6 dengan kode baru.</p>
                     <button id="btn-load-recode" class="btn" style="background:#6366f1;color:#fff;">Muat Daftar Eksklusi</button>
                     <div id="recode-container" style="margin-top:10px;"></div>
                 </div>
@@ -1767,14 +1767,14 @@ export function renderApprovalContent(area, session, handleApproval) {
         // untuk nilai peningkatan agar tidak tercampur metrik absolut.
         const escAttr = (v) => String(v || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
         const inputCell = (cls, val, ph, color) => `<td style="padding:4px;"><input class="${cls}" value="${escAttr(val)}" placeholder="${ph}" style="width:100%;padding:5px;border-radius:4px;background:rgba(255,255,255,0.05);color:${color};border:1px solid rgba(255,255,255,0.1);"></td>`;
-        const rowHtml = (c) => `<tr class="fw-col-row">${inputCell('fw-col-key', c.key, 'key', 'white')}${inputCell('fw-col-cat', c.category, 'Output', '#93c5fd')}${inputCell('fw-col-desc', c.desc, 'deskripsi', '#cbd5e1')}<td style="padding:4px;"><button type="button" class="fw-col-del btn btn-danger" style="padding:4px 9px;">✕</button></td></tr>`;
+        const rowHtml = (c) => `<tr class="fw-col-row">${inputCell('fw-col-key', c.key, 'key', 'white')}${inputCell('fw-col-cat', c.category, 'Output', '#5eead4')}${inputCell('fw-col-desc', c.desc, 'deskripsi', '#d6d3d1')}<td style="padding:4px;"><button type="button" class="fw-col-del btn btn-danger" style="padding:4px 9px;"><span class="ico ico-close"></span> </button></td></tr>`;
         const rows = (fw.columns || []).map(rowHtml).join('');
         html = wrapCard('Modul 7 L1 — Framework & Template Ekstraksi', `
             <p><strong>Framework:</strong> <span style="color:#6ee7b7;">${fw.framework}</span></p>
             ${fw.system_prompt ? `
             <details style="margin-bottom:15px; background:rgba(0,0,0,0.2); padding:10px; border-radius:8px;">
-                <summary style="cursor:pointer; color:#60a5fa; font-weight:bold; font-size: 0.85em;">🔍 xAI: Lihat Prompt Dibalik Keputusan Ini</summary>
-                <div style="margin-top:10px; font-size:0.8em; color:#cbd5e1; max-height: 250px; overflow-y: auto;">
+                <summary style="cursor:pointer; color:#5eead4; font-weight:bold; font-size: 0.85em;">🔍 xAI: Lihat Prompt Dibalik Keputusan Ini</summary>
+                <div style="margin-top:10px; font-size:0.8em; color:#d6d3d1; max-height: 250px; overflow-y: auto;">
                     ${fw.model_used ? `<p style="color:#fcd34d; margin-bottom:5px;"><strong>🧠 LLM Model:</strong> ${fw.model_used}</p>` : ''}
                     <strong>System Prompt (Instruksi Agent):</strong><br>
                     <pre style="white-space: pre-wrap; font-family: monospace; background: rgba(0,0,0,0.3); padding: 8px; border-radius: 4px; margin-top: 5px; margin-bottom: 10px;">${(fw.system_prompt || '').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>
@@ -1783,18 +1783,18 @@ export function renderApprovalContent(area, session, handleApproval) {
                 </div>
             </details>
             ` : ''}
-            <p style="font-size:0.9em;color:#cbd5e1;">${fw.justification || ''}</p>
+            <p style="font-size:0.9em;color:#d6d3d1;">${fw.justification || ''}</p>
             <p style="font-size:0.82em;color:#fcd34d;margin-top:10px;">✎ Kolom bisa diedit langsung (HITL). Untuk nilai peningkatan, buat kolom delta TERPISAH (mis. <code>delta_accuracy</code>, <code>delta_itr</code>) agar tak tercampur metrik absolut. Klik <strong>Simpan Kolom</strong>, lalu <strong>Setuju</strong> untuk mulai ekstraksi.</p>
             <table style="width:100%;border-collapse:collapse;font-size:0.85em;margin-top:8px;">
                 <tr><th style="text-align:left;padding:6px;color:#9ca3af;">Kolom (key)</th><th style="text-align:left;padding:6px;color:#9ca3af;">Kat.</th><th style="text-align:left;padding:6px;color:#9ca3af;">Deskripsi</th><th style="width:36px;"></th></tr>
                 <tbody id="fw-cols-body">${rows}</tbody>
             </table>
             <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap;">
-                <button type="button" id="btn-fw-add-col" class="btn btn-secondary" style="padding:5px 10px;">➕ Tambah Kolom</button>
-                <button type="button" id="btn-fw-save-cols" class="btn btn-primary" style="padding:5px 10px;">💾 Simpan Kolom</button>
-                <button type="button" onclick="window.openScreeningCorrection('${session.id}')" class="btn" style="padding:5px 10px;background:rgba(245,158,11,0.18);color:#fcd34d;border:1px solid rgba(245,158,11,0.3);" title="Koreksi keputusan include/exclude tanpa mengubah protokol ekstraksi">⏪ Koreksi Include/Exclude</button>
+                <button type="button" id="btn-fw-add-col" class="btn btn-secondary" style="padding:5px 10px;"><span class="ico ico-plus"></span> Tambah Kolom</button>
+                <button type="button" id="btn-fw-save-cols" class="btn btn-primary" style="padding:5px 10px;"><span class="ico ico-save"></span> Simpan Kolom</button>
+                <button type="button" onclick="window.openScreeningCorrection('${session.id}')" class="btn" style="padding:5px 10px;background:rgba(245,158,11,0.18);color:#fcd34d;border:1px solid rgba(245,158,11,0.3);" title="Koreksi keputusan include/exclude tanpa mengubah protokol ekstraksi"><span class="ico ico-back"></span> Koreksi Include/Exclude</button>
             </div>
-            <p style="font-size:0.78em;color:#94a3b8;margin:6px 0 0;">Merasa paper kurang/keliru? "Koreksi Include/Exclude" memperbaiki keputusan full-text <strong>tanpa mengubah protokol</strong> (paper baru diekstrak inkremental). Untuk menyusun ULANG protokol dari awal, pakai "Drop/Reset Modul 7" (amendemen — re-ekstrak semua).</p>
+            <p style="font-size:0.78em;color:#a8a29e;margin:6px 0 0;">Merasa paper kurang/keliru? "Koreksi Include/Exclude" memperbaiki keputusan full-text <strong>tanpa mengubah protokol</strong> (paper baru diekstrak inkremental). Untuk menyusun ULANG protokol dari awal, pakai "Drop/Reset Modul 7" (amendemen — re-ekstrak semua).</p>
         `);
 
         setTimeout(() => {
@@ -1850,25 +1850,25 @@ export function renderApprovalContent(area, session, handleApproval) {
             <div style="margin-bottom:14px;">
                 <strong style="color:#fcd34d;">🔎 Detail error (yang harus diperbaiki):</strong>
                 <pre style="white-space:pre-wrap;font-family:monospace;font-size:0.82em;background:rgba(0,0,0,0.35);padding:10px;border-radius:6px;margin-top:6px;color:#fecaca;max-height:260px;overflow-y:auto;">${esc(detail)}</pre>
-                ${l.model_refine_protocol ? `<p style="font-size:0.82em;color:#94a3b8;margin-top:4px;">Model Reviewer 2 saat ini: <strong style="color:#cbd5e1;">${esc(l.model_refine_protocol)}</strong></p>` : ''}
+                ${l.model_refine_protocol ? `<p style="font-size:0.82em;color:#a8a29e;margin-top:4px;">Model Reviewer 2 saat ini: <strong style="color:#d6d3d1;">${esc(l.model_refine_protocol)}</strong></p>` : ''}
             </div>
-            <div style="padding:10px 12px;background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.3);border-radius:8px;margin-bottom:14px;font-size:0.88em;color:#cbd5e1;">
-                <strong style="color:#60a5fa;">Langkah perbaikan:</strong>
+            <div style="padding:10px 12px;background:rgba(13, 148, 136,0.1);border:1px solid rgba(13, 148, 136,0.3);border-radius:8px;margin-bottom:14px;font-size:0.88em;color:#d6d3d1;">
+                <strong style="color:#5eead4;">Langkah perbaikan:</strong>
                 <ol style="margin:6px 0 0;padding-left:20px;line-height:1.6;">
                     <li>Buka <strong>Pengaturan</strong> → role <strong>Reviewer 2</strong>, perbaiki API key / nama model / base URL.</li>
                     <li>Klik <strong>🧪 Test Model</strong> sampai hijau (✓).</li>
                     <li>Kembali ke sini, klik <strong>🔁 Ulangi Verifikasi</strong>.</li>
                 </ol>
-                <p style="margin:8px 0 0;color:#94a3b8;">Penyebab umum: nama model salah/terkunci (404), API key salah (401), atau kuota habis (429).</p>
+                <p style="margin:8px 0 0;color:#a8a29e;">Penyebab umum: nama model salah/terkunci (404), API key salah (401), atau kuota habis (429).</p>
             </div>
             <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;">
-                <button onclick="window.testRoleModel('reviewer2')" class="btn btn-secondary" style="flex:1;min-width:150px;">🧪 Test model Reviewer 2</button>
-                <button onclick="window.openLLMDebug('${session.id}')" class="btn btn-secondary" style="flex:1;min-width:150px;" title="Lapor bug / lihat prompt+error persis & uji coba (Reproducible Error)">🐞 Lapor / Debug Bug</button>
-                <button onclick="document.getElementById('btn-settings')?.click()" class="btn btn-secondary" style="flex:1;min-width:150px;">⚙ Buka Pengaturan</button>
-                <button onclick="window.reverifyExtraction('${session.id}')" class="btn btn-primary" style="flex:1;min-width:150px;">🔁 Ulangi Verifikasi</button>
+                <button onclick="window.testRoleModel('reviewer2')" class="btn btn-secondary" style="flex:1;min-width:150px;"><span class="ico ico-flask"></span> Test model Reviewer 2</button>
+                <button onclick="window.openLLMDebug('${session.id}')" class="btn btn-secondary" style="flex:1;min-width:150px;" title="Lapor bug / lihat prompt+error persis & uji coba (Reproducible Error)"><span class="ico ico-bug"></span> Lapor / Debug Bug</button>
+                <button onclick="document.getElementById('btn-settings')?.click()" class="btn btn-secondary" style="flex:1;min-width:150px;"><span class="ico ico-settings"></span> Buka Pengaturan</button>
+                <button onclick="window.reverifyExtraction('${session.id}')" class="btn btn-primary" style="flex:1;min-width:150px;"><span class="ico ico-repeat"></span> Ulangi Verifikasi</button>
             </div>
             <div style="margin-top:10px;text-align:center;">
-                <button onclick="window.skipVerification('${session.id}')" class="btn" style="background:rgba(245,158,11,0.15);color:#fcd34d;border:1px solid rgba(245,158,11,0.3);font-size:0.82em;padding:4px 12px;" title="Lanjut tanpa QA dual-rater; akan dicatat sebagai limitation metodologis">⏭ Lanjut tanpa verifikasi (catat sebagai limitation)</button>
+                <button onclick="window.skipVerification('${session.id}')" class="btn" style="background:rgba(245,158,11,0.15);color:#fcd34d;border:1px solid rgba(245,158,11,0.3);font-size:0.82em;padding:4px 12px;" title="Lanjut tanpa QA dual-rater; akan dicatat sebagai limitation metodologis"><span class="ico ico-skip"></span> Lanjut tanpa verifikasi (catat sebagai limitation)</button>
             </div>
         `);
     } else if (status === 'M7_STEP2_WAITING_APPROVAL') {
@@ -1879,7 +1879,7 @@ export function renderApprovalContent(area, session, handleApproval) {
         if (session.framework_selection) {
             let fwRows = '';
             (session.framework_selection.columns || []).forEach((c) => {
-                fwRows += `<tr><td style="padding:6px;border-bottom:1px solid rgba(255,255,255,0.05);"><strong>${c.key}</strong></td><td style="padding:6px;border-bottom:1px solid rgba(255,255,255,0.05);color:#93c5fd;">${c.category || ''}</td><td style="padding:6px;border-bottom:1px solid rgba(255,255,255,0.05);color:#cbd5e1;">${c.desc || ''}</td></tr>`;
+                fwRows += `<tr><td style="padding:6px;border-bottom:1px solid rgba(255,255,255,0.05);"><strong>${c.key}</strong></td><td style="padding:6px;border-bottom:1px solid rgba(255,255,255,0.05);color:#5eead4;">${c.category || ''}</td><td style="padding:6px;border-bottom:1px solid rgba(255,255,255,0.05);color:#d6d3d1;">${c.desc || ''}</td></tr>`;
             });
             fwHtml = `
             <details style="margin-bottom:15px; background:rgba(0,0,0,0.2); padding:10px; border-radius:8px;">
@@ -1896,11 +1896,11 @@ export function renderApprovalContent(area, session, handleApproval) {
 
         let xaiHtml = `
             <details style="margin-bottom:15px; background:rgba(0,0,0,0.2); padding:10px; border-radius:8px;">
-                <summary style="cursor:pointer; color:#60a5fa; font-weight:bold; font-size: 0.85em;">🔍 xAI: Lihat Langkah AI, Prompt & Model Dibalik Ekstraksi Ini</summary>
-                <div style="margin-top:10px; font-size:0.8em; color:#cbd5e1; max-height: 400px; overflow-y: auto;">
+                <summary style="cursor:pointer; color:#5eead4; font-weight:bold; font-size: 0.85em;">🔍 xAI: Lihat Langkah AI, Prompt & Model Dibalik Ekstraksi Ini</summary>
+                <div style="margin-top:10px; font-size:0.8em; color:#d6d3d1; max-height: 400px; overflow-y: auto;">
                     <div style="margin-bottom:15px; padding-bottom:10px; border-bottom: 1px solid rgba(255,255,255,0.1);">
-                        <strong style="color:#a78bfa; display:block; margin-bottom:5px;">📋 Langkah-Langkah yang Dilakukan Agent AI (Step 2):</strong>
-                        <ol style="margin:0; padding-left:20px; color:#94a3b8; line-height: 1.4;">
+                        <strong style="color:#5eead4; display:block; margin-bottom:5px;">📋 Langkah-Langkah yang Dilakukan Agent AI (Step 2):</strong>
+                        <ol style="margin:0; padding-left:20px; color:#a8a29e; line-height: 1.4;">
                             <li style="margin-bottom:4px;"><strong>Persiapan RAG:</strong> AI memuat indeks vektor teks penuh (full-text) dari PDF yang telah diunduh di Modul 6.</li>
                             <li style="margin-bottom:4px;"><strong>Ekstraksi Massal (Reviewer 1):</strong> Model Ekstraksi membaca secara iteratif setiap paper dan mengekstrak data spesifik berdasarkan definisi operasional dan struktur framework (Prompt).</li>
                             <li style="margin-bottom:4px;"><strong>Penanganan Data Kosong:</strong> Jika informasi tak ditemukan dalam teks, AI dilarang menebak dan diwajibkan mengisinya dengan [NOT REPORTED].</li>
@@ -1913,7 +1913,7 @@ export function renderApprovalContent(area, session, handleApproval) {
                     ${l.system_prompt ? `
                     <strong style="margin-top:10px; display:block;">System Prompt (Instruksi Agent Ekstraksi):</strong>
                     <pre style="white-space: pre-wrap; font-family: monospace; background: rgba(0,0,0,0.3); padding: 8px; border-radius: 4px; margin-top: 5px; margin-bottom: 10px;">${(l.system_prompt || '').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>
-                    ` : '<p style="color:#94a3b8; font-style:italic;">Data prompt tidak direkam pada sesi lama.</p>'}
+                    ` : '<p style="color:#a8a29e; font-style:italic;">Data prompt tidak direkam pada sesi lama.</p>'}
                 </div>
             </details>
         `;
@@ -1924,10 +1924,10 @@ export function renderApprovalContent(area, session, handleApproval) {
             <div style="padding:10px 12px;background:rgba(239,68,68,0.12);border-left:3px solid #ef4444;border-radius:6px;color:#fca5a5;margin-bottom:12px;">
                 <strong>⚠️ Pengecekan kualitas (Reviewer 2) TIDAK berjalan</strong> — 0 paper berhasil diverifikasi. Tingkat perbedaan di bawah <strong>bukan</strong> hasil valid. ${l.nr_note || 'Periksa provider Reviewer 2 (mungkin model terkunci/404 atau kuota).'}
                 <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
-                    <button onclick="window.testRoleModel('reviewer2')" class="btn btn-secondary" style="padding:3px 10px;font-size:0.82em;">🧪 Test model Reviewer 2</button>
-                    <button onclick="window.openLLMDebug('${session.id}')" class="btn btn-secondary" style="padding:3px 10px;font-size:0.82em;" title="Lapor bug / lihat prompt+error persis & uji coba">🐞 Lapor / Debug Bug</button>
-                    <button onclick="document.getElementById('btn-settings')?.click()" class="btn btn-secondary" style="padding:3px 10px;font-size:0.82em;">⚙ Buka Pengaturan</button>
-                    <button onclick="window.reverifyExtraction('${session.id}')" class="btn btn-primary" style="padding:3px 10px;font-size:0.82em;">🔁 Ulangi Verifikasi (tanpa re-ekstrak)</button>
+                    <button onclick="window.testRoleModel('reviewer2')" class="btn btn-secondary" style="padding:3px 10px;font-size:0.82em;"><span class="ico ico-flask"></span> Test model Reviewer 2</button>
+                    <button onclick="window.openLLMDebug('${session.id}')" class="btn btn-secondary" style="padding:3px 10px;font-size:0.82em;" title="Lapor bug / lihat prompt+error persis & uji coba"><span class="ico ico-bug"></span> Lapor / Debug Bug</button>
+                    <button onclick="document.getElementById('btn-settings')?.click()" class="btn btn-secondary" style="padding:3px 10px;font-size:0.82em;"><span class="ico ico-settings"></span> Buka Pengaturan</button>
+                    <button onclick="window.reverifyExtraction('${session.id}')" class="btn btn-primary" style="padding:3px 10px;font-size:0.82em;"><span class="ico ico-repeat"></span> Ulangi Verifikasi (tanpa re-ekstrak)</button>
                 </div>
             </div>` : '';
         html = wrapCard('Modul 7 L2 — Hasil Ekstraksi Data (Full-Text)', `
@@ -1939,11 +1939,11 @@ export function renderApprovalContent(area, session, handleApproval) {
             <strong>Tingkat Perbedaan Pemahaman:</strong> <a href="#" onclick="window.showExtractionModal(true); return false;" style="color:${rateColor};font-weight:bold;text-decoration:underline;cursor:pointer;" title="Klik untuk memfilter dan HANYA melihat paper yang rancu/kuning di Tabel Ekstraksi">${rate}%</a></p>
             <p><strong>Temuan Kerancuan:</strong> Terdapat ${l.ambiguous_count || 0} isian data (seperti metodologi, hasil, atau variabel lainnya) yang ditandai ambigu/membingungkan oleh Reviewer 2. Isian yang ambigu ini akan ditandai dengan <strong>warna kuning</strong> pada Tabel Ekstraksi di bawah.</p>
             ${(l.failed_count || 0) > 0 ? `<p style="padding:8px 12px;background:rgba(239,68,68,0.12);border-left:3px solid #ef4444;border-radius:6px;color:#fca5a5;"><strong>⚠️ ${l.failed_count} paper gagal/kosong</strong> (ERROR / hasil kosong / tanpa full-text). Klik <strong>🔁 Ekstrak Ulang Paper Gagal/Kosong</strong> di bawah untuk mengulang HANYA paper ini (paper baik dipertahankan, hemat kuota).</p>` : ''}
-            <p style="font-size:0.85em;color:#94a3b8;">${l.nr_note || ''}</p>
+            <p style="font-size:0.85em;color:#a8a29e;">${l.nr_note || ''}</p>
             <div style="margin-top: 15px; text-align: center; display: flex; gap: 10px; justify-content: center; flex-wrap:wrap;">
-                <button class="btn btn-secondary" onclick="window.showExtractionModal()" style="flex:1;min-width:160px;">📊 Lihat Tabel Ekstraksi</button>
-                <button class="btn btn-primary" id="btn-dl-ext-md" onclick="window.downloadExtractionMarkdown('${session.id}')" style="flex:1;min-width:160px;">📥 Download Laporan (MD)</button>
-                <button class="btn" onclick="window.openScreeningCorrection('${session.id}')" style="flex:1;min-width:160px;background:rgba(245,158,11,0.18);color:#fcd34d;border:1px solid rgba(245,158,11,0.3);" title="Koreksi include/exclude tanpa mengubah protokol">⏪ Koreksi Include/Exclude</button>
+                <button class="btn btn-secondary" onclick="window.showExtractionModal()" style="flex:1;min-width:160px;"><span class="ico ico-chart"></span> Lihat Tabel Ekstraksi</button>
+                <button class="btn btn-primary" id="btn-dl-ext-md" onclick="window.downloadExtractionMarkdown('${session.id}')" style="flex:1;min-width:160px;"><span class="ico ico-import"></span> Download Laporan (MD)</button>
+                <button class="btn" onclick="window.openScreeningCorrection('${session.id}')" style="flex:1;min-width:160px;background:rgba(245,158,11,0.18);color:#fcd34d;border:1px solid rgba(245,158,11,0.3);" title="Koreksi include/exclude tanpa mengubah protokol"><span class="ico ico-back"></span> Koreksi Include/Exclude</button>
             </div>
         `);
 
@@ -1955,9 +1955,9 @@ export function renderApprovalContent(area, session, handleApproval) {
                 <p><strong>Tool:</strong> <span style="color:#6ee7b7; font-weight:bold;">${q.tool}</span></p>
                 <p><strong>Kategorisasi:</strong> ${q.categorization || '-'}</p>
                 <p><strong>Rekomendasi Threshold:</strong> &ge; ${q.threshold}%</p>
-                <p style="margin-top:10px;"><strong>Justifikasi Tool:</strong><br><span style="color:#cbd5e1;">${(q.tool_justification || '').replace(/\n/g, '<br>')}</span></p>
+                <p style="margin-top:10px;"><strong>Justifikasi Tool:</strong><br><span style="color:#d6d3d1;">${(q.tool_justification || '').replace(/\n/g, '<br>')}</span></p>
             </div>
-            <p style="font-size:0.85em;color:#94a3b8;">Klik <strong>Setuju & Lanjut</strong> untuk memulai penilaian kualitas pada semua paper menggunakan tool ini, atau berikan revisi (contoh: "Tolong ganti ke JBI Tool dengan threshold 80%").</p>
+            <p style="font-size:0.85em;color:#a8a29e;">Klik <strong>Setuju & Lanjut</strong> untuk memulai penilaian kualitas pada semua paper menggunakan tool ini, atau berikan revisi (contoh: "Tolong ganti ke JBI Tool dengan threshold 80%").</p>
         `);
 
     } else if (status === 'M7_STEP3_QA_CALIBRATION_WAITING_APPROVAL' && session.qa_calibration) {
@@ -1984,51 +1984,51 @@ export function renderApprovalContent(area, session, handleApproval) {
         let anchorCards = anchors.map(a => `
             <div style="background:rgba(0,0,0,0.2);padding:10px 14px;border-radius:6px;border-left:3px solid ${a.category === 'HIGH' ? '#4ade80' : a.category === 'MODERATE' ? '#fbbf24' : '#fca5a5'};">
                 <div style="font-weight:bold;color:${a.category === 'HIGH' ? '#4ade80' : a.category === 'MODERATE' ? '#fbbf24' : '#fca5a5'};margin-bottom:4px;">${a.category} (Score: ${a.score})</div>
-                <div style="font-size:0.85em;color:#cbd5e1;">${a.description || ''}</div>
-                ${a.reasoning ? `<div style="font-size:0.8em;color:#94a3b8;margin-top:4px;"><em>${a.reasoning}</em></div>` : ''}
+                <div style="font-size:0.85em;color:#d6d3d1;">${a.description || ''}</div>
+                ${a.reasoning ? `<div style="font-size:0.8em;color:#a8a29e;margin-top:4px;"><em>${a.reasoning}</em></div>` : ''}
             </div>
         `).join('');
 
         html = wrapCard('Modul 7 L3 — QA Calibration Results', `
             <div style="display:flex;gap:12px;margin-bottom:15px;flex-wrap:wrap;align-items:center;">
                 <div style="background:rgba(255,255,255,0.05);padding:8px 12px;border-radius:6px;border:1px solid rgba(255,255,255,0.1);">
-                    <div style="font-size:0.75em;color:#94a3b8;text-transform:uppercase;letter-spacing:0.05em;">Pilot Kappa</div>
+                    <div style="font-size:0.75em;color:#a8a29e;text-transform:uppercase;letter-spacing:0.05em;">Pilot Kappa</div>
                     <div style="font-size:1.1em;font-weight:bold;color:${kappaColor};">${(cal.pilot_kappa || 0).toFixed(3)}</div>
                 </div>
                 <div style="background:rgba(255,255,255,0.05);padding:8px 12px;border-radius:6px;border:1px solid rgba(255,255,255,0.1);">
-                    <div style="font-size:0.75em;color:#94a3b8;text-transform:uppercase;letter-spacing:0.05em;">Calibration</div>
+                    <div style="font-size:0.75em;color:#a8a29e;text-transform:uppercase;letter-spacing:0.05em;">Calibration</div>
                     <div style="margin-top:4px;">${passedBadge}</div>
                 </div>
                 <div style="background:rgba(255,255,255,0.05);padding:8px 12px;border-radius:6px;border:1px solid rgba(255,255,255,0.1);">
-                    <div style="font-size:0.75em;color:#94a3b8;text-transform:uppercase;letter-spacing:0.05em;">Attempts</div>
+                    <div style="font-size:0.75em;color:#a8a29e;text-transform:uppercase;letter-spacing:0.05em;">Attempts</div>
                     <div style="font-size:1.1em;font-weight:bold;color:#fff;">${cal.attempts || 0}</div>
                 </div>
             </div>
 
-            <h5 style="color:#93c5fd;margin-bottom:8px;">Pilot Results</h5>
+            <h5 style="color:#5eead4;margin-bottom:8px;">Pilot Results</h5>
             <div style="overflow-x:auto;margin-bottom:15px;">
                 <table style="width:100%;border-collapse:collapse;font-size:0.85em;">
                     <thead>
                         <tr style="border-bottom:2px solid rgba(255,255,255,0.1);">
-                            <th style="padding:8px;text-align:left;color:#94a3b8;">Paper</th>
-                            <th style="padding:8px;text-align:center;color:#94a3b8;">R1 Score</th>
-                            <th style="padding:8px;text-align:center;color:#94a3b8;">R1 Cat</th>
-                            <th style="padding:8px;text-align:center;color:#94a3b8;">R2 Score</th>
-                            <th style="padding:8px;text-align:center;color:#94a3b8;">R2 Cat</th>
-                            <th style="padding:8px;text-align:center;color:#94a3b8;">Final</th>
-                            <th style="padding:8px;text-align:center;color:#94a3b8;">Disagree</th>
+                            <th style="padding:8px;text-align:left;color:#a8a29e;">Paper</th>
+                            <th style="padding:8px;text-align:center;color:#a8a29e;">R1 Score</th>
+                            <th style="padding:8px;text-align:center;color:#a8a29e;">R1 Cat</th>
+                            <th style="padding:8px;text-align:center;color:#a8a29e;">R2 Score</th>
+                            <th style="padding:8px;text-align:center;color:#a8a29e;">R2 Cat</th>
+                            <th style="padding:8px;text-align:center;color:#a8a29e;">Final</th>
+                            <th style="padding:8px;text-align:center;color:#a8a29e;">Disagree</th>
                         </tr>
                     </thead>
                     <tbody>${pilotRows}</tbody>
                 </table>
             </div>
 
-            <h5 style="color:#93c5fd;margin-bottom:8px;">Anchors</h5>
+            <h5 style="color:#5eead4;margin-bottom:8px;">Anchors</h5>
             <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:15px;">
                 ${anchorCards}
             </div>
 
-            <p style="font-size:0.85em;color:#94a3b8;">Klik <strong>Setuju & Lanjut</strong> jika kalibrasi sudah memuaskan, atau berikan revisi.</p>
+            <p style="font-size:0.85em;color:#a8a29e;">Klik <strong>Setuju & Lanjut</strong> jika kalibrasi sudah memuaskan, atau berikan revisi.</p>
         `);
 
     } else if (status === 'M7_STEP3_QA_CALIBRATION_LOW_KAPPA' && session.qa_calibration) {
@@ -2056,31 +2056,31 @@ export function renderApprovalContent(area, session, handleApproval) {
 
             <div style="display:flex;gap:12px;margin-bottom:15px;flex-wrap:wrap;align-items:center;">
                 <div style="background:rgba(255,255,255,0.05);padding:8px 12px;border-radius:6px;border:1px solid rgba(255,255,255,0.1);">
-                    <div style="font-size:0.75em;color:#94a3b8;text-transform:uppercase;letter-spacing:0.05em;">Pilot Kappa</div>
+                    <div style="font-size:0.75em;color:#a8a29e;text-transform:uppercase;letter-spacing:0.05em;">Pilot Kappa</div>
                     <div style="font-size:1.1em;font-weight:bold;color:${kappaColor};">${(cal.pilot_kappa || 0).toFixed(3)}</div>
                 </div>
                 <div style="background:rgba(255,255,255,0.05);padding:8px 12px;border-radius:6px;border:1px solid rgba(255,255,255,0.1);">
-                    <div style="font-size:0.75em;color:#94a3b8;text-transform:uppercase;letter-spacing:0.05em;">Calibration</div>
+                    <div style="font-size:0.75em;color:#a8a29e;text-transform:uppercase;letter-spacing:0.05em;">Calibration</div>
                     <div style="margin-top:4px;"><span style="background:#7f1d1d;color:#fca5a5;padding:2px 8px;border-radius:4px;font-size:0.85em;">NOT PASSED</span></div>
                 </div>
                 <div style="background:rgba(255,255,255,0.05);padding:8px 12px;border-radius:6px;border:1px solid rgba(255,255,255,0.1);">
-                    <div style="font-size:0.75em;color:#94a3b8;text-transform:uppercase;letter-spacing:0.05em;">Attempts</div>
+                    <div style="font-size:0.75em;color:#a8a29e;text-transform:uppercase;letter-spacing:0.05em;">Attempts</div>
                     <div style="font-size:1.1em;font-weight:bold;color:#fff;">${cal.attempts || 0} / ${cal.max_attempts || 3}</div>
                 </div>
             </div>
 
-            <h5 style="color:#93c5fd;margin-bottom:8px;">Pilot Results</h5>
+            <h5 style="color:#5eead4;margin-bottom:8px;">Pilot Results</h5>
             <div style="overflow-x:auto;margin-bottom:15px;">
                 <table style="width:100%;border-collapse:collapse;font-size:0.85em;">
                     <thead>
                         <tr style="border-bottom:2px solid rgba(255,255,255,0.1);">
-                            <th style="padding:8px;text-align:left;color:#94a3b8;">Paper</th>
-                            <th style="padding:8px;text-align:center;color:#94a3b8;">R1 Score</th>
-                            <th style="padding:8px;text-align:center;color:#94a3b8;">R1 Cat</th>
-                            <th style="padding:8px;text-align:center;color:#94a3b8;">R2 Score</th>
-                            <th style="padding:8px;text-align:center;color:#94a3b8;">R2 Cat</th>
-                            <th style="padding:8px;text-align:center;color:#94a3b8;">Final</th>
-                            <th style="padding:8px;text-align:center;color:#94a3b8;">Disagree</th>
+                            <th style="padding:8px;text-align:left;color:#a8a29e;">Paper</th>
+                            <th style="padding:8px;text-align:center;color:#a8a29e;">R1 Score</th>
+                            <th style="padding:8px;text-align:center;color:#a8a29e;">R1 Cat</th>
+                            <th style="padding:8px;text-align:center;color:#a8a29e;">R2 Score</th>
+                            <th style="padding:8px;text-align:center;color:#a8a29e;">R2 Cat</th>
+                            <th style="padding:8px;text-align:center;color:#a8a29e;">Final</th>
+                            <th style="padding:8px;text-align:center;color:#a8a29e;">Disagree</th>
                         </tr>
                     </thead>
                     <tbody>${pilotRows}</tbody>
@@ -2088,28 +2088,28 @@ export function renderApprovalContent(area, session, handleApproval) {
             </div>
 
             ${cal.refinement_note ? `
-            <div style="background:rgba(0,0,0,0.2);padding:12px 15px;border-radius:6px;border-left:3px solid #60a5fa;margin-bottom:15px;">
-                <div style="font-size:0.75em;color:#94a3b8;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;">Refinement Note from Brain</div>
-                <div style="color:#cbd5e1;font-size:0.9em;">${escHtml(cal.refinement_note)}</div>
+            <div style="background:rgba(0,0,0,0.2);padding:12px 15px;border-radius:6px;border-left:3px solid #5eead4;margin-bottom:15px;">
+                <div style="font-size:0.75em;color:#a8a29e;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;">Refinement Note from Brain</div>
+                <div style="color:#d6d3d1;font-size:0.9em;">${escHtml(cal.refinement_note)}</div>
             </div>
             ` : ''}
 
             ${(cal.r1_model || cal.r2_model || cal.brain_model) ? `
             <div style="margin-bottom:15px;">
-                <h5 style="color:#93c5fd;margin-bottom:8px;">&#129302; Model yang Digunakan</h5>
+                <h5 style="color:#5eead4;margin-bottom:8px;">&#129302; Model yang Digunakan</h5>
                 <div style="background:rgba(255,255,255,0.05);border-radius:6px;border:1px solid rgba(255,255,255,0.1);overflow:hidden;">
                     <table style="width:100%;border-collapse:collapse;font-size:0.85em;">
                         <tbody>
                             ${cal.r1_model ? `<tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
-                                <td style="padding:8px 12px;color:#94a3b8;font-weight:500;width:100px;">Rater 1</td>
+                                <td style="padding:8px 12px;color:#a8a29e;font-weight:500;width:100px;">Rater 1</td>
                                 <td style="padding:8px 12px;color:#e2e8f0;">${escHtml(cal.r1_model)}</td>
                             </tr>` : ''}
                             ${cal.r2_model ? `<tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
-                                <td style="padding:8px 12px;color:#94a3b8;font-weight:500;width:100px;">Rater 2</td>
+                                <td style="padding:8px 12px;color:#a8a29e;font-weight:500;width:100px;">Rater 2</td>
                                 <td style="padding:8px 12px;color:#e2e8f0;">${escHtml(cal.r2_model)}</td>
                             </tr>` : ''}
                             ${cal.brain_model ? `<tr>
-                                <td style="padding:8px 12px;color:#94a3b8;font-weight:500;width:100px;">Brain</td>
+                                <td style="padding:8px 12px;color:#a8a29e;font-weight:500;width:100px;">Brain</td>
                                 <td style="padding:8px 12px;color:#e2e8f0;">${escHtml(cal.brain_model)}</td>
                             </tr>` : ''}
                         </tbody>
@@ -2121,9 +2121,9 @@ export function renderApprovalContent(area, session, handleApproval) {
             ${cal.system_prompt ? `
             <div style="margin-bottom:15px;">
                 <details style="background:rgba(255,255,255,0.02);padding:8px 12px;border-radius:6px;border:1px solid rgba(255,255,255,0.05);">
-                    <summary style="cursor:pointer;color:#93c5fd;font-weight:500;">&#9642; System Prompt yang Dikirim ke Rater</summary>
+                    <summary style="cursor:pointer;color:#5eead4;font-weight:500;">&#9642; System Prompt yang Dikirim ke Rater</summary>
                     <div style="margin-top:10px;background:rgba(0,0,0,0.3);padding:12px;border-radius:4px;border:1px solid rgba(255,255,255,0.05);max-height:400px;overflow-y:auto;">
-                        <pre style="white-space:pre-wrap;word-break:break-word;font-size:0.8em;color:#cbd5e1;margin:0;font-family:'Fira Code',monospace;">${escHtml(cal.system_prompt)}</pre>
+                        <pre style="white-space:pre-wrap;word-break:break-word;font-size:0.8em;color:#d6d3d1;margin:0;font-family:'Fira Code',monospace;">${escHtml(cal.system_prompt)}</pre>
                     </div>
                 </details>
             </div>
@@ -2131,9 +2131,9 @@ export function renderApprovalContent(area, session, handleApproval) {
 
             ${cal.action_items ? `
             <div style="margin-bottom:15px;">
-                <h5 style="color:#93c5fd;margin-bottom:8px;">&#127919; Langkah Selanjutnya</h5>
+                <h5 style="color:#5eead4;margin-bottom:8px;">&#127919; Langkah Selanjutnya</h5>
                 <div style="background:rgba(0,0,0,0.2);padding:12px 15px;border-radius:6px;border:1px solid rgba(255,255,255,0.05);">
-                    <div style="color:#cbd5e1;font-size:0.88em;line-height:1.6;white-space:pre-wrap;">${escHtml(cal.action_items)}</div>
+                    <div style="color:#d6d3d1;font-size:0.88em;line-height:1.6;white-space:pre-wrap;">${escHtml(cal.action_items)}</div>
                 </div>
             </div>
             ` : ''}
@@ -2181,29 +2181,29 @@ export function renderApprovalContent(area, session, handleApproval) {
         html = wrapCard('Modul 7 L3 — Quality Appraisal & Sensitivity', `
             <div style="display:flex; gap:12px; margin-bottom:15px; flex-wrap:wrap;">
                 <div style="background: rgba(255,255,255,0.05); padding: 8px 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1);">
-                    <div style="font-size: 0.75em; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em;">Appraisal Tool</div>
+                    <div style="font-size: 0.75em; color: #a8a29e; text-transform: uppercase; letter-spacing: 0.05em;">Appraisal Tool</div>
                     <div style="font-size: 1.1em; font-weight: bold; color: #fff;">${q.tool}</div>
                 </div>
                 <div style="background: rgba(255,255,255,0.05); padding: 8px 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); flex: 1;">
-                    <div style="font-size: 0.75em; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em;">Threshold & Kategorisasi</div>
+                    <div style="font-size: 0.75em; color: #a8a29e; text-transform: uppercase; letter-spacing: 0.05em;">Threshold & Kategorisasi</div>
                     <div style="font-size: 1.1em; font-weight: bold; color: #38bdf8;">Batas Lulus: &ge; ${q.threshold}%</div>
-                    <div style="font-size: 0.75em; color: #94a3b8; margin-top: 4px;">${q.categorization || ''}</div>
+                    <div style="font-size: 0.75em; color: #a8a29e; margin-top: 4px;">${q.categorization || ''}</div>
                 </div>
                 <div style="background: rgba(255,255,255,0.05); padding: 8px 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1);" title="Jika 0.000, kemungkinan belum cukup sampel untuk cross-check, atau rater kedua belum selesai.">
-                    <div style="font-size: 0.75em; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 4px;">Dual-rater κ <span style="cursor:help; font-size: 1.2em;">ℹ️</span></div>
+                    <div style="font-size: 0.75em; color: #a8a29e; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 4px;">Dual-rater κ <span style="cursor:help; font-size: 1.2em;">ℹ️</span></div>
                     <div style="font-size: 1.1em; font-weight: bold; color: ${q.kappa >= 0.6 ? '#4ade80' : '#fca5a5'};">${(q.kappa || 0).toFixed(3)}</div>
                 </div>
             </div>
 
-            <div style="font-size:0.88em; color:#cbd5e1; line-height: 1.6; background: rgba(0,0,0,0.15); padding: 12px; border-left: 3px solid #38bdf8; border-radius: 4px; margin-bottom: 12px;">
+            <div style="font-size:0.88em; color:#d6d3d1; line-height: 1.6; background: rgba(0,0,0,0.15); padding: 12px; border-left: 3px solid #38bdf8; border-radius: 4px; margin-bottom: 12px;">
                 ${(q.tool_justification || '').replace(/\n/g, '<br>')}
             </div>
 
 
 
             <details style="margin-bottom:15px; background: rgba(255,255,255,0.02); padding: 8px 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.05);">
-                <summary style="cursor:pointer; color:#93c5fd; font-weight: 500;">Justifikasi threshold 3-lapis</summary>
-                <div style="font-size:0.85em; margin-top:10px; color:#cbd5e1; display:flex; flex-direction:column; gap:8px;">
+                <summary style="cursor:pointer; color:#5eead4; font-weight: 500;">Justifikasi threshold 3-lapis</summary>
+                <div style="font-size:0.85em; margin-top:10px; color:#d6d3d1; display:flex; flex-direction:column; gap:8px;">
                     <div><strong style="color:#fff;">Literatur:</strong> ${q.layer_literature || '-'}</div>
                     <div><strong style="color:#fff;">Developer tool:</strong> ${q.layer_developer || '-'}</div>
                     <div><strong style="color:#fff;">Feasibility:</strong> ${q.layer_feasibility || '-'}</div>
@@ -2213,16 +2213,16 @@ export function renderApprovalContent(area, session, handleApproval) {
             ${q.kappa_details ? `
             <details style="margin-bottom:15px; background: rgba(255,255,255,0.02); padding: 8px 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.05);">
                 <summary style="cursor:pointer; color:#fca5a5; font-weight: 500;">xAI: Transparansi Dual-Rater Kappa</summary>
-                <div style="font-size:0.85em; margin-top:10px; color:#cbd5e1; display:flex; flex-direction:column; gap:8px;">
-                    <div><strong style="color:#fff;">Total Pasangan Dinilai (Valid):</strong> ${q.kappa_details.total_rated} paper <span style="color:#94a3b8;">(Jika 0, rater ke-2 gagal merespons atau belum aktif)</span></div>
+                <div style="font-size:0.85em; margin-top:10px; color:#d6d3d1; display:flex; flex-direction:column; gap:8px;">
+                    <div><strong style="color:#fff;">Total Pasangan Dinilai (Valid):</strong> ${q.kappa_details.total_rated} paper <span style="color:#a8a29e;">(Jika 0, rater ke-2 gagal merespons atau belum aktif)</span></div>
                     <div><strong style="color:#fff;">Keduanya Sepakat Lolos (HIGH/MODERATE):</strong> ${q.kappa_details.both_pass} paper</div>
                     <div><strong style="color:#fff;">Keduanya Sepakat Gagal (LOW):</strong> ${q.kappa_details.both_fail} paper</div>
                     <div><strong style="color:#fff;">Hanya Rater 1 yang Meloloskan:</strong> ${q.kappa_details.r1_pass_r2_fail} paper</div>
                     <div><strong style="color:#fff;">Hanya Rater 2 yang Meloloskan:</strong> ${q.kappa_details.r1_fail_r2_pass} paper</div>
                     ${q.kappa_details.total_rated > 0 && q.kappa === 0 ? `<div style="margin-top: 8px; font-style: italic; color: #fbbf24;">* ⚠️ Jika Kappa bernilai 0.000 padahal Total Valid > 0, itu terjadi karena fenomena matematis "Cohen's Kappa Paradox" di mana probabilitas kesepakatan homogen sama persis dengan probabilitas tebakan acak. Kesepakatan aktual tetap berlaku.</div>` : ''}
                     <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:10px;">
-                        <button class="btn btn-secondary" onclick="window.showQAXAIModal(this)" style="padding:6px 12px; font-size:0.9em; width:fit-content;">🔍 Buka Detail Keputusan Rater (xAI)</button>
-                        <button class="btn btn-secondary" onclick="window.downloadQAXAIMarkdown(this)" style="padding:6px 12px; font-size:0.9em; width:fit-content;">⬇️ Download Detail Keputusan (Markdown)</button>
+                        <button class="btn btn-secondary" onclick="window.showQAXAIModal(this)" style="padding:6px 12px; font-size:0.9em; width:fit-content;"><span class="ico ico-search"></span> Buka Detail Keputusan Rater (xAI)</button>
+                        <button class="btn btn-secondary" onclick="window.downloadQAXAIMarkdown(this)" style="padding:6px 12px; font-size:0.9em; width:fit-content;"><span class="ico ico-download"></span> Download Detail Keputusan (Markdown)</button>
                     </div>
                 </div>
             </details>
@@ -2237,11 +2237,11 @@ export function renderApprovalContent(area, session, handleApproval) {
             })}</div>` : ''}
 
             <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap;">
-                <button id="btn-m7-recalc-qa" class="btn" style="background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4);" title="Recalculate ERROR papers yang memiliki skor R1+R2 valid tanpa mengulang seluruh proses QA">🔄 Recalculate ERROR Papers</button>
-                <button id="btn-m7-rerun-qa" class="btn" style="background: rgba(168, 85, 247, 0.2); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.4);" title="Jalankan ULANG seluruh proses QA dari awal (pilih tool → kalibrasi → rating) untuk memperbaiki panduan rater & kappa. Data ekstraksi PDF DIPERTAHANKAN (beda dari Drop Modul 7).">🔁 Jalankan Ulang Seluruh Proses QA</button>
-                <button id="btn-m7-download-md" class="btn" style="background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4);" title="Unduh laporan QA & Sensitivitas dalam format Markdown untuk dibagikan ke LLM lain">⬇️ Unduh Report (.md)</button>
+                <button id="btn-m7-recalc-qa" class="btn" style="background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4);" title="Recalculate ERROR papers yang memiliki skor R1+R2 valid tanpa mengulang seluruh proses QA"><span class="ico ico-refresh"></span> Recalculate ERROR Papers</button>
+                <button id="btn-m7-rerun-qa" class="btn" style="background: rgba(13, 148, 136, 0.2); color: #5eead4; border: 1px solid rgba(13, 148, 136, 0.4);" title="Jalankan ULANG seluruh proses QA dari awal (pilih tool → kalibrasi → rating) untuk memperbaiki panduan rater & kappa. Data ekstraksi PDF DIPERTAHANKAN (beda dari Drop Modul 7)."><span class="ico ico-repeat"></span> Jalankan Ulang Seluruh Proses QA</button>
+                <button id="btn-m7-download-md" class="btn" style="background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4);" title="Unduh laporan QA & Sensitivitas dalam format Markdown untuk dibagikan ke LLM lain"><span class="ico ico-download"></span> Unduh Report (.md)</button>
                 <button id="btn-m7-resume-qa" class="btn" style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4);" title="Klik ini jika Anda baru saja menghapus & re-upload PDF untuk melanjutkan penilaian QA pada paper yang tersisa saja.">▶️ Lanjutkan QA (Hanya Sisa PDF)</button>
-                <button class="btn" style="background: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.4);" onclick="if(confirm('Anda yakin ingin men-drop Modul 7 dan mengulang dari nol? Semua data ekstraksi PDF dan skor QA akan dihapus permanen!')) window.resetModul7()">⚠️ Drop Modul 7</button>
+                <button class="btn" style="background: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.4);" onclick="if(confirm('Anda yakin ingin men-drop Modul 7 dan mengulang dari nol? Semua data ekstraksi PDF dan skor QA akan dihapus permanen!')) window.resetModul7()"><span class="ico ico-warn"></span> Drop Modul 7</button>
             </div>
         `);
         
@@ -2353,10 +2353,10 @@ ${sens || 'Tidak tersedia'}
                 ${formatMarkdown(sumMd)}
             </div>
             <p style="margin-top:10px;font-size:0.9em;"><strong>Heterogeneity:</strong> ${sp.heterogeneity_verdict || '-'} | <strong>Meta-analysis:</strong> <span style="color:#6ee7b7;">${sp.meta_feasibility || '-'}</span></p>
-            ${sumMd.includes('ERROR') ? `<div style="margin-top: 12px;"><button id="btn-m7-retry-qa" class="btn" style="background:#fbbf24; color:#0f172a; width:100%; border:none; padding:10px; border-radius:6px; font-weight:bold; cursor:pointer;">🔄 Ulangi Penilaian QA untuk Studi yang ERROR</button></div>` : ''}
-            <details style="margin-top:12px; background:rgba(0,0,0,0.2); padding:10px; border-radius:8px; border-left:3px solid #a78bfa;">
-                <summary style="cursor:pointer; color:#a78bfa; font-weight:bold; font-size:0.85em;">🔍 xAI: Lihat Model & Prompt Synthesis Prep</summary>
-                <div style="margin-top:10px; font-size:0.8em; color:#cbd5e1; max-height:250px; overflow-y:auto;">
+            ${sumMd.includes('ERROR') ? `<div style="margin-top: 12px;"><button id="btn-m7-retry-qa" class="btn" style="background:#fbbf24; color:#1c1917; width:100%; border:none; padding:10px; border-radius:6px; font-weight:bold; cursor:pointer;"><span class="ico ico-refresh"></span> Ulangi Penilaian QA untuk Studi yang ERROR</button></div>` : ''}
+            <details style="margin-top:12px; background:rgba(0,0,0,0.2); padding:10px; border-radius:8px; border-left:3px solid #5eead4;">
+                <summary style="cursor:pointer; color:#5eead4; font-weight:bold; font-size:0.85em;">🔍 xAI: Lihat Model & Prompt Synthesis Prep</summary>
+                <div style="margin-top:10px; font-size:0.8em; color:#d6d3d1; max-height:250px; overflow-y:auto;">
                     ${sp.model_used ? `<p style="color:#fcd34d; margin-bottom:5px;"><strong>🧠 LLM Model:</strong> ${sp.model_used}</p>` : ''}
                     <strong>System Prompt (Instruksi Agent):</strong><br>
                     <pre style="white-space:pre-wrap; font-family:monospace; background:rgba(0,0,0,0.3); padding:8px; border-radius:4px; margin-top:5px;">${(sp.system_prompt || '').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>
@@ -2394,17 +2394,17 @@ ATURAN EDGES:
                     <div style="font-size:0.85em; color:#9ca3af;">Paper berhasil di-graph</div>
                 </div>
                 <div style="background:rgba(0,0,0,0.2); padding:12px; border-radius:6px; text-align:center;">
-                    <div style="font-size:2em; font-weight:bold; color:#93c5fd;">${totalEligible}</div>
+                    <div style="font-size:2em; font-weight:bold; color:#5eead4;">${totalEligible}</div>
                     <div style="font-size:0.85em; color:#9ca3af;">Total paper eligible</div>
                 </div>
             </div>
             <div style="background:rgba(0,0,0,0.2); padding:12px; border-radius:6px; margin-bottom:12px;">
                 <p style="margin:0 0 6px; font-size:0.9em;"><strong>Neo4j AuraDB Status:</strong> ${neo4jStatus}</p>
-                <p style="margin:0; font-size:0.85em; color:#cbd5e1;">Knowledge Graph dari ${totalGraphed} paper telah berhasil diekstrak dan disimpan ke Neo4j AuraDB. Graph berisi nodes (Paper, Author, Method, Dataset, Metric, Conclusion) dan edges (relasi antar entitas) yang siap untuk query dan visualisasi.</p>
+                <p style="margin:0; font-size:0.85em; color:#d6d3d1;">Knowledge Graph dari ${totalGraphed} paper telah berhasil diekstrak dan disimpan ke Neo4j AuraDB. Graph berisi nodes (Paper, Author, Method, Dataset, Metric, Conclusion) dan edges (relasi antar entitas) yang siap untuk query dan visualisasi.</p>
             </div>
-            <details style="margin-top:12px; background:rgba(0,0,0,0.2); padding:10px; border-radius:8px; border-left:3px solid #a78bfa;">
-                <summary style="cursor:pointer; color:#a78bfa; font-weight:bold; font-size:0.85em;">🔍 xAI: Lihat System Prompt Graph Extraction</summary>
-                <div style="margin-top:10px; font-size:0.8em; color:#cbd5e1; max-height:300px; overflow-y:auto;">
+            <details style="margin-top:12px; background:rgba(0,0,0,0.2); padding:10px; border-radius:8px; border-left:3px solid #5eead4;">
+                <summary style="cursor:pointer; color:#5eead4; font-weight:bold; font-size:0.85em;">🔍 xAI: Lihat System Prompt Graph Extraction</summary>
+                <div style="margin-top:10px; font-size:0.8em; color:#d6d3d1; max-height:300px; overflow-y:auto;">
                     <strong>System Prompt (Instruksi Agent untuk Graph Extraction):</strong><br>
                     <pre style="white-space:pre-wrap; font-family:monospace; background:rgba(0,0,0,0.3); padding:8px; border-radius:4px; margin-top:5px;">${graphSysPrompt.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>
                 </div>
@@ -2414,11 +2414,11 @@ ATURAN EDGES:
 
     } else if (status === 'M8_STEP1_WAITING_APPROVAL' && session.descriptive_analysis) {
         const d = session.descriptive_analysis;
-        const figs = (d.figures || []).map(f => `<div style="background:#fff;border-radius:6px;margin:8px 0;overflow:hidden;">${f.svg || ''}</div>${f.url ? `<div style="font-size:0.8em;margin:-4px 0 8px;"><a href="${f.url}" target="_blank" style="color:#60a5fa;">${f.name} ↗ (GitHub Pages)</a></div>` : ''}`).join('');
+        const figs = (d.figures || []).map(f => `<div style="background:#fff;border-radius:6px;margin:8px 0;overflow:hidden;">${f.svg || ''}</div>${f.url ? `<div style="font-size:0.8em;margin:-4px 0 8px;"><a href="${f.url}" target="_blank" style="color:#5eead4;">${f.name} ↗ (GitHub Pages)</a></div>` : ''}`).join('');
         html = wrapCard('Modul 8 L1 — Descriptive Analysis + Heterogeneity', `
             <div style="font-size:0.9em;">${formatMarkdown(d.markdown || '')}</div>
-            <p style="margin-top:8px;"><strong>Heterogeneity:</strong> <span style="color:#93c5fd;">${d.heterogeneity_verdict || '-'}</span></p>
-            <p style="font-size:0.88em;color:#cbd5e1;">${d.heterogeneity_narrative || ''}</p>
+            <p style="margin-top:8px;"><strong>Heterogeneity:</strong> <span style="color:#5eead4;">${d.heterogeneity_verdict || '-'}</span></p>
+            <p style="font-size:0.88em;color:#d6d3d1;">${d.heterogeneity_narrative || ''}</p>
             <details style="margin-top:8px;"><summary style="cursor:pointer;color:#6ee7b7;font-weight:bold;">Lihat ${(d.figures||[]).length} figur (SVG)</summary>${figs}</details>
             <button id="btn-enrich-metadata" class="btn" style="margin-top:10px;background:#0ea5e9;color:#fff;"><i class="fa fa-sync-alt"></i> Perkaya & Analisis Ulang (CrossRef)</button>
         `);
@@ -2467,27 +2467,27 @@ ATURAN EDGES:
         let xaiSection = '';
         if (decModel || decPrompt || srPrompt) {
             xaiSection = `
-            <details style="margin-top:12px; background:rgba(0,0,0,0.2); padding:10px; border-radius:8px; border-left:3px solid #a78bfa;">
-                <summary style="cursor:pointer; color:#a78bfa; font-weight:bold; font-size:0.85em;">🔍 xAI: Lihat Model & Prompt Synthesis (Kaidah xAI)</summary>
-                <div style="margin-top:10px; font-size:0.8em; color:#cbd5e1; max-height:350px; overflow-y:auto;">
+            <details style="margin-top:12px; background:rgba(0,0,0,0.2); padding:10px; border-radius:8px; border-left:3px solid #5eead4;">
+                <summary style="cursor:pointer; color:#5eead4; font-weight:bold; font-size:0.85em;">🔍 xAI: Lihat Model & Prompt Synthesis (Kaidah xAI)</summary>
+                <div style="margin-top:10px; font-size:0.8em; color:#d6d3d1; max-height:350px; overflow-y:auto;">
                     ${decModel ? `<p style="color:#fcd34d; margin-bottom:5px;"><strong>🧠 LLM Model:</strong> ${decModel}</p>` : ''}
-                    ${decPrompt ? `<div style="margin-bottom:12px;"><strong style="color:#a78bfa;">System Prompt (Path Decision Agent):</strong><pre style="white-space:pre-wrap; font-family:monospace; background:rgba(0,0,0,0.3); padding:8px; border-radius:4px; margin-top:5px;">${decPrompt.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre></div>` : ''}
-                    ${srPrompt ? `<div><strong style="color:#a78bfa;">System Prompt (Synthesis Agent):</strong><pre style="white-space:pre-wrap; font-family:monospace; background:rgba(0,0,0,0.3); padding:8px; border-radius:4px; margin-top:5px;">${srPrompt.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre></div>` : ''}
-                    ${!decPrompt && !srPrompt ? `<p style="color:#94a3b8; font-style:italic;">Data prompt tidak direkam pada sesi lama.</p>` : ''}
+                    ${decPrompt ? `<div style="margin-bottom:12px;"><strong style="color:#5eead4;">System Prompt (Path Decision Agent):</strong><pre style="white-space:pre-wrap; font-family:monospace; background:rgba(0,0,0,0.3); padding:8px; border-radius:4px; margin-top:5px;">${decPrompt.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre></div>` : ''}
+                    ${srPrompt ? `<div><strong style="color:#5eead4;">System Prompt (Synthesis Agent):</strong><pre style="white-space:pre-wrap; font-family:monospace; background:rgba(0,0,0,0.3); padding:8px; border-radius:4px; margin-top:5px;">${srPrompt.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre></div>` : ''}
+                    ${!decPrompt && !srPrompt ? `<p style="color:#a8a29e; font-style:italic;">Data prompt tidak direkam pada sesi lama.</p>` : ''}
                 </div>
             </details>`;
         }
 
         html = wrapCard('Modul 8 L2 — Synthesis Path + Results', `
             <p><strong>Path:</strong> <span style="color:#6ee7b7;font-weight:bold;">${dec.verdict || sr.path || '-'}</span></p>
-            <p style="font-size:0.85em;color:#94a3b8;"><strong>Kriteria:</strong> ${dec.criteria_check || '-'}</p>
-            <p style="font-size:0.88em;color:#cbd5e1;"><strong>Rationale:</strong> ${dec.rationale || ''}</p>
+            <p style="font-size:0.85em;color:#a8a29e;"><strong>Kriteria:</strong> ${dec.criteria_check || '-'}</p>
+            <p style="font-size:0.88em;color:#d6d3d1;"><strong>Rationale:</strong> ${dec.rationale || ''}</p>
             <hr style="border-color:rgba(255,255,255,0.1);">
             <div style="font-size:0.9em;max-height:340px;overflow-y:auto;">${formatMarkdown(sr.markdown || '')}</div>
             ${fps}
             ${xaiSection}
             <div style="margin-top:12px; text-align:center;">
-                <button id="btn-dl-synthesis-md" class="btn btn-secondary" style="padding:8px 16px; font-size:0.9em;">⬇️ Download Markdown</button>
+                <button id="btn-dl-synthesis-md" class="btn btn-secondary" style="padding:8px 16px; font-size:0.9em;"><span class="ico ico-download"></span> Download Markdown</button>
             </div>
         `);
         setTimeout(() => {
@@ -2518,24 +2518,24 @@ ATURAN EDGES:
         let xaiSection = '';
         if (gradeModel || gradePrompt) {
             xaiSection = `
-            <details style="margin-top:12px; background:rgba(0,0,0,0.2); padding:10px; border-radius:8px; border-left:3px solid #a78bfa;">
-                <summary style="cursor:pointer; color:#a78bfa; font-weight:bold; font-size:0.85em;">🔍 xAI: Lihat Model & Prompt GRADE (Kaidah xAI)</summary>
-                <div style="margin-top:10px; font-size:0.8em; color:#cbd5e1; max-height:350px; overflow-y:auto;">
+            <details style="margin-top:12px; background:rgba(0,0,0,0.2); padding:10px; border-radius:8px; border-left:3px solid #5eead4;">
+                <summary style="cursor:pointer; color:#5eead4; font-weight:bold; font-size:0.85em;">🔍 xAI: Lihat Model & Prompt GRADE (Kaidah xAI)</summary>
+                <div style="margin-top:10px; font-size:0.8em; color:#d6d3d1; max-height:350px; overflow-y:auto;">
                     ${gradeModel ? `<p style="color:#fcd34d; margin-bottom:5px;"><strong>🧠 LLM Model:</strong> ${gradeModel}</p>` : ''}
-                    ${gradePrompt ? `<div><strong style="color:#a78bfa;">System Prompt (GRADE Agent):</strong><pre style="white-space:pre-wrap; font-family:monospace; background:rgba(0,0,0,0.3); padding:8px; border-radius:4px; margin-top:5px;">${gradePrompt.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre></div>` : ''}
-                    ${!gradePrompt ? `<p style="color:#94a3b8; font-style:italic;">Data prompt tidak direkam pada sesi lama.</p>` : ''}
+                    ${gradePrompt ? `<div><strong style="color:#5eead4;">System Prompt (GRADE Agent):</strong><pre style="white-space:pre-wrap; font-family:monospace; background:rgba(0,0,0,0.3); padding:8px; border-radius:4px; margin-top:5px;">${gradePrompt.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre></div>` : ''}
+                    ${!gradePrompt ? `<p style="color:#a8a29e; font-style:italic;">Data prompt tidak direkam pada sesi lama.</p>` : ''}
                 </div>
             </details>`;
         }
 
         html = wrapCard('Modul 8 L3 — GRADE Evidence + Robustness', `
             <div style="font-size:0.88em;overflow-x:auto;">${formatMarkdown(g.table_markdown || '')}</div>
-            <p style="margin-top:8px;"><strong>Robustness:</strong> <span style="color:#93c5fd;">${g.robustness_verdict || '-'}</span></p>
-            <p style="font-size:0.88em;color:#cbd5e1;">${g.robustness_summary || ''}</p>
+            <p style="margin-top:8px;"><strong>Robustness:</strong> <span style="color:#5eead4;">${g.robustness_verdict || '-'}</span></p>
+            <p style="font-size:0.88em;color:#d6d3d1;">${g.robustness_summary || ''}</p>
             <details style="margin-top:8px;"><summary style="cursor:pointer;color:#6ee7b7;">Confidence statements</summary><div style="font-size:0.88em;margin-top:6px;">${formatMarkdown(g.confidence_statements || '')}</div></details>
             ${xaiSection}
             <div style="margin-top:12px; text-align:center;">
-                <button id="btn-dl-grade-md" class="btn btn-secondary" style="padding:8px 16px; font-size:0.9em;">⬇️ Download Laporan GRADE (Markdown)</button>
+                <button id="btn-dl-grade-md" class="btn btn-secondary" style="padding:8px 16px; font-size:0.9em;"><span class="ico ico-download"></span> Download Laporan GRADE (Markdown)</button>
             </div>
         `);
         setTimeout(() => {
@@ -2567,12 +2567,12 @@ ATURAN EDGES:
         let xaiSection = '';
         if (ipModel || ipPrompt) {
             xaiSection = `
-            <details style="margin-top:12px; background:rgba(0,0,0,0.2); padding:10px; border-radius:8px; border-left:3px solid #a78bfa;">
-                <summary style="cursor:pointer; color:#a78bfa; font-weight:bold; font-size:0.85em;">🔍 xAI: Lihat Model & Prompt Interpretation (Kaidah xAI)</summary>
-                <div style="margin-top:10px; font-size:0.8em; color:#cbd5e1; max-height:350px; overflow-y:auto;">
+            <details style="margin-top:12px; background:rgba(0,0,0,0.2); padding:10px; border-radius:8px; border-left:3px solid #5eead4;">
+                <summary style="cursor:pointer; color:#5eead4; font-weight:bold; font-size:0.85em;">🔍 xAI: Lihat Model & Prompt Interpretation (Kaidah xAI)</summary>
+                <div style="margin-top:10px; font-size:0.8em; color:#d6d3d1; max-height:350px; overflow-y:auto;">
                     ${ipModel ? `<p style="color:#fcd34d; margin-bottom:5px;"><strong>🧠 LLM Model:</strong> ${ipModel}</p>` : ''}
-                    ${ipPrompt ? `<div><strong style="color:#a78bfa;">System Prompt (Interpretation Agent):</strong><pre style="white-space:pre-wrap; font-family:monospace; background:rgba(0,0,0,0.3); padding:8px; border-radius:4px; margin-top:5px;">${ipPrompt.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre></div>` : ''}
-                    ${!ipPrompt ? `<p style="color:#94a3b8; font-style:italic;">Data prompt tidak direkam pada sesi lama.</p>` : ''}
+                    ${ipPrompt ? `<div><strong style="color:#5eead4;">System Prompt (Interpretation Agent):</strong><pre style="white-space:pre-wrap; font-family:monospace; background:rgba(0,0,0,0.3); padding:8px; border-radius:4px; margin-top:5px;">${ipPrompt.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre></div>` : ''}
+                    ${!ipPrompt ? `<p style="color:#a8a29e; font-style:italic;">Data prompt tidak direkam pada sesi lama.</p>` : ''}
                 </div>
             </details>`;
         }
@@ -2584,14 +2584,14 @@ ATURAN EDGES:
             ${ip ? `<details style="margin-top:10px;"><summary style="cursor:pointer;color:#6ee7b7;font-weight:bold;">Interpretation Package (untuk Modul 9)</summary><div style="font-size:0.88em;margin-top:8px;max-height:300px;overflow-y:auto;">${formatMarkdown(ip)}</div></details>` : ''}
             ${xaiSection}
             <div style="margin-top:12px; text-align:center;">
-                <button id="btn-dl-interp-md" class="btn btn-secondary" style="padding:8px 16px; font-size:0.9em;">⬇️ Download Laporan Lengkap (Markdown)</button>
+                <button id="btn-dl-interp-md" class="btn btn-secondary" style="padding:8px 16px; font-size:0.9em;"><span class="ico ico-download"></span> Download Laporan Lengkap (Markdown)</button>
             </div>
-            <div style="margin-top: 12px; background: rgba(139, 92, 246, 0.1); border: 1px solid rgba(139, 92, 246, 0.4); border-radius: 8px; padding: 12px 16px;">
-                <p style="margin: 0 0 8px 0; font-size: 0.9em; color: #a78bfa; font-weight: bold;">📊 Rekomendasi: Jalankan Bibliometric SLNA</p>
-                <p style="margin: 0 0 10px 0; font-size: 0.85em; color: #cbd5e1; line-height: 1.5;">Sangat disarankan menjalankan analisis Bibliometric/SLNA (Science Landscape Network Analysis) sebelum lanjut ke Modul 9. SLNA memberikan validasi lintas-metode (triangulasi) terhadap temuan sintesis naratif Anda, memperkuat argumen di bagian Discussion, serta mengidentifikasi research gaps berbasis peta jejaring kolaborasi ilmiah.</p>
-                <button id="btn-run-slna" class="btn" style="background:#8b5cf6;color:#fff;width:100%;padding:10px;font-weight:bold;font-size:0.95em;">📊 Jalankan Bibliometric SLNA (Sangat Direkomendasikan)</button>
+            <div style="margin-top: 12px; background: rgba(13, 148, 136, 0.1); border: 1px solid rgba(13, 148, 136, 0.4); border-radius: 8px; padding: 12px 16px;">
+                <p style="margin: 0 0 8px 0; font-size: 0.9em; color: #5eead4; font-weight: bold;">📊 Rekomendasi: Jalankan Bibliometric SLNA</p>
+                <p style="margin: 0 0 10px 0; font-size: 0.85em; color: #d6d3d1; line-height: 1.5;">Sangat disarankan menjalankan analisis Bibliometric/SLNA (Science Landscape Network Analysis) sebelum lanjut ke Modul 9. SLNA memberikan validasi lintas-metode (triangulasi) terhadap temuan sintesis naratif Anda, memperkuat argumen di bagian Discussion, serta mengidentifikasi research gaps berbasis peta jejaring kolaborasi ilmiah.</p>
+                <button id="btn-run-slna" class="btn" style="background:#0d9488;color:#fff;width:100%;padding:10px;font-weight:bold;font-size:0.95em;"><span class="ico ico-chart"></span> Jalankan Bibliometric SLNA (Sangat Direkomendasikan)</button>
             </div>
-            <p style="margin-top: 10px; font-size: 0.85em; color:#94a3b8;"><em>Atau klik "Setuju & Lanjut" untuk langsung ke Modul 9 (Manuscript) tanpa SLNA.</em></p>
+            <p style="margin-top: 10px; font-size: 0.85em; color:#a8a29e;"><em>Atau klik "Setuju & Lanjut" untuk langsung ke Modul 9 (Manuscript) tanpa SLNA.</em></p>
         `);
         setTimeout(() => {
             const btnDl = document.getElementById('btn-dl-interp-md');
@@ -2631,33 +2631,33 @@ ATURAN EDGES:
     } else if (status === 'M8B_STEP2_WAITING_VOSVIEWER' && session.vosviewer_parameters) {
         const v = session.vosviewer_parameters;
         html = wrapCard('Modul 8b L2 — VOSviewer (9-Parameter) + Input Hasil', `
-            <p style="font-size:0.85em;color:#94a3b8;">Jalankan VOSviewer manual: Map based on bibliographic data → terapkan thesaurus → set 9 parameter (tabel) → generate Network/Overlay/Density → export SVG/PNG. Lalu paste ringkasan hasilnya di bawah.</p>
+            <p style="font-size:0.85em;color:#a8a29e;">Jalankan VOSviewer manual: Map based on bibliographic data → terapkan thesaurus → set 9 parameter (tabel) → generate Network/Overlay/Density → export SVG/PNG. Lalu paste ringkasan hasilnya di bawah.</p>
             <div style="font-size:0.88em;overflow-x:auto;">${formatMarkdown(v.table_markdown || '')}</div>
             <hr style="border-color:rgba(255,255,255,0.1);">
             <div style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.3);border-radius:6px;padding:12px;margin-bottom:12px;">
                 <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:15px;">
                     <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-                        <label for="input-scopus-csv" class="btn" style="background:#2563eb;color:#fff;font-weight:bold;white-space:nowrap;cursor:pointer;margin:0;">&#x1F4E4; Upload Scopus CSV (untuk Keywords)</label>
+                        <label for="input-scopus-csv" class="btn" style="background:#0f766e;color:#fff;font-weight:bold;white-space:nowrap;cursor:pointer;margin:0;">&#x1F4E4; Upload Scopus CSV (untuk Keywords)</label>
                         <input type="file" id="input-scopus-csv" accept=".csv" style="display:none;">
-                        <span id="scopus-csv-status" style="font-size:0.8em;color:#94a3b8;flex:1;">Export CSV dari Scopus &rarr; upload di sini &rarr; keywords otomatis tersimpan</span>
+                        <span id="scopus-csv-status" style="font-size:0.8em;color:#a8a29e;flex:1;">Export CSV dari Scopus &rarr; upload di sini &rarr; keywords otomatis tersimpan</span>
                     </div>
                     <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
                         <label for="input-ieee-csv" class="btn" style="background:#f59e0b;color:#fff;font-weight:bold;white-space:nowrap;cursor:pointer;margin:0;">&#x1F4E4; Upload IEEE CSV</label>
                         <input type="file" id="input-ieee-csv" accept=".csv" style="display:none;">
-                        <span id="ieee-csv-status" style="font-size:0.8em;color:#94a3b8;flex:1;">Export CSV dari IEEE Xplore &rarr; upload di sini &rarr; keywords (Author Keywords + IEEE Terms) tersimpan</span>
+                        <span id="ieee-csv-status" style="font-size:0.8em;color:#a8a29e;flex:1;">Export CSV dari IEEE Xplore &rarr; upload di sini &rarr; keywords (Author Keywords + IEEE Terms) tersimpan</span>
                     </div>
                     <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
                         <label for="input-pubmed-txt" class="btn" style="background:#ec4899;color:#fff;font-weight:bold;white-space:nowrap;cursor:pointer;margin:0;">&#x1F4E4; Upload PubMed TXT</label>
                         <input type="file" id="input-pubmed-txt" accept=".txt" style="display:none;">
-                        <span id="pubmed-txt-status" style="font-size:0.8em;color:#94a3b8;flex:1;">Export MEDLINE format dari PubMed &rarr; upload di sini &rarr; keywords (OT + MeSH) tersimpan</span>
+                        <span id="pubmed-txt-status" style="font-size:0.8em;color:#a8a29e;flex:1;">Export MEDLINE format dari PubMed &rarr; upload di sini &rarr; keywords (OT + MeSH) tersimpan</span>
                     </div>
                     <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-                        <button id="btn-download-bibtex" class="btn" style="background:#8b5cf6;color:#fff;font-weight:bold;white-space:nowrap;">&#x1F4E5; Download RIS (untuk VOSviewer)</button>
-                        <span style="font-size:0.8em;color:#94a3b8;flex:1;">Download file .ris berisi semua paper + keywords. Import file ini ke VOSviewer.</span>
+                        <button id="btn-download-bibtex" class="btn" style="background:#0d9488;color:#fff;font-weight:bold;white-space:nowrap;">&#x1F4E5; Download RIS (untuk VOSviewer)</button>
+                        <span style="font-size:0.8em;color:#a8a29e;flex:1;">Download file .ris berisi semua paper + keywords. Import file ini ke VOSviewer.</span>
                     </div>
                     <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
                         <button id="btn-download-thesaurus" class="btn" style="background:#0ea5e9;color:#fff;font-weight:bold;white-space:nowrap;">&#x1F4E5; Download Thesaurus (.txt)</button>
-                        <span style="font-size:0.8em;color:#94a3b8;flex:1;">Download file thesaurus untuk merge sinonim keyword di VOSviewer. Load saat setup mapping.</span>
+                        <span style="font-size:0.8em;color:#a8a29e;flex:1;">Download file thesaurus untuk merge sinonim keyword di VOSviewer. Load saat setup mapping.</span>
                     </div>
                 </div>
                 <div style="font-size:0.82em;color:#a7f3d0;">
@@ -2866,10 +2866,10 @@ ATURAN EDGES:
 
     } else if (status === 'M9_GROUPA_WAITING_APPROVAL' && session.manuscript) {
         const ms = session.manuscript;
-        const sec = (t, c) => `<details style="margin-top:8px;"><summary style="cursor:pointer;color:#93c5fd;font-weight:bold;">${t} (${(c || '').length} char)</summary><div style="font-size:0.88em;margin-top:6px;max-height:340px;overflow:auto;">${formatMarkdown(c || '(kosong)')}</div></details>`;
+        const sec = (t, c) => `<details style="margin-top:8px;"><summary style="cursor:pointer;color:#5eead4;font-weight:bold;">${t} (${(c || '').length} char)</summary><div style="font-size:0.88em;margin-top:6px;max-height:340px;overflow:auto;">${formatMarkdown(c || '(kosong)')}</div></details>`;
         html = wrapCard('Modul 9 — Draft Grup A (Methods · Results · Discussion · Future Research)', `
             ${correctionsAuditHtml(session)}
-            <div style="background:rgba(139,92,246,0.08);border:1px solid rgba(139,92,246,0.3);border-radius:6px;padding:10px 12px;margin-bottom:12px;font-size:0.82em;color:#a78bfa;">
+            <div style="background:rgba(13, 148, 136,0.08);border:1px solid rgba(13, 148, 136,0.3);border-radius:6px;padding:10px 12px;margin-bottom:12px;font-size:0.82em;color:#5eead4;">
                 <strong>🧠 xAI Info:</strong> Hasil ditulis oleh model Brain (lihat Pengaturan → Model Routing). Proses: 3-pass per section (Draft → Verification → Style Cleanup). Jika output tidak ada \\cite{}, kemungkinan model kurang capable — ganti Brain ke GPT-4o/Claude Sonnet/Gemini Pro.
             </div>
             ${sec('Methods', ms.methods)}${sec('Results', ms.results)}${sec('Discussion', ms.discussion)}${sec('Future Research', ms.future_research)}
@@ -2878,9 +2878,9 @@ ATURAN EDGES:
 
     } else if (status === 'M9_GROUPB_WAITING_APPROVAL' && session.manuscript) {
         const ms = session.manuscript;
-        const sec = (t, c) => `<details style="margin-top:8px;"><summary style="cursor:pointer;color:#93c5fd;font-weight:bold;">${t} (${(c || '').length} char)</summary><div style="font-size:0.88em;margin-top:6px;max-height:340px;overflow:auto;">${formatMarkdown(c || '(kosong)')}</div></details>`;
+        const sec = (t, c) => `<details style="margin-top:8px;"><summary style="cursor:pointer;color:#5eead4;font-weight:bold;">${t} (${(c || '').length} char)</summary><div style="font-size:0.88em;margin-top:6px;max-height:340px;overflow:auto;">${formatMarkdown(c || '(kosong)')}</div></details>`;
         html = wrapCard('Modul 9 — Draft Grup B (Introduction · Conclusions · Abstract · Title)', `
-            <div style="background:rgba(139,92,246,0.08);border:1px solid rgba(139,92,246,0.3);border-radius:6px;padding:10px 12px;margin-bottom:12px;font-size:0.82em;color:#a78bfa;">
+            <div style="background:rgba(13, 148, 136,0.08);border:1px solid rgba(13, 148, 136,0.3);border-radius:6px;padding:10px 12px;margin-bottom:12px;font-size:0.82em;color:#5eead4;">
                 <strong>🧠 xAI Info:</strong> Hasil ditulis oleh model Brain (lihat Pengaturan → Model Routing). Proses: 3-pass per section (Draft → Verification → Style Cleanup). Jika output tidak ada \\cite{}, kemungkinan model kurang capable — ganti Brain ke GPT-4o/Claude Sonnet/Gemini Pro.
             </div>
             ${sec('Introduction', ms.introduction)}${sec('Conclusions', ms.conclusions)}${sec('Abstract', ms.abstract)}${sec('Title (alternatif)', ms.title)}
@@ -2892,14 +2892,14 @@ ATURAN EDGES:
         html = wrapCard('Modul 9 — Compile Final (manuscript_final + .tex + .bib)', `
             ${correctionsAuditHtml(session)}
             <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
-                <button id="dl-tex" class="btn" style="background:#3b82f6;color:#fff;font-weight:bold;">📥 Download LaTeX (.tex)</button>
-                <button id="dl-bib" class="btn" style="background:#8b5cf6;color:#fff;font-weight:bold;">📥 Download BibTeX (.bib)</button>
-                <button id="dl-final" class="btn" style="background:#10b981;color:#fff;font-weight:bold;">📥 Download Markdown (.md)</button>
+                <button id="dl-tex" class="btn" style="background:#0d9488;color:#fff;font-weight:bold;"><span class="ico ico-import"></span> Download LaTeX (.tex)</button>
+                <button id="dl-bib" class="btn" style="background:#0d9488;color:#fff;font-weight:bold;"><span class="ico ico-import"></span> Download BibTeX (.bib)</button>
+                <button id="dl-final" class="btn" style="background:#10b981;color:#fff;font-weight:bold;"><span class="ico ico-import"></span> Download Markdown (.md)</button>
             </div>
             <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 6px; font-size: 0.88em; max-height: 360px; overflow-y: auto;">${formatMarkdown(ms.final || 'Menunggu data...')}</div>
             <details style="margin-top:10px;border:1px solid rgba(99,102,241,0.3);border-radius:6px;padding:8px;">
                 <summary style="cursor:pointer;color:#a5b4fc;font-weight:bold;">🧠 xAI: 3-Pass Compilation Pipeline</summary>
-                <div style="font-size:0.85em;margin-top:8px;color:#cbd5e1;line-height:1.6;">
+                <div style="font-size:0.85em;margin-top:8px;color:#d6d3d1;line-height:1.6;">
                     <p><strong>Pass 1 — Draft Generation:</strong> AI generates each manuscript section (Methods, Results, Discussion, Future Research) independently based on extracted data, synthesis results, and research questions.</p>
                     <p style="margin-top:6px;"><strong>Pass 2 — Integration & Coherence:</strong> All sections are merged into a single document. A coherence audit checks logical flow, citation consistency, and cross-reference integrity across sections.</p>
                     <p style="margin-top:6px;"><strong>Pass 3 — Final Compilation:</strong> The integrated manuscript is compiled into LaTeX (.tex) with proper academic formatting, BibTeX (.bib) references are generated from Crossref metadata, and a PRISMA 2020 checklist is produced for transparency reporting.</p>
@@ -3038,7 +3038,7 @@ ATURAN EDGES:
         let picoHaltMsg = '';
         if (status === 'M5_STEP4_WAITING_APPROVAL') {
             extraBtn = `<button id="btn-m5-retry-step4" class="btn btn-warning" style="margin-right: 0.5rem;">Ulangi Pembuatan Rangkuman (Retry LLM)</button>`;
-            extraBtn += `<button id="btn-m5-reaudit" class="btn btn-warning" style="margin-right: 0.5rem;">🔁 Audit Ulang (PICO, cakupan penuh)</button>`;
+            extraBtn += `<button id="btn-m5-reaudit" class="btn btn-warning" style="margin-right: 0.5rem;"><span class="ico ico-repeat"></span> Audit Ulang (PICO, cakupan penuh)</button>`;
             // Hide the generic "Setuju & Lanjut" while PICO-audit corrections are pending;
             // closing is gated server-side, this keeps the UI honest.
             const paPending = ((session.pico_audit_log && session.pico_audit_log.slipped) || []).some(s => !s.actioned);
@@ -3052,12 +3052,12 @@ ATURAN EDGES:
         if (status === 'M6_STEP2_WAITING_EMBED') {
             isDanger = true;
             isHalted = true; // sembunyikan "Setuju & Lanjut" generik; pakai tombol simpan-endpoint
-            extraBtn = `<button id="btn-embed-save" class="btn btn-success">💾 Simpan Endpoint & Lanjut</button>`;
+            extraBtn = `<button id="btn-embed-save" class="btn btn-success"><span class="ico ico-save"></span> Simpan Endpoint & Lanjut</button>`;
         }
 
         if (status === 'M7_STEP2_WAITING_APPROVAL') {
-            extraBtn = `<button id="btn-m7-reextract-failed" class="btn btn-secondary" style="margin-right: 0.5rem;">🔁 Ekstrak Ulang Paper Gagal/Kosong</button>`
-                + `<button id="btn-m7-revise" class="btn btn-warning" style="margin-right: 0.5rem;">⚠️ Refine Protocol & Ekstrak Ulang (Revisi)</button>`;
+            extraBtn = `<button id="btn-m7-reextract-failed" class="btn btn-secondary" style="margin-right: 0.5rem;"><span class="ico ico-repeat"></span> Ekstrak Ulang Paper Gagal/Kosong</button>`
+                + `<button id="btn-m7-revise" class="btn btn-warning" style="margin-right: 0.5rem;"><span class="ico ico-warn"></span> Refine Protocol & Ekstrak Ulang (Revisi)</button>`;
         }
         
         if (status === 'M5_STEP3_WAITING_RESOLUTION') {
@@ -3067,7 +3067,7 @@ ATURAN EDGES:
             const hasDisagreements = bLog && bLog.disagreement_cases > 0;
             const btnText = hasDisagreements ? 'Simpan Keputusan & Lanjutkan' : 'Lanjut Batch Berikutnya / Selesai';
             extraBtn = `<button id="btn-m5-approve" class="btn btn-success">${btnText}</button>
-                        <button id="btn-m5-retry-batch" class="btn btn-danger">⚠️ Ulangi Batch Ini (Hapus & Eksekusi Ulang)</button>`;
+                        <button id="btn-m5-retry-batch" class="btn btn-danger"><span class="ico ico-warn"></span> Ulangi Batch Ini (Hapus & Eksekusi Ulang)</button>`;
         }
 
         // Backward escape hatch: re-open Module 5 screening from any downstream module
@@ -3076,7 +3076,7 @@ ATURAN EDGES:
         // setelah skrining ditutup ulang).
         const _mNum = parseInt((status.match(/^M(\d+)/) || [])[1], 10);
         if (_mNum >= 6 && _mNum <= 9 && status.includes('WAITING')) {
-            extraBtn += ` <button id="btn-back-to-m5" class="btn btn-danger" style="margin-left:0.5rem;">↩ Kembali ke Modul 5 (Resolusi Skrining)</button>`;
+            extraBtn += ` <button id="btn-back-to-m5" class="btn btn-danger" style="margin-left:0.5rem;"><span class="ico ico-back"></span> Kembali ke Modul 5 (Resolusi Skrining)</button>`;
         }
 
         let warningText = 'Apakah Anda setuju dengan hasil di atas?';
@@ -3087,7 +3087,7 @@ ATURAN EDGES:
         }
         
         area.insertAdjacentHTML('beforeend', `
-            <div style="padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 8px; border-left: 4px solid ${isDanger ? '#ef4444' : '#3b82f6'};">
+            <div style="padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 8px; border-left: 4px solid ${isDanger ? '#ef4444' : '#0d9488'};">
                 <p style="margin-bottom: 1rem;"><strong>Tindakan Anda:</strong> ${warningText}</p>
                 <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
                     ${!isHalted ? `<button id="btn-generic-approve" class="btn btn-success">Setuju & Lanjut</button>` : ''}
@@ -3114,15 +3114,15 @@ ATURAN EDGES:
                             const opts = codes.map(c => `<option value="${c}" ${c === p.reason_code ? 'selected' : ''}>${c}</option>`).join('');
                             return `<div data-paperid="${p.paper_id}" style="padding:8px;border-bottom:1px solid rgba(255,255,255,0.08);">
                                 <div style="color:#e5e7eb;"><strong>${i + 1}.</strong> ${esc(p.title) || '(tanpa judul)'} <span style="color:#64748b;font-size:0.85em;">${esc(p.doi)}</span></div>
-                                <div style="color:#94a3b8;font-size:0.9em;margin:3px 0;">Bukti: ${esc(p.evidence) || '(tak ada)'}</div>
-                                <label style="color:#cbd5e1;">Kode: <select class="recode-sel" style="background:#0f172a;color:#fff;border:1px solid #334155;border-radius:4px;padding:3px;">${opts}</select></label>
+                                <div style="color:#a8a29e;font-size:0.9em;margin:3px 0;">Bukti: ${esc(p.evidence) || '(tak ada)'}</div>
+                                <label style="color:#d6d3d1;">Kode: <select class="recode-sel" style="background:#1c1917;color:#fff;border:1px solid #44403c;border-radius:4px;padding:3px;">${opts}</select></label>
                                 <div class="recode-rationale" style="color:#fcd34d;font-size:0.82em;margin-top:4px;"></div>
                             </div>`;
                         }).join('') + `<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
-                                <button id="btn-ai-suggest" class="btn" style="background:#8b5cf6;color:#fff;">🤖 Sarankan Kode (AI)</button>
-                                <button id="btn-save-recode" class="btn btn-success">💾 Simpan Re-code & Susun Ulang</button>
+                                <button id="btn-ai-suggest" class="btn" style="background:#0d9488;color:#fff;"><span class="ico ico-ai"></span> Sarankan Kode (AI)</button>
+                                <button id="btn-save-recode" class="btn btn-success"><span class="ico ico-save"></span> Simpan Re-code & Susun Ulang</button>
                             </div>
-                            <p style="color:#94a3b8;font-size:0.8em;margin-top:6px;">AI mengusulkan kode + alasannya; Anda tinggal terima atau ubah, lalu Simpan.</p>`;
+                            <p style="color:#a8a29e;font-size:0.8em;margin-top:6px;">AI mengusulkan kode + alasannya; Anda tinggal terima atau ubah, lalu Simpan.</p>`;
                         document.getElementById('btn-ai-suggest').addEventListener('click', async () => {
                             const btnAI = document.getElementById('btn-ai-suggest');
                             if (btnAI.disabled) return;                 // anti dobel-klik
@@ -3202,7 +3202,7 @@ ATURAN EDGES:
                         return;
                     }
                     btnEmbedSave.disabled = true;
-                    if (msg) { msg.style.color = '#94a3b8'; msg.textContent = 'Menyimpan endpoint & melanjutkan screening...'; }
+                    if (msg) { msg.style.color = '#a8a29e'; msg.textContent = 'Menyimpan endpoint & melanjutkan screening...'; }
                     try {
                         await API.updateEmbedConfig({ endpoint, api_key: apiKey, model });
                         await handleApproval({}); // resume: WAITING_EMBED -> FULLTEXT_SCREENING + jalankan
@@ -3481,11 +3481,11 @@ ATURAN EDGES:
                     </div>
                     <div style="background: var(--bg-secondary); padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); text-align: center;">
                         <h4 style="margin: 0; color: var(--text-secondary); font-size: 0.85rem;">Otomatis (Open Access)</h4>
-                        <div style="font-size: 1.5rem; font-weight: bold; margin-top: 5px; color: #3b82f6;">${log.high_retrieved} <span style="font-size: 0.9rem">(${highPct}%)</span></div>
+                        <div style="font-size: 1.5rem; font-weight: bold; margin-top: 5px; color: #0d9488;">${log.high_retrieved} <span style="font-size: 0.9rem">(${highPct}%)</span></div>
                     </div>
                     <div style="background: var(--bg-secondary); padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); text-align: center;">
                         <h4 style="margin: 0; color: var(--text-secondary); font-size: 0.85rem;">Vectorized (Qdrant)</h4>
-                        <div style="font-size: 1.5rem; font-weight: bold; margin-top: 5px; color: #8b5cf6;">${log.vectorized_count} <span style="font-size: 0.9rem">(${vecPct}%)</span></div>
+                        <div style="font-size: 1.5rem; font-weight: bold; margin-top: 5px; color: #0d9488;">${log.vectorized_count} <span style="font-size: 0.9rem">(${vecPct}%)</span></div>
                     </div>
                     <div style="background: var(--bg-secondary); padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); text-align: center;">
                         <h4 style="margin: 0; color: var(--text-secondary); font-size: 0.85rem;">Missing / Inaccessible</h4>
@@ -3502,21 +3502,21 @@ ATURAN EDGES:
                     inaccProtocolHtml = `<div style="background: rgba(34, 197, 94, 0.1); border-left: 4px solid #22c55e; padding: 12px; border-radius: 4px; margin-top: 15px; margin-bottom: 20px; font-size: 0.9rem;">
                         <strong>=== INACCESSIBLE PROTOCOL ===</strong><br/>
                         <span style="color: #22c55e;">(&lt; 5%)</span> Dokumentasi standar, low impact terhadap SLR.<br/>
-                        <span style="color: #94a3b8; font-size: 0.85rem; display: inline-block; margin-top: 5px;">Batas aman &lt;5%: <strong>Maks ${max5Pct} paper</strong>. Saat ini Anda berada di area aman.</span>
+                        <span style="color: #a8a29e; font-size: 0.85rem; display: inline-block; margin-top: 5px;">Batas aman &lt;5%: <strong>Maks ${max5Pct} paper</strong>. Saat ini Anda berada di area aman.</span>
                     </div>`;
                 } else if (effectiveInaccPct <= 15) {
                     const toFind = effectiveInacc - max5Pct;
                     inaccProtocolHtml = `<div style="background: rgba(234, 179, 8, 0.1); border-left: 4px solid #eab308; padding: 12px; border-radius: 4px; margin-top: 15px; margin-bottom: 20px; font-size: 0.9rem;">
                         <strong>=== INACCESSIBLE PROTOCOL ===</strong><br/>
                         <span style="color: #eab308;">(5 - 15%)</span> Perlu dokumentasi detail + analisis bias (apakah paper yang tidak bisa diakses skewed/mengumpul ke region atau tahun tertentu?).<br/>
-                        <span style="color: #94a3b8; font-size: 0.85rem; display: inline-block; margin-top: 5px;">Batas 5-15%: <strong>${max5Pct+1} - ${max15Pct} paper</strong>. Temukan <strong>${toFind} paper lagi</strong> jika ingin turun ke area hijau (&lt;5%).</span>
+                        <span style="color: #a8a29e; font-size: 0.85rem; display: inline-block; margin-top: 5px;">Batas 5-15%: <strong>${max5Pct+1} - ${max15Pct} paper</strong>. Temukan <strong>${toFind} paper lagi</strong> jika ingin turun ke area hijau (&lt;5%).</span>
                     </div>`;
                 } else {
                     const toFind15 = effectiveInacc - max15Pct;
                     inaccProtocolHtml = `<div style="background: rgba(239, 68, 68, 0.1); border-left: 4px solid #ef4444; padding: 12px; border-radius: 4px; margin-top: 15px; margin-bottom: 20px; font-size: 0.9rem;">
                         <strong>=== INACCESSIBLE PROTOCOL ===</strong><br/>
                         <span style="color: #ef4444;">(&gt; 15%)</span> <strong>REVISI STRATEGI!</strong> Tambah channel pencarian institusi, pinjam akses kolega, atau segera konsultasi dengan supervisor. Missing data terlalu tinggi!<br/>
-                        <span style="color: #94a3b8; font-size: 0.85rem; display: inline-block; margin-top: 5px;">Batas &gt;15%: <strong>&gt;${max15Pct} paper</strong>. Anda WAJIB menemukan <strong>${toFind15} paper lagi</strong> agar bisa keluar dari zona merah (turun ke 15%).</span>
+                        <span style="color: #a8a29e; font-size: 0.85rem; display: inline-block; margin-top: 5px;">Batas &gt;15%: <strong>&gt;${max15Pct} paper</strong>. Anda WAJIB menemukan <strong>${toFind15} paper lagi</strong> agar bisa keluar dari zona merah (turun ke 15%).</span>
                     </div>`;
                 }
                 
@@ -3530,7 +3530,7 @@ ATURAN EDGES:
                     display: flex;
                     flex-direction: column;
                     gap: 16px;
-                    background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
+                    background: linear-gradient(145deg, #292524 0%, #1c1917 100%);
                     border: 1px solid rgba(56, 189, 248, 0.2);
                     border-radius: 16px;
                     padding: 24px;
@@ -3581,7 +3581,7 @@ ATURAN EDGES:
                 }
                 .stepper-header-subtitle {
                     margin: 4px 0 0 0;
-                    color: #94a3b8;
+                    color: #a8a29e;
                     font-size: 0.85rem;
                 }
                 .step-item {
@@ -3600,7 +3600,7 @@ ATURAN EDGES:
                     top: 40px;
                     bottom: 0;
                     width: 2px;
-                    background: linear-gradient(to bottom, #3b82f6, transparent);
+                    background: linear-gradient(to bottom, #0d9488, transparent);
                     opacity: 0.3;
                 }
                 .step-number {
@@ -3610,11 +3610,11 @@ ATURAN EDGES:
                     width: 36px;
                     height: 36px;
                     border-radius: 50%;
-                    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+                    background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);
                     color: white;
                     font-weight: bold;
                     font-size: 0.9rem;
-                    box-shadow: 0 4px 10px rgba(59, 130, 246, 0.4);
+                    box-shadow: 0 4px 10px rgba(13, 148, 136, 0.4);
                     flex-shrink: 0;
                     z-index: 1;
                 }
@@ -3639,7 +3639,7 @@ ATURAN EDGES:
                 }
                 .step-desc {
                     margin: 0;
-                    color: #94a3b8;
+                    color: #a8a29e;
                     font-size: 0.85rem;
                     line-height: 1.5;
                 }
@@ -3680,7 +3680,7 @@ ATURAN EDGES:
                                 ▶ Buka Notebook PEDE di Google Colab
                             </a>
                             <a href="https://raw.githubusercontent.com/ifcoid/pede/main/notebooks/pede_colab.ipynb" target="_blank" rel="noopener"
-                               style="margin-left:10px;color:#94a3b8;font-size:0.8rem;">unduh .ipynb</a>
+                               style="margin-left:10px;color:#a8a29e;font-size:0.8rem;">unduh .ipynb</a>
                         </div>
                     </div>
                     <div class="step-item">
@@ -3695,19 +3695,19 @@ ATURAN EDGES:
                 
                 contentHtml += `
                 <div class="action-buttons" style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
-                    <button id="btn-m6-sync" class="btn" style="background: #8b5cf6; color: white;">🔄 Sinkronisasi dengan Qdrant DB</button>
-                    <button id="btn-m6-export-csv" class="btn" style="background: #14b8a6; color: white;">⬇️ Export CSV</button>
-                    <button id="btn-m6-details" class="btn" style="background: #64748b; color: white;">📋 Status PDF & Vektor (Modal)</button>
-                    <button id="btn-m6-approve" class="btn btn-success" style="margin-left: auto;">✅ Setuju &amp; Lanjut → Full-text Screening (M6.2)</button>
+                    <button id="btn-m6-sync" class="btn" style="background: #0d9488; color: white;"><span class="ico ico-refresh"></span> Sinkronisasi dengan Qdrant DB</button>
+                    <button id="btn-m6-export-csv" class="btn" style="background: #14b8a6; color: white;"><span class="ico ico-download"></span> Export CSV</button>
+                    <button id="btn-m6-details" class="btn" style="background: #64748b; color: white;"><span class="ico ico-copy"></span> Status PDF & Vektor (Modal)</button>
+                    <button id="btn-m6-approve" class="btn btn-success" style="margin-left: auto;"><span class="ico ico-check"></span> Setuju &amp; Lanjut → Full-text Screening (M6.2)</button>
                 </div>
                 <div id="m6-papers-container" style="margin-top: 10px;">
-                    <div id="m6-papers-loading" style="text-align: center; padding: 20px; color: #94a3b8;">
+                    <div id="m6-papers-loading" style="text-align: center; padding: 20px; color: #a8a29e;">
                         <i class="fa fa-spinner fa-spin"></i> Memuat data papers...
                     </div>
                     <div id="m6-papers-table-wrapper" style="display: none; max-height: 400px; overflow-y: auto; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; background: rgba(15, 23, 42, 0.5);">
                         <table style="width: 100%; border-collapse: collapse; text-align: left;">
-                            <thead style="position: sticky; top: 0; background: #1e293b; z-index: 1;">
-                                <tr style="border-bottom: 2px solid #334155; color: #94A3B8;">
+                            <thead style="position: sticky; top: 0; background: #292524; z-index: 1;">
+                                <tr style="border-bottom: 2px solid #44403c; color: #a8a29e;">
                                     <th style="padding: 10px 12px; font-size: 0.8rem;">Title</th>
                                     <th style="padding: 10px 12px; font-size: 0.8rem;">DOI</th>
                                     <th style="padding: 10px 12px; font-size: 0.8rem;">Publisher</th>
@@ -3776,7 +3776,7 @@ ATURAN EDGES:
                                 if (doiFull.startsWith('https://doi.org/')) doiDisplay = doiFull.replace('https://doi.org/', '');
                                 else if (doiFull.startsWith('http://doi.org/')) doiDisplay = doiFull.replace('http://doi.org/', '');
                                 const linkHref = doiFull.startsWith('http') ? doiFull : 'https://doi.org/' + doiFull;
-                                doiHtml = `<a href="${linkHref}" target="_blank" style="color: #60a5fa; text-decoration: none; font-size: 0.8rem;">${doiDisplay}</a>`;
+                                doiHtml = `<a href="${linkHref}" target="_blank" style="color: #5eead4; text-decoration: none; font-size: 0.8rem;">${doiDisplay}</a>`;
                             }
                         }
                         
@@ -3786,7 +3786,7 @@ ATURAN EDGES:
                         
                         const inaccessibleBadge = p.inaccessible
                             ? '<span style="background: rgba(234, 179, 8, 0.15); color: #eab308; padding: 2px 8px; border-radius: 10px; font-size: 0.75rem; font-weight: 600;">Inaccessible</span>'
-                            : '<span style="color: #94a3b8; font-size: 0.75rem;">-</span>';
+                            : '<span style="color: #a8a29e; font-size: 0.75rem;">-</span>';
                         
                         let actionsHtml = '';
                         if (p.retrieved) {
@@ -3799,7 +3799,7 @@ ATURAN EDGES:
                             <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);" onmouseover="this.style.background='rgba(255,255,255,0.03)'" onmouseout="this.style.background='transparent'">
                                 <td style="padding: 8px 12px; color: var(--text-primary, #e2e8f0); font-size: 0.85rem; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${escHtml(p.title || '')}">${escHtml(p.title) || '-'}</td>
                                 <td style="padding: 8px 12px; font-size: 0.8rem; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${doiHtml}</td>
-                                <td style="padding: 8px 12px; font-size: 0.8rem; color: #94a3b8;">${p.publisher || '-'}</td>
+                                <td style="padding: 8px 12px; font-size: 0.8rem; color: #a8a29e;">${p.publisher || '-'}</td>
                                 <td style="padding: 8px 12px; text-align: center;">${retrievedBadge}</td>
                                 <td style="padding: 8px 12px; text-align: center;">${inaccessibleBadge}</td>
                                 <td style="padding: 8px 12px;" class="td-inline-action" data-id="${p.id}">${actionsHtml}</td>
@@ -3848,10 +3848,10 @@ ATURAN EDGES:
                         const actionCell = target.closest('.td-inline-action');
                         actionCell.innerHTML = `
                             <div style="display: flex; flex-direction: column; gap: 4px;">
-                                <textarea id="inacc-doc-${paperId}" placeholder="Documentation (e.g., paywall, no institutional access)" style="font-size: 0.75rem; padding: 4px; border-radius: 4px; border: 1px solid #475569; background: #334155; color: white; resize: vertical; min-height: 40px; width: 100%;" autocomplete="off"></textarea>
+                                <textarea id="inacc-doc-${paperId}" placeholder="Documentation (e.g., paywall, no institutional access)" style="font-size: 0.75rem; padding: 4px; border-radius: 4px; border: 1px solid #475569; background: #44403c; color: white; resize: vertical; min-height: 40px; width: 100%;" autocomplete="off"></textarea>
                                 <div style="display: flex; gap: 4px;">
                                     <button class="btn-inline-save-inacc" data-id="${paperId}" style="background: #eab308; color: #1a1a1a; border: none; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; font-weight: 600;">Submit</button>
-                                    <button class="btn-inline-cancel-inacc" data-id="${paperId}" style="background: transparent; color: #94a3b8; border: 1px solid #475569; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; cursor: pointer;">Cancel</button>
+                                    <button class="btn-inline-cancel-inacc" data-id="${paperId}" style="background: transparent; color: #a8a29e; border: 1px solid #475569; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; cursor: pointer;">Cancel</button>
                                 </div>
                             </div>
                         `;
@@ -3898,7 +3898,7 @@ ATURAN EDGES:
                         setButtonLoading(btnM6Approve, true, 'Memproses...');
                         await handleApproval({});
                     } catch (e) {
-                        setButtonLoading(btnM6Approve, false, '✅ Setuju & Lanjut → Full-text Screening (M6.2)');
+                        setButtonLoading(btnM6Approve, false, '<span class="ico ico-check"></span> Setuju & Lanjut → Full-text Screening (M6.2)');
                         alert('Gagal lanjut: ' + e.message);
                     }
                 });
@@ -3991,7 +3991,7 @@ ATURAN EDGES:
                                     if (doiFull.startsWith('https://doi.org/')) doiDisplay = doiFull.replace('https://doi.org/', '');
                                     else if (doiFull.startsWith('http://doi.org/')) doiDisplay = doiFull.replace('http://doi.org/', '');
                                     const linkHref = doiFull.startsWith('http') ? doiFull : 'https://doi.org/' + doiFull;
-                                    doiHtml = `<a href="${linkHref}" target="_blank" style="color: #3b82f6; text-decoration: none;">${doiDisplay}</a>`;
+                                    doiHtml = `<a href="${linkHref}" target="_blank" style="color: #0d9488; text-decoration: none;">${doiDisplay}</a>`;
                                 }
                             }
                             
@@ -4001,7 +4001,7 @@ ATURAN EDGES:
                             if (p.retrieved) {
                                 locHtml = `<div style="display: flex; flex-direction: column; gap: 5px;">
                                               <span style="color: #10B981; font-weight: bold;"><i class="fa fa-check-circle"></i> Selesai</span>
-                                              <button class="btn-delete-qdrant" data-id="${p.id}" data-doi="${doiDisplay}" data-title="${(p.title || '').replace(/"/g, '&quot;')}" style="background: transparent; border: 1px solid #ef4444; color: #ef4444; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; cursor: pointer; text-align: center; width: fit-content;" title="Hapus vektor di database jika PDF rusak/watermark">🗑️ Hapus Vektor (Fix PDF)</button>
+                                              <button class="btn-delete-qdrant" data-id="${p.id}" data-doi="${doiDisplay}" data-title="${(p.title || '').replace(/"/g, '&quot;')}" style="background: transparent; border: 1px solid #ef4444; color: #ef4444; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; cursor: pointer; text-align: center; width: fit-content;" title="Hapus vektor di database jika PDF rusak/watermark"><span class="ico ico-trash"></span> Hapus Vektor (Fix PDF)</button>
                                            </div>`;
                             } else {
                                 locHtml = p.location === 'arxiv' ? 
@@ -4035,18 +4035,18 @@ ATURAN EDGES:
                         
                         const modalHtml = `
                             <div id="m6-details-modal" style="position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(15, 23, 42, 0.9); display: flex; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(8px);">
-                                <div style="background: #1E293B; width: 90%; max-width: 1200px; max-height: 90vh; border-radius: 12px; display: flex; flex-direction: column; border: 1px solid #334155; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
-                                    <div style="padding: 20px; border-bottom: 1px solid #334155; display: flex; justify-content: space-between; align-items: center;">
+                                <div style="background: #292524; width: 90%; max-width: 1200px; max-height: 90vh; border-radius: 12px; display: flex; flex-direction: column; border: 1px solid #44403c; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
+                                    <div style="padding: 20px; border-bottom: 1px solid #44403c; display: flex; justify-content: space-between; align-items: center;">
                                         <h2 style="margin: 0; color: white; font-size: 1.25rem;">📋 Status Akuisisi Teks Penuh (${data.total} Dokumen)</h2>
                                         <div style="display: flex; gap: 15px; align-items: center;">
-                                            <button id="btn-modal-export-csv" class="btn" style="background: #14b8a6; color: white; padding: 8px 16px; font-size: 0.9rem;">⬇️ Unduh CSV</button>
-                                            <button id="btn-close-m6-modal" style="background: transparent; border: none; color: #94A3B8; font-size: 1.5rem; cursor: pointer;">&times;</button>
+                                            <button id="btn-modal-export-csv" class="btn" style="background: #14b8a6; color: white; padding: 8px 16px; font-size: 0.9rem;"><span class="ico ico-download"></span> Unduh CSV</button>
+                                            <button id="btn-close-m6-modal" style="background: transparent; border: none; color: #a8a29e; font-size: 1.5rem; cursor: pointer;">&times;</button>
                                         </div>
                                     </div>
                                     <div style="flex: 1; overflow-y: auto; padding: 20px;">
                                         <table style="width: 100%; border-collapse: collapse; text-align: left;">
                                             <thead>
-                                                <tr style="border-bottom: 2px solid #334155; color: #94A3B8;">
+                                                <tr style="border-bottom: 2px solid #44403c; color: #a8a29e;">
                                                     <th style="padding: 12px; width: 50px;">No</th>
                                                     <th style="padding: 12px;">Judul Paper & Publisher</th>
                                                     <th style="padding: 12px; width: 150px;">DOI</th>
@@ -4125,10 +4125,10 @@ ATURAN EDGES:
                                 const parentDiv = e.target.parentElement;
                                 parentDiv.innerHTML = `
                                     <div style="display: flex; flex-direction: column; gap: 4px; margin-top: 5px;">
-                                        <input type="text" id="modal-reason-${paperId}" placeholder="Alasan (contoh: berbayar)" style="font-size: 0.75rem; padding: 4px; border-radius: 4px; border: 1px solid #475569; background: #334155; color: white;" autocomplete="off">
+                                        <input type="text" id="modal-reason-${paperId}" placeholder="Alasan (contoh: berbayar)" style="font-size: 0.75rem; padding: 4px; border-radius: 4px; border: 1px solid #475569; background: #44403c; color: white;" autocomplete="off">
                                         <div style="display: flex; gap: 4px;">
                                             <button class="btn-save-inacc" data-id="${paperId}" style="background: #ef4444; color: white; border: none; padding: 3px 6px; border-radius: 4px; font-size: 0.75rem; cursor: pointer;">Simpan</button>
-                                            <button class="btn-cancel-inacc" data-id="${paperId}" style="background: transparent; color: #94A3B8; border: 1px solid #475569; padding: 3px 6px; border-radius: 4px; font-size: 0.75rem; cursor: pointer;">Batal</button>
+                                            <button class="btn-cancel-inacc" data-id="${paperId}" style="background: transparent; color: #a8a29e; border: 1px solid #475569; padding: 3px 6px; border-radius: 4px; font-size: 0.75rem; cursor: pointer;">Batal</button>
                                         </div>
                                     </div>
                                 `;
@@ -4196,10 +4196,10 @@ export function appendXAISection(area, session) {
     const details = document.createElement('details');
     details.style.cssText = 'margin-top: 1.5rem; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 1rem;';
     details.innerHTML = `
-        <summary style="cursor: pointer; color: #a78bfa; font-weight: 600; font-size: 0.95em; user-select: none;">
+        <summary style="cursor: pointer; color: #5eead4; font-weight: 600; font-size: 0.95em; user-select: none;">
             &#x1f9e0; xAI Transparency Log (Step: ${currentStep})
         </summary>
-        <div class="xai-log-content" style="margin-top: 0.75rem; color: #cbd5e1; font-size: 0.88em;">
+        <div class="xai-log-content" style="margin-top: 0.75rem; color: #d6d3d1; font-size: 0.88em;">
             <p style="color: #64748b;"><em>Memuat log xAI...</em></p>
         </div>
     `;
@@ -4225,17 +4225,17 @@ export function appendXAISection(area, session) {
                 html += `
                     <div style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; padding: 0.75rem; margin-bottom: 0.75rem;">
                         <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 0.5rem;">
-                            <span style="color: #60a5fa;"><strong>Model:</strong> ${entry.model_name || '-'}</span>
+                            <span style="color: #5eead4;"><strong>Model:</strong> ${entry.model_name || '-'}</span>
                             <span style="color: #34d399;"><strong>Agent:</strong> ${entry.agent_func || '-'}</span>
-                            <span style="color: #94a3b8;"><strong>Waktu:</strong> ${ts}</span>
+                            <span style="color: #a8a29e;"><strong>Waktu:</strong> ${ts}</span>
                             <span style="color: #fbbf24;"><strong>Durasi:</strong> ${entry.duration_ms || 0}ms</span>
                         </div>
                         <details style="margin-top: 0.4rem;">
-                            <summary style="cursor: pointer; color: #94a3b8; font-size: 0.85em;">System Prompt</summary>
+                            <summary style="cursor: pointer; color: #a8a29e; font-size: 0.85em;">System Prompt</summary>
                             <pre style="background: rgba(0,0,0,0.4); padding: 0.5rem; border-radius: 4px; font-size: 0.8em; white-space: pre-wrap; word-break: break-word; max-height: 200px; overflow-y: auto; color: #e2e8f0; margin-top: 0.3rem;">${(entry.system_prompt || '').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>
                         </details>
                         <details style="margin-top: 0.4rem;">
-                            <summary style="cursor: pointer; color: #94a3b8; font-size: 0.85em;">User Prompt (preview)</summary>
+                            <summary style="cursor: pointer; color: #a8a29e; font-size: 0.85em;">User Prompt (preview)</summary>
                             <pre style="background: rgba(0,0,0,0.4); padding: 0.5rem; border-radius: 4px; font-size: 0.8em; white-space: pre-wrap; word-break: break-word; max-height: 200px; overflow-y: auto; color: #e2e8f0; margin-top: 0.3rem;">${(entry.user_prompt_preview || '').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>
                         </details>
                     </div>
@@ -4257,19 +4257,19 @@ window.openScreeningCorrection = async (sessionId) => {
     overlay.id = 'screening-correct-overlay';
     overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:9999;';
     overlay.innerHTML = `
-        <div class="glass-panel" style="max-width:880px;width:92%;max-height:88vh;display:flex;flex-direction:column;padding:18px;border-radius:10px;background:#0f172a;">
+        <div class="glass-panel" style="max-width:880px;width:92%;max-height:88vh;display:flex;flex-direction:column;padding:18px;border-radius:10px;background:#1c1917;">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
                 <h3 style="margin:0;">⏪ Koreksi Include/Exclude (Full-Text)</h3>
-                <button id="sc-close" class="btn-close" style="background:none;border:none;color:#cbd5e1;font-size:1.4em;cursor:pointer;">&times;</button>
+                <button id="sc-close" class="btn-close" style="background:none;border:none;color:#d6d3d1;font-size:1.4em;cursor:pointer;">&times;</button>
             </div>
             <p style="font-size:0.82em;color:#fcd34d;background:rgba(245,158,11,0.08);padding:8px 10px;border-radius:6px;border-left:3px solid #f59e0b;margin:0 0 8px;">
                 Koreksi keputusan full-text yang KELIRU. <strong>Protokol ekstraksi TIDAK berubah</strong>; paper baru diekstrak inkremental, data lama dipertahankan. Tiap perubahan WAJIB beralasan (audit PRISMA). <em>"Terasa sedikit" bukan alasan valid</em> — sebut error screening spesifik.
             </p>
             <input id="sc-filter" placeholder="🔎 filter judul / DOI…" style="width:100%;padding:6px;margin-bottom:6px;border-radius:4px;background:rgba(255,255,255,0.05);color:#e5e7eb;border:1px solid rgba(255,255,255,0.1);">
-            <div id="sc-body" style="flex:1;overflow-y:auto;border:1px solid rgba(255,255,255,0.08);border-radius:6px;"><div style="padding:20px;text-align:center;color:#94a3b8;">Memuat…</div></div>
+            <div id="sc-body" style="flex:1;overflow-y:auto;border:1px solid rgba(255,255,255,0.08);border-radius:6px;"><div style="padding:20px;text-align:center;color:#a8a29e;">Memuat…</div></div>
             <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px;">
                 <button id="sc-cancel" class="btn btn-secondary">Batal</button>
-                <button id="sc-save" class="btn btn-primary">💾 Terapkan Koreksi</button>
+                <button id="sc-save" class="btn btn-primary"><span class="ico ico-save"></span> Terapkan Koreksi</button>
             </div>
         </div>`;
     document.body.appendChild(overlay);
@@ -4296,14 +4296,14 @@ window.openScreeningCorrection = async (sessionId) => {
             const incl = cur === 'INCLUDE';
             const isChanged = !!changed[p.paper_id];
             const warn = (incl && !p.retrieved) ? ' <span title="Full-text belum ada di Qdrant — tak bisa diekstrak sampai PDF tersedia" style="color:#fca5a5;">⚠ no full-text</span>' : '';
-            return `<div class="sc-row" data-id="${p.paper_id}" data-doi="${esc(p.doi)}" data-title="${esc(p.title)}" data-orig="${p.decision}" style="padding:8px 10px;border-bottom:1px solid rgba(255,255,255,0.06);${isChanged ? 'background:rgba(59,130,246,0.08);' : ''}">
+            return `<div class="sc-row" data-id="${p.paper_id}" data-doi="${esc(p.doi)}" data-title="${esc(p.title)}" data-orig="${p.decision}" style="padding:8px 10px;border-bottom:1px solid rgba(255,255,255,0.06);${isChanged ? 'background:rgba(13, 148, 136,0.08);' : ''}">
                 <div style="display:flex;gap:10px;align-items:center;">
                     <button class="sc-toggle btn" style="min-width:96px;padding:3px 8px;font-size:0.8em;${incl ? 'background:rgba(16,185,129,0.2);color:#6ee7b7;' : 'background:rgba(239,68,68,0.18);color:#fca5a5;'}">${incl ? '✓ INCLUDE' : '✕ EXCLUDE'}</button>
-                    <div style="flex:1;font-size:0.85em;color:#e5e7eb;">${esc(p.title) || '(tanpa judul)'}${warn}<br><span style="color:#94a3b8;font-size:0.9em;">${esc(p.doi) || '-'}</span></div>
+                    <div style="flex:1;font-size:0.85em;color:#e5e7eb;">${esc(p.title) || '(tanpa judul)'}${warn}<br><span style="color:#a8a29e;font-size:0.9em;">${esc(p.doi) || '-'}</span></div>
                 </div>
                 ${isChanged ? `<input class="sc-reason" placeholder="Alasan koreksi (wajib) — sebut error screening spesifik" value="${esc(changed[p.paper_id].reason)}" style="width:100%;margin-top:6px;padding:5px;border-radius:4px;background:rgba(255,255,255,0.05);color:#e5e7eb;border:1px solid ${changed[p.paper_id].reason ? 'rgba(255,255,255,0.1)' : '#ef4444'};">` : ''}
             </div>`;
-        }).join('') || '<div style="padding:16px;color:#94a3b8;">Tak ada paper.</div>';
+        }).join('') || '<div style="padding:16px;color:#a8a29e;">Tak ada paper.</div>';
     };
     renderRows();
     overlay.querySelector('#sc-filter').addEventListener('input', (e) => renderRows(e.target.value));
@@ -4386,29 +4386,29 @@ window.showQAXAIModal = async (btn) => {
         
         const modalHtml = `
             <div id="qa-xai-modal" style="position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(15, 23, 42, 0.9); display: flex; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(8px);">
-                <div style="background: #1e293b; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); width: 90vw; max-width: 1200px; height: 85vh; display: flex; flex-direction: column; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);">
+                <div style="background: #292524; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); width: 90vw; max-width: 1200px; height: 85vh; display: flex; flex-direction: column; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);">
                     <div style="padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); border-top-left-radius: 12px; border-top-right-radius: 12px;">
                         <h3 style="margin:0; color:#fca5a5; display:flex; align-items:center; gap:10px;">
                             <span>🔍</span> xAI: Transparansi Keputusan Dual-Rater
                         </h3>
                         <div style="display:flex; align-items:center; gap:15px;">
-                            <button id="btn-xai-sync" style="background: #8b5cf6; border: none; color: white; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.85em; font-weight: bold; display: flex; align-items: center; gap: 5px; transition: background 0.2s;">🔄 Sinkronisasi Qdrant</button>
-                            <button id="btn-close-qa-xai" style="background: transparent; border: none; color: #94A3B8; font-size: 1.5rem; cursor: pointer;">&times;</button>
+                            <button id="btn-xai-sync" style="background: #0d9488; border: none; color: white; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.85em; font-weight: bold; display: flex; align-items: center; gap: 5px; transition: background 0.2s;"><span class="ico ico-refresh"></span> Sinkronisasi Qdrant</button>
+                            <button id="btn-close-qa-xai" style="background: transparent; border: none; color: #a8a29e; font-size: 1.5rem; cursor: pointer;">&times;</button>
                         </div>
                     </div>
                     <div style="padding: 20px; overflow-y: auto; flex: 1;">
                         ${qaPromptData ? `
-                            <details style="margin-bottom: 20px; background: rgba(139, 92, 246, 0.08); border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 8px; padding: 0;">
-                                <summary style="padding: 12px 15px; cursor: pointer; color: #a78bfa; font-weight: bold; font-size: 0.9em; user-select: none;">📋 System Prompt Rater (xAI Transparency)</summary>
-                                <div style="padding: 12px 15px; border-top: 1px solid rgba(139, 92, 246, 0.2);">
-                                    <div style="margin-bottom: 8px; font-size: 0.8em; color: #94a3b8;">
+                            <details style="margin-bottom: 20px; background: rgba(13, 148, 136, 0.08); border: 1px solid rgba(13, 148, 136, 0.3); border-radius: 8px; padding: 0;">
+                                <summary style="padding: 12px 15px; cursor: pointer; color: #5eead4; font-weight: bold; font-size: 0.9em; user-select: none;">📋 System Prompt Rater (xAI Transparency)</summary>
+                                <div style="padding: 12px 15px; border-top: 1px solid rgba(13, 148, 136, 0.2);">
+                                    <div style="margin-bottom: 8px; font-size: 0.8em; color: #a8a29e;">
                                         <strong>Tool:</strong> ${qaPromptData.tool || '-'} | <strong>Kategorisasi:</strong> ${qaPromptData.categorization || '-'} | <strong>Threshold:</strong> ${qaPromptData.threshold || '-'}%
                                     </div>
                                     <pre style="background: rgba(0,0,0,0.3); padding: 12px; border-radius: 6px; font-size: 0.8em; color: #e2e8f0; white-space: pre-wrap; word-break: break-word; margin: 0; max-height: 300px; overflow-y: auto; border: 1px solid rgba(255,255,255,0.05);">${qaPromptData.system_prompt || 'Prompt tidak tersedia'}</pre>
                                 </div>
                             </details>
                         ` : ''}
-                        ${papers.length === 0 ? '<p style="color:#94a3b8; text-align:center;">Tidak ada data QA yang tersedia.</p>' : `
+                        ${papers.length === 0 ? '<p style="color:#a8a29e; text-align:center;">Tidak ada data QA yang tersedia.</p>' : `
                             <div style="display:flex; flex-direction:column; gap:20px;">
                                 ${papers.map(p => {
                                     const paperId = p._id || p.DOI || p.doi || '';
@@ -4421,40 +4421,40 @@ window.showQAXAIModal = async (btn) => {
                                             <span>${p.Title || p.title || p.DOI || p.doi || 'Unknown Title'}</span>
                                             <div style="display:flex; align-items:center; gap:10px; flex-wrap: wrap;">
                                                 ${disagree ? `<span style="background: rgba(239, 68, 68, 0.15); color: #fca5a5; border: 1px solid #ef4444; padding: 3px 10px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; white-space: nowrap;">⚠️ Disagreement — Perlu Rate Ulang</span>` : ''}
-                                                <button class="btn-rerate-paper" data-paper-id="${paperId}" style="background: #f59e0b; border: none; color: #0f172a; padding: 4px 10px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 4px; transition: background 0.2s;" title="Rate ulang paper ini dengan model saat ini">🔄 Rate Ulang</button>
-                                                ${Number(p.qa_total_score || 0) === 0 ? `<button class="btn-delete-qdrant-xai" data-doi="${p.DOI || p.doi || '-'}" data-title="${p.Title || p.title || ''}" style="background: transparent; border: 1px solid #ef4444; color: #ef4444; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; display: flex; align-items: center; gap: 4px;" title="Hapus vektor di database jika PDF rusak/watermark">🗑️ Hapus Vektor (Fix PDF)</button>` : ''}
+                                                <button class="btn-rerate-paper" data-paper-id="${paperId}" style="background: #f59e0b; border: none; color: #1c1917; padding: 4px 10px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 4px; transition: background 0.2s;" title="Rate ulang paper ini dengan model saat ini"><span class="ico ico-refresh"></span> Rate Ulang</button>
+                                                ${Number(p.qa_total_score || 0) === 0 ? `<button class="btn-delete-qdrant-xai" data-doi="${p.DOI || p.doi || '-'}" data-title="${p.Title || p.title || ''}" style="background: transparent; border: 1px solid #ef4444; color: #ef4444; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; display: flex; align-items: center; gap: 4px;" title="Hapus vektor di database jika PDF rusak/watermark"><span class="ico ico-trash"></span> Hapus Vektor (Fix PDF)</button>` : ''}
                                                 <span style="color:#38bdf8; font-size:0.9em;">Final: ${p.qa_final_category || '-'} (${p.qa_total_score || 0})</span>
                                             </div>
                                         </div>
                                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: rgba(255,255,255,0.05);">
-                                            <div style="padding: 15px; background: #1e293b;">
-                                                <h4 style="margin:0 0 10px 0; color: #93c5fd; display:flex; align-items:center; flex-wrap:wrap; gap:8px;">
+                                            <div style="padding: 15px; background: #292524;">
+                                                <h4 style="margin:0 0 10px 0; color: #5eead4; display:flex; align-items:center; flex-wrap:wrap; gap:8px;">
                                                     <span>Rater 1</span>
-                                                    <span style="font-size:0.8em; color:#94a3b8; font-weight:normal;">${p.qa_r1_category||'-'} (${p.qa_r1_score||0})</span>
+                                                    <span style="font-size:0.8em; color:#a8a29e; font-weight:normal;">${p.qa_r1_category||'-'} (${p.qa_r1_score||0})</span>
                                                     ${p.qa_r1_model ? `<span style="font-size:0.7em; background:rgba(56,189,248,0.1); color:#38bdf8; padding:2px 6px; border-radius:4px; border:1px solid rgba(56,189,248,0.2);">${p.qa_r1_model}</span>` : ''}
                                                 </h4>
                                                 <div style="margin-bottom:8px;">
                                                     <div style="font-size:0.75em; color:#64748b; text-transform:uppercase; margin-bottom:2px;">Reasoning</div>
-                                                    <div style="font-size:0.85em; color:#cbd5e1; line-height:1.5;">${p.qa_r1_reasoning || (p.qa_final_category === 'UNRATED' ? '<em>Teks penuh (full-text) tidak tersedia, proses QA dibatalkan secara otomatis.</em>' : '<em>Tidak ada alasan spesifik (skor lama)</em>')}</div>
+                                                    <div style="font-size:0.85em; color:#d6d3d1; line-height:1.5;">${p.qa_r1_reasoning || (p.qa_final_category === 'UNRATED' ? '<em>Teks penuh (full-text) tidak tersedia, proses QA dibatalkan secara otomatis.</em>' : '<em>Tidak ada alasan spesifik (skor lama)</em>')}</div>
                                                 </div>
                                                 <div>
                                                     <div style="font-size:0.75em; color:#64748b; text-transform:uppercase; margin-bottom:2px;">Evidence</div>
-                                                    <div style="font-size:0.85em; color:#94a3b8; font-style:italic; border-left:2px solid #475569; padding-left:8px; line-height:1.5;">${p.qa_r1_evidence || '-'}</div>
+                                                    <div style="font-size:0.85em; color:#a8a29e; font-style:italic; border-left:2px solid #475569; padding-left:8px; line-height:1.5;">${p.qa_r1_evidence || '-'}</div>
                                                 </div>
                                             </div>
-                                            <div style="padding: 15px; background: #1e293b;">
-                                                <h4 style="margin:0 0 10px 0; color: #93c5fd; display:flex; align-items:center; flex-wrap:wrap; gap:8px;">
+                                            <div style="padding: 15px; background: #292524;">
+                                                <h4 style="margin:0 0 10px 0; color: #5eead4; display:flex; align-items:center; flex-wrap:wrap; gap:8px;">
                                                     <span>Rater 2</span>
-                                                    <span style="font-size:0.8em; color:#94a3b8; font-weight:normal;">${p.qa_r2_category||'-'} (${p.qa_r2_score||0})</span>
+                                                    <span style="font-size:0.8em; color:#a8a29e; font-weight:normal;">${p.qa_r2_category||'-'} (${p.qa_r2_score||0})</span>
                                                     ${p.qa_r2_model ? `<span style="font-size:0.7em; background:rgba(56,189,248,0.1); color:#38bdf8; padding:2px 6px; border-radius:4px; border:1px solid rgba(56,189,248,0.2);">${p.qa_r2_model}</span>` : ''}
                                                 </h4>
                                                 <div style="margin-bottom:8px;">
                                                     <div style="font-size:0.75em; color:#64748b; text-transform:uppercase; margin-bottom:2px;">Reasoning</div>
-                                                    <div style="font-size:0.85em; color:#cbd5e1; line-height:1.5;">${p.qa_r2_reasoning || (p.qa_final_category === 'UNRATED' ? '<em>Teks penuh (full-text) tidak tersedia, proses QA dibatalkan secara otomatis.</em>' : '<em>Tidak ada alasan spesifik (skor lama)</em>')}</div>
+                                                    <div style="font-size:0.85em; color:#d6d3d1; line-height:1.5;">${p.qa_r2_reasoning || (p.qa_final_category === 'UNRATED' ? '<em>Teks penuh (full-text) tidak tersedia, proses QA dibatalkan secara otomatis.</em>' : '<em>Tidak ada alasan spesifik (skor lama)</em>')}</div>
                                                 </div>
                                                 <div>
                                                     <div style="font-size:0.75em; color:#64748b; text-transform:uppercase; margin-bottom:2px;">Evidence</div>
-                                                    <div style="font-size:0.85em; color:#94a3b8; font-style:italic; border-left:2px solid #475569; padding-left:8px; line-height:1.5;">${p.qa_r2_evidence || '-'}</div>
+                                                    <div style="font-size:0.85em; color:#a8a29e; font-style:italic; border-left:2px solid #475569; padding-left:8px; line-height:1.5;">${p.qa_r2_evidence || '-'}</div>
                                                 </div>
                                             </div>
                                         </div>
@@ -4509,7 +4509,7 @@ window.showQAXAIModal = async (btn) => {
                         const raterDivs = card.querySelectorAll('div[style*="padding: 15px"]');
                         if (raterDivs[0]) {
                             const h4_r1 = raterDivs[0].querySelector('h4');
-                            if (h4_r1) h4_r1.innerHTML = `<span>Rater 1</span> <span style="font-size:0.8em; color:#94a3b8; font-weight:normal;">${result.r1_category} (${result.r1_score})</span> <span style="font-size:0.7em; background:rgba(56,189,248,0.1); color:#38bdf8; padding:2px 6px; border-radius:4px; border:1px solid rgba(56,189,248,0.2);">${result.r1_model}</span>`;
+                            if (h4_r1) h4_r1.innerHTML = `<span>Rater 1</span> <span style="font-size:0.8em; color:#a8a29e; font-weight:normal;">${result.r1_category} (${result.r1_score})</span> <span style="font-size:0.7em; background:rgba(56,189,248,0.1); color:#38bdf8; padding:2px 6px; border-radius:4px; border:1px solid rgba(56,189,248,0.2);">${result.r1_model}</span>`;
                             const divs_r1 = raterDivs[0].querySelectorAll('div[style*="margin-bottom"]');
                             if (divs_r1[0]) divs_r1[0].querySelector('div:last-child').textContent = result.r1_reasoning || '-';
                             const evidence_r1 = raterDivs[0].querySelector('div[style*="border-left"]');
@@ -4517,7 +4517,7 @@ window.showQAXAIModal = async (btn) => {
                         }
                         if (raterDivs[1]) {
                             const h4_r2 = raterDivs[1].querySelector('h4');
-                            if (h4_r2) h4_r2.innerHTML = `<span>Rater 2</span> <span style="font-size:0.8em; color:#94a3b8; font-weight:normal;">${result.r2_category} (${result.r2_score})</span> <span style="font-size:0.7em; background:rgba(56,189,248,0.1); color:#38bdf8; padding:2px 6px; border-radius:4px; border:1px solid rgba(56,189,248,0.2);">${result.r2_model}</span>`;
+                            if (h4_r2) h4_r2.innerHTML = `<span>Rater 2</span> <span style="font-size:0.8em; color:#a8a29e; font-weight:normal;">${result.r2_category} (${result.r2_score})</span> <span style="font-size:0.7em; background:rgba(56,189,248,0.1); color:#38bdf8; padding:2px 6px; border-radius:4px; border:1px solid rgba(56,189,248,0.2);">${result.r2_model}</span>`;
                             const divs_r2 = raterDivs[1].querySelectorAll('div[style*="margin-bottom"]');
                             if (divs_r2[0]) divs_r2[0].querySelector('div:last-child').textContent = result.r2_reasoning || '-';
                             const evidence_r2 = raterDivs[1].querySelector('div[style*="border-left"]');
@@ -4568,22 +4568,22 @@ window.showQAXAIModal = async (btn) => {
                     const colabLink = "https://colab.research.google.com/github/ifcoid/pede/blob/main/notebooks/pede_colab.ipynb";
                     const successModalHtml = `
                         <div id="success-delete-modal" style="position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(15, 23, 42, 0.9); display: flex; justify-content: center; align-items: center; z-index: 2000; backdrop-filter: blur(8px);">
-                            <div style="background: #1e293b; border-radius: 12px; border: 1px solid #34d399; width: 90vw; max-width: 600px; padding: 25px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); color: #f8fafc;">
+                            <div style="background: #292524; border-radius: 12px; border: 1px solid #34d399; width: 90vw; max-width: 600px; padding: 25px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); color: #f8fafc;">
                                 <h3 style="margin-top:0; color:#34d399; display:flex; align-items:center; gap:10px;">✅ Vektor Berhasil Dihapus!</h3>
                                 <p style="line-height: 1.6;">Langkah selanjutnya untuk pemulihan data PDF:</p>
-                                <ol style="line-height: 1.6; color:#cbd5e1; padding-left: 20px;">
+                                <ol style="line-height: 1.6; color:#d6d3d1; padding-left: 20px;">
                                     <li>Pastikan PDF yang benar (tanpa watermark / teks penuh terbaca) sudah berada di folder lokal/Drive Anda.</li>
                                     <li>Buka dan jalankan ulang script <strong>Notebook PEDE Colab/Lokal</strong> khusus untuk paper ini:
                                         <br/><strong style="color:#f8fafc">DOI:</strong> ${paperDoi}
                                         <br/><strong style="color:#f8fafc">Judul:</strong> ${paperTitle}
                                     </li>
                                     <li>Klik tautan berikut untuk membuka Colab secara langsung:
-                                        <br/><a href="${colabLink}" target="_blank" style="color:#60a5fa; text-decoration:underline; font-weight:bold; display:inline-block; margin-top:8px;">🚀 Buka Notebook PEDE di Google Colab</a>
+                                        <br/><a href="${colabLink}" target="_blank" style="color:#5eead4; text-decoration:underline; font-weight:bold; display:inline-block; margin-top:8px;">🚀 Buka Notebook PEDE di Google Colab</a>
                                     </li>
                                     <li>Setelah re-upload sukses, tekan tombol <strong>🔄 Sinkronisasi Qdrant</strong> di pojok kanan atas jendela layar ini, lalu klik <strong>⚠️ Ulangi Modul 7</strong> di layar utama untuk mengulang proses QA.</li>
                                 </ol>
                                 <div style="text-align: right; margin-top: 25px;">
-                                    <button id="btn-close-success-modal" style="background: #34d399; color: #0f172a; border: none; padding: 8px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: background 0.2s;">Saya Mengerti</button>
+                                    <button id="btn-close-success-modal" style="background: #34d399; color: #1c1917; border: none; padding: 8px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: background 0.2s;">Saya Mengerti</button>
                                 </div>
                             </div>
                         </div>

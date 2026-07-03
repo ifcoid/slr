@@ -2,6 +2,7 @@
 import { API, getBaseURL } from '../api.js';
 import { showToast, toggleHidden, setButtonLoading } from '../ui.js';
 import { renderApprovalContent, appendXAISection } from './renderer.js';
+import { renderStepper, showModulePeek } from './stepper.js';
 
 let pollingInterval = null;
 let currentSessionId = null;
@@ -183,6 +184,11 @@ async function fetchSessionStatus() {
             return;
         }
         lastRenderedStatus = renderKey;
+
+        // Breadcrumb/stepper M1–M9: orientasi posisi + progres (klik modul selesai = peek
+        // read-only). Aditif — TIDAK mengubah #display-status (token mentah tetap utuh utk
+        // laporan bug). Digambar ulang hanya saat status benar berubah.
+        renderStepper('module-stepper', session, showModulePeek);
 
         // Logic for animation and interaction based on status
         if (session.status && (session.status.includes('WAITING') || session.status.includes('DONE') || session.status.includes('LOW_KAPPA') || session.status === 'M7_STEP2_VERIFY_BLOCKED')) {

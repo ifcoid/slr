@@ -551,3 +551,123 @@ code {
         font-size: 1.5rem;
     }
 }
+
+/* ============================================================
+   Breadcrumb / Stepper M1–M9 (orientasi posisi + progres)
+   ============================================================ */
+.module-stepper {
+    margin: 4px 0 18px;
+}
+.stepper-row {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    overflow-x: auto;
+    padding: 6px 2px 10px;
+    scrollbar-width: thin;
+}
+.step-conn {
+    flex: 1 1 8px;
+    min-width: 8px;
+    height: 2px;
+    background: var(--surface-border);
+    border-radius: 2px;
+}
+.step-node {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    min-width: 64px;
+    padding: 6px 6px 4px;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    color: var(--text-secondary);
+    font-family: var(--font-family);
+    cursor: default;
+    transition: var(--transition);
+}
+.step-node .step-dot {
+    width: 26px; height: 26px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 50%;
+    border: 2px solid var(--surface-border);
+    font-size: 0.8rem; font-weight: 700;
+    background: var(--bg-color);
+}
+.step-node .step-num { font-size: 0.62rem; opacity: 0.7; }
+.step-node .step-label { font-size: 0.66rem; text-align: center; line-height: 1.1; max-width: 74px; }
+
+.step-node.step-done { color: var(--success-color); }
+.step-node.step-done .step-dot { border-color: var(--success-color); color: var(--success-color); background: rgba(16,185,129,0.12); }
+.step-node.step-done { cursor: pointer; }
+.step-node.step-done:hover { background: rgba(16,185,129,0.10); border-color: rgba(16,185,129,0.35); }
+
+.step-node.step-current { color: var(--text-primary); }
+.step-node.step-current .step-dot {
+    border-color: var(--primary-color); color: #fff;
+    background: var(--primary-color);
+    box-shadow: 0 0 0 4px rgba(59,130,246,0.25);
+}
+.step-node.step-current .step-label { font-weight: 600; }
+
+.step-node.step-upcoming { opacity: 0.55; }
+.step-node[disabled] { cursor: default; }
+
+.stepper-current {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 6px 12px;
+    padding: 8px 12px;
+    background: var(--surface-color);
+    border: 1px solid var(--surface-border);
+    border-radius: 10px;
+}
+.stepper-current .stepper-line { font-size: 0.98rem; font-weight: 600; color: var(--text-primary); }
+.stepper-current .stepper-sub { font-size: 0.85rem; color: var(--text-secondary); }
+.stepper-current .stepper-count { margin-left: auto; font-size: 0.72rem; color: var(--text-secondary); opacity: 0.8; }
+
+/* Peek read-only modal */
+.peek-overlay {
+    position: fixed; inset: 0; z-index: 1000;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(2, 6, 23, 0.72);
+    backdrop-filter: blur(3px);
+    padding: 20px;
+}
+.peek-modal {
+    width: min(780px, 96vw);
+    max-height: 86vh;
+    display: flex; flex-direction: column;
+    background: #0f172a;
+    border: 1px solid var(--surface-border);
+    border-radius: var(--border-radius);
+    box-shadow: 0 24px 60px rgba(0,0,0,0.5);
+}
+.peek-header {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--surface-border);
+    font-weight: 600; color: var(--text-primary);
+}
+.peek-header .peek-ro {
+    font-size: 0.62rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;
+    color: var(--success-color);
+    border: 1px solid rgba(16,185,129,0.4); border-radius: 6px;
+    padding: 1px 6px; margin-left: 6px;
+}
+.peek-close {
+    background: transparent; border: none; color: var(--text-secondary);
+    font-size: 1.1rem; cursor: pointer; line-height: 1;
+}
+.peek-close:hover { color: var(--text-primary); }
+.peek-body { padding: 16px 18px; overflow-y: auto; color: var(--text-primary); }
+.peek-body .peek-md { font-size: 0.9rem; line-height: 1.55; }
+.peek-body .peek-empty { color: var(--text-secondary); font-size: 0.88rem; }
+.peek-foot {
+    padding: 10px 18px; border-top: 1px solid var(--surface-border);
+    font-size: 0.72rem; color: var(--text-secondary);
+}

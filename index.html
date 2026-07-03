@@ -33,10 +33,10 @@
         };
       })();
     </script>
-    <!-- Modern Font: Inter -->
+    <!-- Type: IBM Plex Sans (UI) + IBM Plex Mono (terminal) + Spectral (display, serif akademik) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Spectral:wght@500;600&display=swap" rel="stylesheet">
     <!-- Main Style -->
     <link rel="stylesheet" href="css/style.css">
     <!-- Markdown Parser -->
@@ -53,19 +53,19 @@
                 <span id="ws-text" style="font-weight: 500;">Disconnected</span>
             </div>
             <button id="btn-settings" class="btn btn-icon" title="Pengaturan API" style="position:relative;">
-                ⚙️ Pengaturan
-                <span id="settings-error-dot" class="hidden" title="Ada provider LLM bermasalah — klik untuk cek" style="position:absolute; top:-2px; right:-2px; width:11px; height:11px; background:#ef4444; border-radius:50%; border:2px solid var(--bg-primary, #0f172a); box-shadow:0 0 6px #ef4444;"></span>
+                <span class="ico ico-settings"></span> Pengaturan
+                <span id="settings-error-dot" class="hidden" title="Ada provider LLM bermasalah — klik untuk cek" style="position:absolute; top:-2px; right:-2px; width:11px; height:11px; background:#ef4444; border-radius:50%; border:2px solid var(--bg-color); box-shadow:0 0 6px #ef4444;"></span>
             </button>
             <div style="position:relative;">
-                <button id="btn-menu" class="btn btn-icon" title="Menu & Diagnostik" onclick="window.toggleHeaderMenu(event)">☰ Menu</button>
+                <button id="btn-menu" class="btn btn-icon" title="Menu & Diagnostik" onclick="window.toggleHeaderMenu(event)"><span class="ico ico-menu"></span> Menu</button>
                 <div id="header-menu" class="glass-panel hidden" style="position:absolute; right:0; top:115%; min-width:220px; z-index:60; padding:6px; border-radius:10px; display:flex; flex-direction:column; gap:3px;">
-                    <button id="menu-bug" class="btn btn-icon" style="justify-content:flex-start;" title="Lapor bug / debug & uji coba prompt LLM (Reproducible Error)" onclick="window.closeHeaderMenu(); window.openLLMDebug();">🐞 Lapor / Debug Bug</button>
-                    <button id="btn-health" class="btn btn-icon" style="justify-content:flex-start;" title="Kesehatan API" onclick="window.closeHeaderMenu()">🩺 Health Check</button>
-                    <button id="btn-full-report" class="btn btn-icon" style="justify-content:flex-start;" title="Unduh laporan SLR utuh dari database (Markdown)" onclick="window.closeHeaderMenu(); window.downloadFullReport();">📄 Laporan</button>
+                    <button id="menu-bug" class="btn btn-icon" style="justify-content:flex-start;" title="Lapor bug / debug & uji coba prompt LLM (Reproducible Error)" onclick="window.closeHeaderMenu(); window.openLLMDebug();"><span class="ico ico-bug"></span> Lapor / Debug Bug</button>
+                    <button id="btn-health" class="btn btn-icon" style="justify-content:flex-start;" title="Kesehatan API" onclick="window.closeHeaderMenu()"><span class="ico ico-health"></span> Health Check</button>
+                    <button id="btn-full-report" class="btn btn-icon" style="justify-content:flex-start;" title="Unduh laporan SLR utuh dari database (Markdown)" onclick="window.closeHeaderMenu(); window.downloadFullReport();"><span class="ico ico-file"></span> Laporan</button>
                 </div>
             </div>
             <button id="btn-logout" class="btn btn-icon hidden" title="Keluar dari Akun" style="background: rgba(239, 68, 68, 0.2); color: #ef4444; border-color: rgba(239, 68, 68, 0.3);">
-                🚪 Logout
+                <span class="ico ico-logout"></span> Logout
             </button>
         </div>
     </header>
@@ -88,7 +88,7 @@
                     <input type="password" id="input-invite-code" placeholder="Kosongkan jika tidak ada">
                 </div>
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem;">
-                    <a href="#" id="link-toggle-auth" style="color: #60a5fa; text-decoration: none; font-size: 0.9em;">Belum punya akun? Daftar di sini</a>
+                    <a href="#" id="link-toggle-auth" style="color: var(--accent-color); text-decoration: none; font-size: 0.9em;">Belum punya akun? Daftar di sini</a>
                     <button type="submit" id="btn-submit-auth" class="btn btn-primary">Login</button>
                 </div>
             </form>
@@ -99,7 +99,7 @@
             <div id="session-picker" class="hidden" style="margin-bottom: 24px;">
                 <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
                     <h2 style="margin:0;">Lanjutkan Sesi</h2>
-                    <button id="btn-refresh-sessions" class="btn btn-icon" title="Muat ulang daftar sesi">🔄 Muat ulang</button>
+                    <button id="btn-refresh-sessions" class="btn btn-icon" title="Muat ulang daftar sesi"><span class="ico ico-refresh"></span> Muat ulang</button>
                 </div>
                 <p style="opacity:0.7; margin:6px 0 12px;">Pilih sesi riset yang sudah ada, atau buat sesi baru di bawah.</p>
                 <div id="session-list" style="display:flex; flex-direction:column; gap:8px;"></div>
@@ -124,7 +124,7 @@
             <div class="tracker-header">
                 <h2>Status Sesi: <span id="display-session-id" class="text-highlight">...</span></h2>
                 <div style="display: flex; gap: 10px;">
-                    <button id="btn-refresh" class="btn btn-icon">🔄 Refresh</button>
+                    <button id="btn-refresh" class="btn btn-icon"><span class="ico ico-refresh"></span> Refresh</button>
                     <button id="btn-exit-session" class="btn btn-icon" style="background: rgba(239, 68, 68, 0.2); color: #ef4444; border-color: rgba(239, 68, 68, 0.3);">Keluar Sesi</button>
                 </div>
             </div>
@@ -140,9 +140,9 @@
             <!-- Virtual Terminal Log -->
             <div class="terminal-container">
                 <div class="terminal-header">
-                    <span>🔴</span><span>🟡</span><span>🟢</span>
+                    <span class="term-dot"></span><span class="term-dot"></span><span class="term-dot"></span>
                     <span style="margin-left:10px; font-size:0.8rem; color:#666;">Agent Real-Time Logs</span>
-                    <button onclick="window.openLLMDebug()" class="btn btn-icon" style="float:right;font-size:0.72rem;padding:2px 8px;" title="Lapor bug / debug & uji coba prompt LLM (Reproducible Error)">🐞 Lapor Bug</button>
+                    <button onclick="window.openLLMDebug()" class="btn btn-icon" style="float:right;font-size:0.72rem;padding:2px 8px;" title="Lapor bug / debug & uji coba prompt LLM (Reproducible Error)"><span class="ico ico-bug"></span> Lapor Bug</button>
                 </div>
                 <div id="terminal-logs" class="terminal-body">
                     <!-- Logs will be appended here -->
@@ -159,9 +159,9 @@
             <div class="tracker-header">
                 <h2>Dashboard Kesehatan & Kuota API</h2>
                 <div style="display: flex; gap: 10px;">
-                    <button id="btn-preflight" class="btn btn-icon" style="background: rgba(59, 130, 246, 0.2); color: #60a5fa; border-color: rgba(59, 130, 246, 0.3);" title="Uji SEMUA role pipeline (Reviewer 1/2, Supervisor, Brain, Auditor + fallback) dengan generate nyata. ~1-2 menit.">🚦 Pre-flight Semua Role</button>
-                    <button onclick="window.openLLMDebug()" class="btn btn-icon" style="background: rgba(168, 85, 247, 0.2); color: #c084fc; border-color: rgba(168, 85, 247, 0.3);" title="Lapor bug / debug & uji coba prompt LLM (Reproducible Error)">🐞 Lapor / Debug Bug</button>
-                    <button id="btn-refresh-health" class="btn btn-icon">🔄 Refresh Status</button>
+                    <button id="btn-preflight" class="btn btn-icon" style="background: rgba(13,148,136,0.16); color: var(--accent-color); border-color: rgba(13,148,136,0.32);" title="Uji SEMUA role pipeline (Reviewer 1/2, Supervisor, Brain, Auditor + fallback) dengan generate nyata. ~1-2 menit."><span class="ico ico-zap"></span> Pre-flight Semua Role</button>
+                    <button onclick="window.openLLMDebug()" class="btn btn-icon" style="background: rgba(13,148,136,0.16); color: var(--accent-color); border-color: rgba(13,148,136,0.32);" title="Lapor bug / debug & uji coba prompt LLM (Reproducible Error)"><span class="ico ico-bug"></span> Lapor / Debug Bug</button>
+                    <button id="btn-refresh-health" class="btn btn-icon"><span class="ico ico-refresh"></span> Refresh Status</button>
                     <button id="btn-back-health" class="btn btn-icon" style="background: rgba(156, 163, 175, 0.2); color: #9ca3af; border-color: rgba(156, 163, 175, 0.3);">Kembali</button>
                 </div>
             </div>
@@ -206,7 +206,7 @@
 
                 <h3>Konfigurasi LLM API Key</h3>
                 <small style="display:block; color:var(--text-secondary); margin-bottom:8px; line-height:1.5;">
-                    Langkah: <strong>1)</strong> pilih Provider → <strong>2)</strong> isi API Key → <strong>3)</strong> klik <strong>🔄 Muat Model</strong> → <strong>4)</strong> pilih Model → <strong>5)</strong> Simpan. <em>Model yang dipilih di sinilah yang dipakai role mana pun yang menunjuk provider ini (lihat Model Routing di bawah).</em>
+                    Langkah: <strong>1)</strong> pilih Provider → <strong>2)</strong> isi API Key → <strong>3)</strong> klik <strong><span class="ico ico-refresh"></span> Muat Model</strong> → <strong>4)</strong> pilih Model → <strong>5)</strong> Simpan. <em>Model yang dipilih di sinilah yang dipakai role mana pun yang menunjuk provider ini (lihat Model Routing di bawah).</em>
                 </small>
                 <form id="form-llm-config">
                     <div class="form-group">
@@ -246,9 +246,9 @@
                                 <option value="">Masukkan API Key & Muat Model...</option>
                             </select>
                         </div>
-                        <button type="button" id="btn-fetch-models" class="btn btn-secondary" style="height: 42px;">🔄 Muat Model</button>
-                        <button type="button" id="btn-test-model" class="btn btn-secondary" style="height: 42px;" title="Uji panggilan NYATA ke model terpilih — menangkap model terkunci/404 yang lolos cek API key">🧪 Test Model</button>
-                        <button type="button" onclick="window.openLLMDebug()" class="btn btn-secondary" style="height: 42px;" title="Lapor bug / debug & uji coba prompt LLM (Reproducible Error)">🐞 Lapor / Debug Bug</button>
+                        <button type="button" id="btn-fetch-models" class="btn btn-secondary" style="height: 42px;"><span class="ico ico-refresh"></span> Muat Model</button>
+                        <button type="button" id="btn-test-model" class="btn btn-secondary" style="height: 42px;" title="Uji panggilan NYATA ke model terpilih — menangkap model terkunci/404 yang lolos cek API key"><span class="ico ico-zap"></span> Test Model</button>
+                        <button type="button" onclick="window.openLLMDebug()" class="btn btn-secondary" style="height: 42px;" title="Lapor bug / debug & uji coba prompt LLM (Reproducible Error)"><span class="ico ico-bug"></span> Lapor / Debug Bug</button>
                     </div>
                     
                     <div id="llm-config-status" style="font-size:0.85em; margin:4px 0; min-height:1em;"></div>
@@ -260,7 +260,7 @@
                 <h3>Model Routing (Peran → Provider)</h3>
                 <small>Tentukan provider untuk tiap peran agen + fallback-nya. Tanpa edit kode. Tiap opsi menampilkan <strong>provider · model</strong> yang dipakai; provider tanpa API Key ditandai "belum dikonfigurasi".</small>
                 <details style="margin:6px 0; font-size:0.85em; color:var(--text-secondary);">
-                    <summary style="cursor:pointer; color:#93c5fd;">❓ Apa arti tiap peran &amp; "fallback"?</summary>
+                    <summary style="cursor:pointer; color:var(--accent-color);"><span class="ico ico-info"></span> Apa arti tiap peran &amp; "fallback"?</summary>
                     <ul style="margin:6px 0 0 0; padding-left:18px; line-height:1.6;">
                         <li><strong>Reviewer 1 &amp; 2</strong> — dua penilai independen untuk screening (M5/M6) &amp; ekstraksi (M7); hasilnya dibandingkan (dual-review).</li>
                         <li><strong>Supervisor (Arbiter)</strong> — memutus saat Reviewer 1 &amp; 2 berbeda pendapat (konflik screening).</li>
@@ -328,7 +328,7 @@
             <div class="modal-header">
                 <h2 style="margin: 0;">Hasil Ekstraksi Data (Modul 7)</h2>
                 <div style="display: flex; gap: 10px;">
-                    <button class="btn btn-secondary" onclick="window.showAmbiguityResolutionModal()" style="border-color: #eab308; color: #fef08a;">🛠️ Resolve Ambiguities</button>
+                    <button class="btn btn-secondary" onclick="window.showAmbiguityResolutionModal()" style="border-color: #eab308; color: #fef08a;"><span class="ico ico-settings"></span> Resolve Ambiguities</button>
                     <button class="btn-close" onclick="closeExtractionModal()">&times;</button>
                 </div>
             </div>
@@ -350,7 +350,7 @@
     <div id="ambiguity-resolution-modal" class="modal-overlay hidden" style="z-index: 9999;">
         <div class="glass-panel modal-content" style="max-width: 90vw; width: 800px; max-height: 90vh; display: flex; flex-direction: column;">
             <div class="modal-header">
-                <h2 style="margin: 0;">🛠️ Resolusi Konflik / Ambiguitas</h2>
+                <h2 style="margin: 0;">Resolusi Konflik / Ambiguitas</h2>
                 <button class="btn-close" onclick="document.getElementById('ambiguity-resolution-modal').classList.add('hidden')">&times;</button>
             </div>
             <div class="modal-body" style="flex: 1; display: flex; flex-direction: column; overflow: hidden; padding-top: 5px;">
@@ -370,7 +370,7 @@
     <!-- Backend Connection Check Modal (Blocking) -->
     <div id="modal-connection" class="modal-overlay hidden" style="z-index: 9999;">
         <div class="glass-panel modal-content" style="max-width: 460px; text-align: center;">
-            <div style="font-size: 3rem; margin-bottom: 1rem;">🔌</div>
+            <div style="font-size: 3rem; margin-bottom: 1rem;"><span class="ico ico-power" style="color:var(--text-secondary)"></span></div>
             <h2 style="color: #ef4444; margin-bottom: 0.5rem;">Backend Tidak Terhubung</h2>
             <p style="color: var(--text-secondary); margin-bottom: 1.5rem; line-height: 1.7;">
                 Aplikasi tidak dapat menghubungi server backend.<br>
@@ -384,11 +384,11 @@
             </div>
             <p id="connection-error-detail" style="color: #f87171; font-size: 0.85em; margin-bottom: 1rem; display: none;"></p>
             <div style="display: flex; gap: 12px; justify-content: center;">
-                <button id="btn-conn-settings" class="btn btn-secondary" style="border-color: rgba(59, 130, 246, 0.5); color: #60a5fa;">
-                    ⚙️ Buka Settings
+                <button id="btn-conn-settings" class="btn btn-secondary" style="border-color: rgba(13,148,136,0.5); color: var(--accent-color);">
+                    <span class="ico ico-settings"></span> Buka Settings
                 </button>
                 <button id="btn-conn-retry" class="btn btn-primary">
-                    🔄 Coba Lagi
+                    <span class="ico ico-refresh"></span> Coba Lagi
                 </button>
             </div>
             <div id="connection-checking" class="hidden" style="margin-top: 1rem; color: var(--text-secondary); font-size: 0.9em;">

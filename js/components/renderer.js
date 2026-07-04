@@ -118,11 +118,17 @@ function renderAuditReport(rep) {
             <div style="font-size:0.85em;color:#d6d3d1;margin-top:4px;">${e(c.detail)}</div>
             ${c.fix ? `<div style="font-size:0.82em;color:#fcd34d;margin-top:4px;">→ ${e(c.fix)}</div>` : ''}
         </div>`).join('');
+    const dlRow = (rep.protocol_markdown || rep.repro_package_markdown) ? `
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+            ${rep.protocol_markdown ? `<button id="dl-protocol" class="btn btn-secondary" style="font-size:0.85em;"><span class="ico ico-download"></span> Protokol (PROSPERO/OSF)</button>` : ''}
+            ${rep.repro_package_markdown ? `<button id="dl-repro" class="btn btn-secondary" style="font-size:0.85em;"><span class="ico ico-download"></span> Paket Reproducibility (Supplementary)</button>` : ''}
+        </div>` : '';
     return `
         <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:8px;background:${vc}1a;border:1px solid ${vc}55;margin-bottom:12px;">
             <span style="font-size:1.05em;font-weight:700;color:${vc};">${e(vlabel)}</span>
             <span style="font-size:0.9em;color:#d6d3d1;">${e(rep.summary)}</span>
         </div>
+        ${dlRow}
         <div style="display:flex;gap:14px;font-size:0.82em;color:#a8a29e;margin-bottom:10px;">
             <span style="color:#10b981;">✓ ${rep.pass_count || 0} lolos</span>
             <span style="color:#f59e0b;">⚠ ${rep.warn_count || 0} peringatan</span>
@@ -2937,7 +2943,24 @@ ATURAN EDGES:
         `);
 
     } else if (status === 'M10_STEP1_WAITING_APPROVAL' && session.audit_report) {
-        html = wrapCard('Modul 10 — Audit Pra-Submisi & Defensibility Gate', renderAuditReport(session.audit_report));
+        const rep = session.audit_report;
+        html = wrapCard('Modul 10 — Audit Pra-Submisi & Defensibility Gate', renderAuditReport(rep));
+        setTimeout(() => {
+            const wire = (id, name, content) => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.addEventListener('click', () => {
+                    const blob = new Blob([content || ''], { type: 'text/markdown;charset=utf-8' });
+                    const a = document.createElement('a');
+                    a.href = URL.createObjectURL(blob);
+                    a.download = name;
+                    document.body.appendChild(a); a.click();
+                    setTimeout(() => { a.remove(); URL.revokeObjectURL(a.href); }, 0);
+                });
+            };
+            wire('dl-protocol', `protokol_${session.id}.md`, rep.protocol_markdown);
+            wire('dl-repro', `reproducibility_${session.id}.md`, rep.repro_package_markdown);
+        }, 0);
 
     } else if (status === 'M9_COMPILE_WAITING_APPROVAL' && session.manuscript) {
         const ms = session.manuscript;

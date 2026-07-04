@@ -242,6 +242,9 @@ export const API = {
 
     fixQAErrors: (id) => apiFetch(`/sessions/${id}/m10/fix-qa-errors`, { method: 'POST' }),
 
+    listFigures: (id) => apiFetch(`/sessions/${id}/figures`),
+    uploadFigures: (id, formData) => apiFetch(`/sessions/${id}/figures`, { method: 'POST', body: formData }),
+
     // M6 API
     syncQdrant: (id) => apiFetch(`/sessions/${id}/m6/sync-qdrant`, {
         method: 'POST'

@@ -80,6 +80,17 @@ export function renderExportHub(session) {
       ${row('Suplemen Q1', b('protocol', 'file', 'Protokol PROSPERO', !ar.protocol_markdown) + b('repro', 'file', 'Reproducibility', !ar.repro_package_markdown))}
       ${row('Handoff LLM', b('handoff', 'ai', 'Panduan koneksi DB + regen LaTeX') + b('schema', 'file', 'Skema Data (Live)'))}
       <p style="font-size:0.78em;color:var(--text-secondary);margin-top:8px;">Panduan Handoff = cara mengarahkan LLM lain ke <strong>data Anda</strong> (Mongo/Qdrant/Neo4j, credential-safe). Skema Data = peta field ter-introspeksi dari DB Anda saat ini (selalu terkini).</p>
+      <div style="border-top:1px solid var(--surface-border);margin-top:10px;padding-top:10px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+          <strong style="font-size:0.9em;">Figur Bibliometrik / SLNA</strong>
+          <span style="display:flex;gap:6px;">
+            <button class="btn btn-secondary" data-x="fig-upload" style="font-size:0.8em;"><span class="ico ico-file"></span> Unggah Figur</button>
+            <input type="file" data-x="fig-input" accept=".svg,.png,.pdf,.csv,.json" multiple style="display:none;">
+          </span>
+        </div>
+        <p style="font-size:0.78em;color:var(--text-secondary);margin:4px 0;">Di-generate dari notebook PEDE (thematic map, co-occurrence, tren, kolaborasi). Unggah folder hasil (SVG/PNG + CSV) agar tersimpan &amp; masuk arsip Zenodo. SVG untuk kualitas Q1.</p>
+        <div data-x="fig-list" style="font-size:0.82em;color:var(--text-secondary);">Memuat figur…</div>
+      </div>
     </div>`;
 }
 export function wireExportHub(root, session) {
@@ -98,6 +109,65 @@ export function wireExportHub(root, session) {
     if (tt) tt.addEventListener('click', (e) => { e.preventDefault(); _showTinyTexGuide(); });
     on('handoff', async () => { try { showToast('Menyusun panduan handoff…'); await _serverDownload(sid, '/handoff-guide', `handoff_${sid}.md`); showToast('Panduan handoff diunduh.'); } catch (e) { showToast('Gagal: ' + e.message, 'error'); } });
     on('schema', async () => { try { showToast('Introspeksi skema live…'); await _serverDownload(sid, '/schema-guide', `schema_${sid}.md`); showToast('Skema data diunduh.'); } catch (e) { showToast('Gagal: ' + e.message, 'error'); } });
+
+    // ── Figur bibliometrik: unggah + daftar + preview ──
+    const figList = root.querySelector('[data-x="fig-list"]');
+    const figInput = root.querySelector('[data-x="fig-input"]');
+    const figUploadBtn = root.querySelector('[data-x="fig-upload"]');
+    async function _figBlobURL(name) {
+        const resp = await fetch(`${getBaseURL()}/sessions/${encodeURIComponent(sid)}/figures/${encodeURIComponent(name)}`, {
+            headers: { 'Authorization': 'Bearer ' + (localStorage.getItem('auth_token') || '') }
+        });
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        return URL.createObjectURL(await resp.blob());
+    }
+    async function reloadFigures() {
+        if (!figList) return;
+        try {
+            const r = await API.listFigures(sid);
+            const figs = (r && r.figures) || [];
+            if (!figs.length) { figList.innerHTML = '<em>Belum ada figur. Jalankan notebook PEDE lalu unggah hasilnya.</em>'; return; }
+            const isImg = (n) => /\.(png|svg)$/i.test(n);
+            figList.innerHTML = `<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;">` +
+                figs.map(f => {
+                    const kb = Math.max(1, Math.round((f.size || 0) / 1024));
+                    return `<span style="display:inline-flex;align-items:center;gap:4px;border:1px solid var(--surface-border);border-radius:6px;padding:3px 7px;">
+                        <a href="#" data-fig="${encodeURIComponent(f.filename)}" style="color:var(--accent-color,#0ea5a4);">${f.filename}</a>
+                        <span style="color:var(--text-secondary);font-size:0.85em;">${kb}KB</span></span>`;
+                }).join('') + `</div><div data-x="fig-previews" style="display:flex;flex-wrap:wrap;gap:10px;margin-top:8px;"></div>`;
+            figList.querySelectorAll('[data-fig]').forEach(a => a.addEventListener('click', async (e) => {
+                e.preventDefault();
+                try { const url = await _figBlobURL(decodeURIComponent(a.dataset.fig)); const el = document.createElement('a'); el.href = url; el.download = decodeURIComponent(a.dataset.fig); document.body.appendChild(el); el.click(); el.remove(); setTimeout(() => URL.revokeObjectURL(url), 4000); }
+                catch (err) { showToast('Gagal unduh: ' + err.message, 'error'); }
+            }));
+            const prev = figList.querySelector('[data-x="fig-previews"]');
+            for (const f of figs.filter(x => isImg(x.filename)).slice(0, 6)) {
+                try {
+                    const url = await _figBlobURL(f.filename);
+                    const img = document.createElement('img');
+                    img.src = url; img.title = f.filename;
+                    img.style.cssText = 'max-width:150px;max-height:120px;border:1px solid var(--surface-border);border-radius:6px;background:#fff;';
+                    prev.appendChild(img);
+                } catch (_) { /* skip preview */ }
+            }
+        } catch (e) { figList.innerHTML = '<em>Gagal memuat figur: ' + e.message + '</em>'; }
+    }
+    if (figUploadBtn && figInput) {
+        figUploadBtn.addEventListener('click', () => figInput.click());
+        figInput.addEventListener('change', async () => {
+            if (!figInput.files.length) return;
+            const fd = new FormData();
+            for (const f of figInput.files) fd.append('files', f);
+            setButtonLoading(figUploadBtn, true);
+            try {
+                const r = await API.uploadFigures(sid, fd);
+                showToast(`${r.saved || 0} figur diunggah.`, 'success');
+                await reloadFigures();
+            } catch (e) { showToast('Gagal unggah: ' + e.message, 'error'); }
+            finally { setButtonLoading(figUploadBtn, false, '<span class="ico ico-file"></span> Unggah Figur'); figInput.value = ''; }
+        });
+    }
+    reloadFigures();
 }
 // Panduan install TinyTeX (LaTeX ringan lintas-platform) untuk compile .tex → PDF.
 function _showTinyTexGuide() {

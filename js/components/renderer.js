@@ -78,6 +78,8 @@ export function renderExportHub(session) {
       ${row('Laporan', b('reporttex', 'file', 'LaTeX .tex') + b('reportbib', 'file', 'references .bib', !ms.bibtex) + b('report', 'file', 'Markdown .md'))}
       <p style="font-size:0.78em;color:var(--text-secondary);margin:2px 0 6px;">Manuskrip &amp; laporan konsisten <strong>LaTeX + BibTeX</strong> memakai katalog referensi NYATA yang sama (integritas sitasi). Compile: taruh <code>.tex</code> + <code>references.bib</code> di folder yang sama → <code>pdflatex</code> → <code>bibtex</code> → <code>pdflatex</code> ×2. Butuh LaTeX? <a href="#" data-x="tinytex" style="color:var(--accent-color,#0ea5a4);">Panduan install TinyTeX ↓</a></p>
       ${row('Suplemen Q1', b('protocol', 'file', 'Protokol PROSPERO', !ar.protocol_markdown) + b('repro', 'file', 'Reproducibility', !ar.repro_package_markdown))}
+      ${row('Arsip Zenodo', `<button class="btn btn-secondary" data-x="zenodo" style="font-size:0.8em;"><span class="ico ico-upload"></span> Buat Draft Zenodo</button><button class="btn btn-secondary" data-x="zenodo-cfg" style="font-size:0.8em;" title="Konfigurasi token Zenodo"><span class="ico ico-file"></span> Token…</button>`)}
+      <p style="font-size:0.78em;color:var(--text-secondary);margin:2px 0 6px;">Membuat <strong>draft</strong> deposition (unggah kit + prefill metadata) — <strong>PUBLISH tetap Anda lakukan sendiri</strong> di Zenodo setelah melengkapi nama penulis/ORCID (DOI permanen = perlu review). DOI lalu disitasi di Data Availability manuskrip.</p>
       ${row('Handoff LLM', b('handoff', 'ai', 'Panduan koneksi DB + regen LaTeX') + b('schema', 'file', 'Skema Data (Live)'))}
       <p style="font-size:0.78em;color:var(--text-secondary);margin-top:8px;">Panduan Handoff = cara mengarahkan LLM lain ke <strong>data Anda</strong> (Mongo/Qdrant/Neo4j, credential-safe). Skema Data = peta field ter-introspeksi dari DB Anda saat ini (selalu terkini).</p>
       <div style="border-top:1px solid var(--surface-border);margin-top:10px;padding-top:10px;">
@@ -107,6 +109,22 @@ export function wireExportHub(root, session) {
     on('reportbib', () => _clientDownload('references.bib', ms.bibtex, 'text/plain'));
     const tt = root.querySelector('[data-x="tinytex"]');
     if (tt) tt.addEventListener('click', (e) => { e.preventDefault(); _showTinyTexGuide(); });
+
+    // ── Zenodo draft-deposit ──
+    async function doZenodoDeposit(btn) {
+        setButtonLoading(btn, true);
+        try {
+            const r = await API.zenodoDeposit(sid);
+            _showZenodoResult(r);
+        } catch (e) {
+            if (/token zenodo belum diisi/i.test(e.message || '')) { _showZenodoConfig(() => doZenodoDeposit(btn)); }
+            else showToast('Gagal: ' + e.message, 'error');
+        } finally { setButtonLoading(btn, false, '<span class="ico ico-upload"></span> Buat Draft Zenodo'); }
+    }
+    const zBtn = root.querySelector('[data-x="zenodo"]');
+    if (zBtn) zBtn.addEventListener('click', () => doZenodoDeposit(zBtn));
+    const zCfg = root.querySelector('[data-x="zenodo-cfg"]');
+    if (zCfg) zCfg.addEventListener('click', () => _showZenodoConfig(null));
     on('handoff', async () => { try { showToast('Menyusun panduan handoff…'); await _serverDownload(sid, '/handoff-guide', `handoff_${sid}.md`); showToast('Panduan handoff diunduh.'); } catch (e) { showToast('Gagal: ' + e.message, 'error'); } });
     on('schema', async () => { try { showToast('Introspeksi skema live…'); await _serverDownload(sid, '/schema-guide', `schema_${sid}.md`); showToast('Skema data diunduh.'); } catch (e) { showToast('Gagal: ' + e.message, 'error'); } });
 
@@ -188,6 +206,54 @@ pdflatex manuscript.tex
 pdflatex manuscript.tex</code></pre>
       <p style="color:var(--text-secondary);">Urutan itu (pdflatex → bibtex → pdflatex ×2) diperlukan agar sitasi &amp; daftar pustaka dari BibTeX ter-resolve. Paket yang kurang di-install otomatis oleh TinyTeX saat pertama dipakai. Cara sama untuk <code>laporan_slr.tex</code>.</p>
       <p style="color:var(--text-secondary);">Tanpa install: tempel <code>.tex</code> ke <strong>Overleaf</strong> (upload <code>.tex</code> + <code>references.bib</code>) — compile di browser.</p>
+    </div></div>`;
+    document.body.appendChild(overlay);
+    const close = () => overlay.remove();
+    overlay.querySelector('.peek-close').addEventListener('click', close);
+    overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
+}
+
+// Modal konfig token Zenodo (per-user, sandbox toggle). onSaved: callback (mis. retry deposit).
+async function _showZenodoConfig(onSaved) {
+    let cfg = { sandbox: false }, tokenSet = false;
+    try { const r = await API.getZenodoConfig(); cfg = (r && r.config) || cfg; tokenSet = !!(r && r.token_set); } catch (_) { }
+    const overlay = document.createElement('div'); overlay.className = 'peek-overlay';
+    overlay.innerHTML = `<div class="peek-modal"><div class="peek-header"><span><span class="ico ico-file"></span> Konfigurasi Token Zenodo</span><button class="peek-close" aria-label="Tutup"><span class="ico ico-close"></span></button></div>
+    <div class="peek-body" style="font-size:0.9em;line-height:1.6;">
+      <p>Buat token di <strong>zenodo.org</strong> (atau sandbox) → Account ▸ Applications ▸ <em>Personal access tokens</em> ▸ New, centang scope <code>deposit:write</code> (+ <code>deposit:actions</code>). Token disimpan di backend Anda, <strong>tak pernah dibagikan</strong>.</p>
+      <label style="display:block;margin:8px 0 3px;font-weight:600;">Personal Access Token ${tokenSet ? '<span style="color:#10b981;font-weight:400;">(sudah tersimpan — kosongkan untuk mempertahankan)</span>' : ''}</label>
+      <input type="password" id="zen-token" placeholder="${tokenSet ? '••••••• (tersimpan)' : 'tempel token di sini'}" style="width:100%;padding:7px;border-radius:6px;border:1px solid var(--surface-border);background:var(--input-bg,#1c1917);color:inherit;">
+      <label style="display:flex;align-items:center;gap:8px;margin:10px 0;"><input type="checkbox" id="zen-sandbox" ${cfg.sandbox ? 'checked' : ''}> Mode <strong>sandbox</strong> (sandbox.zenodo.org — uji tanpa mint DOI asli)</label>
+      <p style="font-size:0.82em;color:var(--text-secondary);">Sandbox &amp; produksi memakai token BERBEDA (dari situs masing-masing).</p>
+      <button id="zen-save" class="btn btn-primary" style="margin-top:6px;"><span class="ico ico-file"></span> Simpan</button>
+    </div></div>`;
+    document.body.appendChild(overlay);
+    const close = () => overlay.remove();
+    overlay.querySelector('.peek-close').addEventListener('click', close);
+    overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
+    overlay.querySelector('#zen-save').addEventListener('click', async () => {
+        const payload = { token: overlay.querySelector('#zen-token').value.trim(), sandbox: overlay.querySelector('#zen-sandbox').checked };
+        try { await API.updateZenodoConfig(payload); showToast('Token Zenodo tersimpan.', 'success'); close(); if (onSaved) onSaved(); }
+        catch (e) { showToast('Gagal simpan: ' + e.message, 'error'); }
+    });
+}
+
+// Modal hasil draft-deposit (link + pengingat publish manual).
+function _showZenodoResult(r) {
+    const overlay = document.createElement('div'); overlay.className = 'peek-overlay';
+    const warn = (r.failed || 0) > 0 ? `<p style="color:#f59e0b;">${r.failed} file gagal diunggah (dari ${r.total}).</p>` : '';
+    overlay.innerHTML = `<div class="peek-modal"><div class="peek-header"><span><span class="ico ico-upload"></span> Draft Zenodo dibuat${r.sandbox ? ' (sandbox)' : ''}</span><button class="peek-close" aria-label="Tutup"><span class="ico ico-close"></span></button></div>
+    <div class="peek-body" style="font-size:0.9em;line-height:1.6;">
+      <p><strong>${r.uploaded} artefak</strong> terunggah ke draft deposition. ${warn}</p>
+      <p><strong style="color:#f59e0b;">Belum ter-publish.</strong> Langkah Anda selanjutnya:</p>
+      <ol style="padding-left:18px;">
+        <li>Buka draft di Zenodo (tombol bawah).</li>
+        <li>Lengkapi metadata <strong>WAJIB</strong>: nama penulis + ORCID, deskripsi, lisensi, keywords.</li>
+        <li>Tekan <strong>Publish</strong> di Zenodo untuk mint <strong>DOI</strong> permanen.</li>
+        <li>Sitasi DOI itu di <em>Data Availability Statement</em> manuskrip.</li>
+      </ol>
+      <p style="font-size:0.82em;color:var(--text-secondary);">Draft tidak di-publish otomatis: DOI bersifat permanen &amp; publik, jadi perlu review Anda.</p>
+      <a href="${r.draft_url}" target="_blank" rel="noopener" class="btn btn-primary" style="margin-top:6px;"><span class="ico ico-upload"></span> Buka Draft di Zenodo</a>
     </div></div>`;
     document.body.appendChild(overlay);
     const close = () => overlay.remove();

@@ -245,6 +245,10 @@ export const API = {
     listFigures: (id) => apiFetch(`/sessions/${id}/figures`),
     uploadFigures: (id, formData) => apiFetch(`/sessions/${id}/figures`, { method: 'POST', body: formData }),
 
+    getZenodoConfig: () => apiFetch('/zenodo/config'),
+    updateZenodoConfig: (cfg) => apiFetch('/zenodo/config', { method: 'PUT', body: JSON.stringify(cfg) }),
+    zenodoDeposit: (id) => apiFetch(`/sessions/${id}/zenodo/deposit`, { method: 'POST' }),
+
     // M6 API
     syncQdrant: (id) => apiFetch(`/sessions/${id}/m6/sync-qdrant`, {
         method: 'POST'

@@ -47,6 +47,67 @@ window.downloadFullReport = async () => {
     } catch (e) { showToast('Gagal menyusun laporan: ' + e.message, 'error'); }
 };
 
+// ── Ruang Ekspor (handoff kit) ──────────────────────────────────────────────
+function _clientDownload(name, content, type) {
+    const blob = new Blob([content || ''], { type: type || 'text/plain;charset=utf-8' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+    a.download = name; document.body.appendChild(a); a.click();
+    setTimeout(() => { a.remove(); URL.revokeObjectURL(a.href); }, 0);
+}
+async function _serverDownload(sid, path, name) {
+    const resp = await fetch(`${getBaseURL()}/sessions/${encodeURIComponent(sid)}${path}`, {
+        headers: { 'Authorization': 'Bearer ' + (localStorage.getItem('auth_token') || '') }
+    });
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    _clientDownload(name, await resp.text(), 'text/markdown;charset=utf-8');
+}
+
+// renderExportHub: panel unduhan terpusat semua artefak final (manuskrip/laporan/suplemen
+// Q1 + panduan handoff cowork-LLM). Dipakai inline di COMPLETED & di modal ☰ Menu.
+export function renderExportHub(session) {
+    const ms = session.manuscript || {};
+    const ar = session.audit_report || {};
+    const row = (label, btns) => `<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 0;border-bottom:1px solid var(--surface-border);">
+        <span style="min-width:120px;font-weight:600;font-size:0.88em;">${label}</span><span style="display:flex;gap:6px;flex-wrap:wrap;">${btns}</span></div>`;
+    const b = (id, ico, text, disabled) => `<button class="btn btn-secondary" data-x="${id}" style="font-size:0.8em;" ${disabled ? 'disabled title="Belum tersedia di sesi ini"' : ''}><span class="ico ico-${ico}"></span> ${text}</button>`;
+    return `
+    <div class="export-hub">
+      <h3 style="margin-bottom:4px;"><span class="ico ico-download"></span> Ruang Ekspor — SLR Selesai</h3>
+      <p style="font-size:0.85em;color:var(--text-secondary);margin-bottom:10px;">Semua artefak final di satu tempat — rantai dokumentasi lengkap untuk submit Q1 &amp; melanjutkan bersama cowork-LLM.</p>
+      ${row('Manuskrip', b('tex', 'file', 'LaTeX .tex', !ms.latex) + b('bib', 'file', 'BibTeX .bib', !ms.bibtex) + b('mmd', 'file', 'Markdown .md', !ms.final))}
+      ${row('Laporan', b('report', 'file', 'Laporan lengkap .md'))}
+      ${row('Suplemen Q1', b('protocol', 'file', 'Protokol PROSPERO', !ar.protocol_markdown) + b('repro', 'file', 'Reproducibility', !ar.repro_package_markdown))}
+      ${row('Handoff LLM', b('handoff', 'ai', 'Panduan koneksi DB + regen LaTeX'))}
+      <p style="font-size:0.78em;color:var(--text-secondary);margin-top:8px;">Panduan Handoff = cara mengarahkan LLM lain ke <strong>data Anda</strong> (Mongo/Qdrant/Neo4j, credential-safe) untuk menyempurnakan artikel/laporan LaTeX.</p>
+    </div>`;
+}
+export function wireExportHub(root, session) {
+    const sid = session.id;
+    const ms = session.manuscript || {}; const ar = session.audit_report || {};
+    const on = (x, fn) => { const el = root.querySelector(`[data-x="${x}"]`); if (el && !el.disabled) el.addEventListener('click', fn); };
+    on('tex', () => _clientDownload(`manuscript_${sid}.tex`, ms.latex, 'application/x-tex'));
+    on('bib', () => _clientDownload(`references_${sid}.bib`, ms.bibtex, 'text/plain'));
+    on('mmd', () => _clientDownload(`manuscript_${sid}.md`, ms.final, 'text/markdown'));
+    on('protocol', () => _clientDownload(`protokol_${sid}.md`, ar.protocol_markdown, 'text/markdown'));
+    on('repro', () => _clientDownload(`reproducibility_${sid}.md`, ar.repro_package_markdown, 'text/markdown'));
+    on('report', async () => { try { showToast('Menyusun laporan…'); await _serverDownload(sid, '/report', `laporan_slr_${sid}.md`); showToast('Laporan diunduh.'); } catch (e) { showToast('Gagal: ' + e.message, 'error'); } });
+    on('handoff', async () => { try { showToast('Menyusun panduan handoff…'); await _serverDownload(sid, '/handoff-guide', `handoff_${sid}.md`); showToast('Panduan handoff diunduh.'); } catch (e) { showToast('Gagal: ' + e.message, 'error'); } });
+}
+// Buka Ruang Ekspor sebagai modal dari ☰ Menu (kapan saja, untuk sesi aktif).
+window.openExportHub = async () => {
+    const sid = localStorage.getItem('activeSessionId') || ((document.getElementById('display-session-id') || {}).textContent || '').trim();
+    if (!sid || sid === '...' || sid === '-') { showToast('Buka sesi dulu untuk mengekspor.', 'error'); return; }
+    let session;
+    try { session = await API.getSession(sid); } catch (e) { showToast('Gagal memuat sesi: ' + e.message, 'error'); return; }
+    const overlay = document.createElement('div'); overlay.className = 'peek-overlay';
+    overlay.innerHTML = `<div class="peek-modal"><div class="peek-header"><span><span class="ico ico-download"></span> Ruang Ekspor</span><button class="peek-close" aria-label="Tutup"><span class="ico ico-close"></span></button></div><div class="peek-body">${renderExportHub(session)}</div></div>`;
+    document.body.appendChild(overlay);
+    wireExportHub(overlay, session);
+    const close = () => overlay.remove();
+    overlay.querySelector('.peek-close').addEventListener('click', close);
+    overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
+};
+
 // Uji model NYATA untuk sebuah ROLE (mis. reviewer2) — tangkap model terkunci/404.
 window.testRoleModel = async (role) => {
     showToast(`🧪 Menguji model ${role}…`);

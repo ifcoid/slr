@@ -1,7 +1,7 @@
 // js/components/tracker.js
 import { API, getBaseURL } from '../api.js';
 import { showToast, toggleHidden, setButtonLoading } from '../ui.js';
-import { renderApprovalContent, appendXAISection } from './renderer.js';
+import { renderApprovalContent, appendXAISection, renderExportHub, wireExportHub } from './renderer.js';
 import { renderStepper, showModulePeek } from './stepper.js';
 
 let pollingInterval = null;
@@ -197,7 +197,9 @@ async function fetchSessionStatus() {
         } else if (session.status === 'COMPLETED') {
             toggleHidden('status-spinner', false);
             displayStatus.textContent = "COMPLETED ✅ (Selesai)";
-            document.getElementById('interactive-area').innerHTML = `<p>Semua modul SLR telah berhasil diselesaikan!</p>`;
+            const area = document.getElementById('interactive-area');
+            area.innerHTML = `<p style="margin-bottom:12px;">Semua modul SLR telah berhasil diselesaikan.</p>` + renderExportHub(session);
+            wireExportHub(area, session);
             toggleHidden('interactive-area', true);
             stopTracking();
         } else if (session.status.includes('NEEDS_REVISION') && !session.status.includes('ERROR')) {

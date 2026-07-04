@@ -75,7 +75,8 @@ export function renderExportHub(session) {
       <h3 style="margin-bottom:4px;"><span class="ico ico-download"></span> Ruang Ekspor — SLR Selesai</h3>
       <p style="font-size:0.85em;color:var(--text-secondary);margin-bottom:10px;">Semua artefak final di satu tempat — rantai dokumentasi lengkap untuk submit Q1 &amp; melanjutkan bersama cowork-LLM.</p>
       ${row('Manuskrip', b('tex', 'file', 'LaTeX .tex', !ms.latex) + b('bib', 'file', 'BibTeX .bib', !ms.bibtex) + b('mmd', 'file', 'Markdown .md', !ms.final))}
-      ${row('Laporan', b('report', 'file', 'Laporan lengkap .md'))}
+      ${row('Laporan', b('reporttex', 'file', 'LaTeX .tex') + b('reportbib', 'file', 'references .bib', !ms.bibtex) + b('report', 'file', 'Markdown .md'))}
+      <p style="font-size:0.78em;color:var(--text-secondary);margin:2px 0 6px;">Manuskrip &amp; laporan konsisten <strong>LaTeX + BibTeX</strong> memakai katalog referensi NYATA yang sama (integritas sitasi). Compile: taruh <code>.tex</code> + <code>references.bib</code> di folder yang sama → <code>pdflatex</code> → <code>bibtex</code> → <code>pdflatex</code> ×2. Butuh LaTeX? <a href="#" data-x="tinytex" style="color:var(--accent-color,#0ea5a4);">Panduan install TinyTeX ↓</a></p>
       ${row('Suplemen Q1', b('protocol', 'file', 'Protokol PROSPERO', !ar.protocol_markdown) + b('repro', 'file', 'Reproducibility', !ar.repro_package_markdown))}
       ${row('Handoff LLM', b('handoff', 'ai', 'Panduan koneksi DB + regen LaTeX') + b('schema', 'file', 'Skema Data (Live)'))}
       <p style="font-size:0.78em;color:var(--text-secondary);margin-top:8px;">Panduan Handoff = cara mengarahkan LLM lain ke <strong>data Anda</strong> (Mongo/Qdrant/Neo4j, credential-safe). Skema Data = peta field ter-introspeksi dari DB Anda saat ini (selalu terkini).</p>
@@ -91,9 +92,39 @@ export function wireExportHub(root, session) {
     on('protocol', () => _clientDownload(`protokol_${sid}.md`, ar.protocol_markdown, 'text/markdown'));
     on('repro', () => _clientDownload(`reproducibility_${sid}.md`, ar.repro_package_markdown, 'text/markdown'));
     on('report', async () => { try { showToast('Menyusun laporan…'); await _serverDownload(sid, '/report', `laporan_slr_${sid}.md`); showToast('Laporan diunduh.'); } catch (e) { showToast('Gagal: ' + e.message, 'error'); } });
+    on('reporttex', async () => { try { showToast('Menyusun laporan LaTeX…'); await _serverDownload(sid, '/report-tex', `laporan_slr_${sid}.tex`); showToast('Laporan .tex diunduh (butuh references.bib untuk compile).'); } catch (e) { showToast('Gagal: ' + e.message, 'error'); } });
+    on('reportbib', () => _clientDownload('references.bib', ms.bibtex, 'text/plain'));
+    const tt = root.querySelector('[data-x="tinytex"]');
+    if (tt) tt.addEventListener('click', (e) => { e.preventDefault(); _showTinyTexGuide(); });
     on('handoff', async () => { try { showToast('Menyusun panduan handoff…'); await _serverDownload(sid, '/handoff-guide', `handoff_${sid}.md`); showToast('Panduan handoff diunduh.'); } catch (e) { showToast('Gagal: ' + e.message, 'error'); } });
     on('schema', async () => { try { showToast('Introspeksi skema live…'); await _serverDownload(sid, '/schema-guide', `schema_${sid}.md`); showToast('Skema data diunduh.'); } catch (e) { showToast('Gagal: ' + e.message, 'error'); } });
 }
+// Panduan install TinyTeX (LaTeX ringan lintas-platform) untuk compile .tex → PDF.
+function _showTinyTexGuide() {
+    const overlay = document.createElement('div'); overlay.className = 'peek-overlay';
+    overlay.innerHTML = `<div class="peek-modal"><div class="peek-header"><span><span class="ico ico-file"></span> Install TinyTeX &amp; compile PDF</span><button class="peek-close" aria-label="Tutup"><span class="ico ico-close"></span></button></div>
+    <div class="peek-body" style="font-size:0.88em;line-height:1.6;">
+      <p><strong>TinyTeX</strong> = distribusi LaTeX ringan (~100 MB) lintas-platform. Cukup sekali pasang untuk meng-compile manuskrip &amp; laporan menjadi PDF.</p>
+      <p><strong>1) Install (pilih OS):</strong></p>
+      <p style="margin:4px 0;">• <em>macOS / Linux</em> (terminal):</p>
+      <pre style="background:rgba(255,255,255,.05);padding:8px;border-radius:6px;overflow-x:auto;"><code>wget -qO- "https://yihui.org/tinytex/install-bin-unix.sh" | sh</code></pre>
+      <p style="margin:4px 0;">• <em>Windows</em> (PowerShell):</p>
+      <pre style="background:rgba(255,255,255,.05);padding:8px;border-radius:6px;overflow-x:auto;"><code>irm https://yihui.org/tinytex/install-bin-windows.bat -OutFile install.bat; ./install.bat</code></pre>
+      <p style="margin:4px 0;">• Alternatif via R: <code>install.packages('tinytex'); tinytex::install_tinytex()</code></p>
+      <p><strong>2) Compile</strong> (taruh <code>.tex</code> + <code>references.bib</code> di folder sama):</p>
+      <pre style="background:rgba(255,255,255,.05);padding:8px;border-radius:6px;overflow-x:auto;"><code>pdflatex manuscript.tex
+bibtex manuscript
+pdflatex manuscript.tex
+pdflatex manuscript.tex</code></pre>
+      <p style="color:var(--text-secondary);">Urutan itu (pdflatex → bibtex → pdflatex ×2) diperlukan agar sitasi &amp; daftar pustaka dari BibTeX ter-resolve. Paket yang kurang di-install otomatis oleh TinyTeX saat pertama dipakai. Cara sama untuk <code>laporan_slr.tex</code>.</p>
+      <p style="color:var(--text-secondary);">Tanpa install: tempel <code>.tex</code> ke <strong>Overleaf</strong> (upload <code>.tex</code> + <code>references.bib</code>) — compile di browser.</p>
+    </div></div>`;
+    document.body.appendChild(overlay);
+    const close = () => overlay.remove();
+    overlay.querySelector('.peek-close').addEventListener('click', close);
+    overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
+}
+
 // Buka Ruang Ekspor sebagai modal dari ☰ Menu (kapan saja, untuk sesi aktif).
 window.openExportHub = async () => {
     const sid = localStorage.getItem('activeSessionId') || ((document.getElementById('display-session-id') || {}).textContent || '').trim();

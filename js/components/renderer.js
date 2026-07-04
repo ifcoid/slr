@@ -1708,12 +1708,21 @@ export function renderApprovalContent(area, session, handleApproval) {
             }
         }, 0);
 
-    } else if (status === 'M6_STEP2_WAITING_EMBED') {
+    } else if (status.endsWith('_WAITING_EMBED')) {
+        // Gerbang embed dipakai di M6 (screening full-text) DAN M9 (penulisan manuskrip pakai
+        // RAG bukti/sitasi). Konteks judul & alasan menyesuaikan modul agar tak membingungkan.
+        const isM9 = status.startsWith('M9');
         const reason = session.embed_error || 'Endpoint embedding (BGE-M3) tidak aktif.';
-        html = wrapCard('⏸️ Screening Dijeda — Endpoint Embedding Mati (Modul 6 L2)', `
+        const gateTitle = isM9
+            ? '⏸️ Penulisan Manuskrip Dijeda — Endpoint Embedding Mati (Modul 9)'
+            : '⏸️ Screening Dijeda — Endpoint Embedding Mati (Modul 6 L2)';
+        const gateWhy = isM9
+            ? 'Penulisan manuskrip memakai <strong>RAG</strong> (top-k semantik) untuk menarik bukti & sitasi dari full-text. Tanpa embedding, penulisan <strong>tidak</strong> dilanjutkan agar klaim tetap tertaut bukti — bukan diam-diam degrade.'
+            : 'Screening <strong>tidak</strong> dilanjutkan tanpa embedding (top-k semantik) agar kualitas tetap terjaga — bukan diam-diam degrade.';
+        html = wrapCard(gateTitle, `
             <div style="background: rgba(239,68,68,0.08); padding: 14px; border-radius:6px; border-left:3px solid #ef4444;">
                 <p style="margin:0 0 6px;color:#fca5a5;"><strong>Penyebab:</strong> ${reason}</p>
-                <p style="margin:0;font-size:0.88em;color:#d6d3d1;">Screening <strong>tidak</strong> dilanjutkan tanpa embedding (top-k semantik) agar kualitas tetap terjaga — bukan diam-diam degrade.</p>
+                <p style="margin:0;font-size:0.88em;color:#d6d3d1;">${gateWhy}</p>
             </div>
             <div style="margin-top:12px;">
                 <a href="https://colab.research.google.com/github/ifcoid/pede/blob/main/notebooks/embed_server_colab.ipynb" target="_blank" rel="noopener"
@@ -3049,7 +3058,7 @@ ATURAN EDGES:
             }
         }
 
-        if (status === 'M6_STEP2_WAITING_EMBED') {
+        if (status.endsWith('_WAITING_EMBED')) {
             isDanger = true;
             isHalted = true; // sembunyikan "Setuju & Lanjut" generik; pakai tombol simpan-endpoint
             extraBtn = `<button id="btn-embed-save" class="btn btn-success"><span class="ico ico-save"></span> Simpan Endpoint & Lanjut</button>`;
@@ -3202,7 +3211,7 @@ ATURAN EDGES:
                         return;
                     }
                     btnEmbedSave.disabled = true;
-                    if (msg) { msg.style.color = '#a8a29e'; msg.textContent = 'Menyimpan endpoint & melanjutkan screening...'; }
+                    if (msg) { msg.style.color = '#a8a29e'; msg.textContent = 'Menyimpan endpoint & melanjutkan...'; }
                     try {
                         await API.updateEmbedConfig({ endpoint, api_key: apiKey, model });
                         await handleApproval({}); // resume: WAITING_EMBED -> FULLTEXT_SCREENING + jalankan

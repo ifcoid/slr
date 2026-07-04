@@ -139,6 +139,33 @@ function renderAuditReport(rep) {
     `;
 }
 
+// renderClaimVerify menampilkan bukti xAI M9: nama model penulis + hasil triangulasi
+// neuro-symbolic per klaim (Qdrant/Neo4j/MongoDB) + daftar klaim dukungan <2 sumber.
+function renderClaimVerify(ms) {
+    const cvs = (ms && ms.claim_verifications) || [];
+    const model = (ms && ms.model_used) || '';
+    if (!cvs.length && !model) return '';
+    const e = (v) => String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    let ver = 0, q = 0, n = 0, mo = 0; const weak = [];
+    cvs.forEach(c => { if (c.sources >= 2) ver++; else weak.push(c); if (c.qdrant_verified) q++; if (c.neo4j_verified) n++; if (c.mongo_verified) mo++; });
+    const total = cvs.length;
+    const modelLine = model ? `<div style="font-size:0.82em;color:#a8a29e;margin-bottom:6px;">Ditulis oleh: <strong style="color:#5eead4;">${e(model)}</strong></div>` : '';
+    if (!total) return `<div style="background:rgba(0,0,0,0.2);border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:10px 12px;margin-bottom:12px;">${modelLine}</div>`;
+    const pct = Math.round(ver / total * 100);
+    const weakRows = weak.slice(0, 30).map(c => {
+        const src = [c.qdrant_verified && 'Qdrant', c.neo4j_verified && 'Neo4j', c.mongo_verified && 'MongoDB'].filter(Boolean).join('+') || '—';
+        return `<tr><td style="padding:3px 6px;color:#a8a29e;vertical-align:top;">${e(c.section)}</td><td style="padding:3px 6px;">${e((c.claim || '').slice(0, 160))}</td><td style="padding:3px 6px;color:#fcd34d;white-space:nowrap;">${e(src)}</td></tr>`;
+    }).join('');
+    return `
+    <div style="background:rgba(0,0,0,0.2);border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:10px 12px;margin-bottom:12px;">
+        ${modelLine}
+        <div style="font-size:0.86em;margin-bottom:4px;"><strong>Verifikasi klaim (triangulasi neuro-symbolic):</strong> ${ver}/${total} klaim didukung ≥2 sumber (${pct}%).</div>
+        <div style="font-size:0.8em;color:#a8a29e;">Sumber cocok: Qdrant ${q} · Neo4j ${n} · MongoDB ${mo}.${n === 0 ? ' <span style="color:#fcd34d;">Neo4j/AuraDB nonaktif — aktifkan untuk triangulasi 3-sumber yang lebih kuat.</span>' : ''}</div>
+        ${weak.length ? `<details style="margin-top:6px;"><summary style="cursor:pointer;color:#fcd34d;font-size:0.82em;">⚠ ${weak.length} klaim dukungan &lt;2 sumber (ditinjau/dilemahkan saat Pass 2)</summary>
+            <div style="max-height:240px;overflow:auto;margin-top:6px;"><table style="width:100%;font-size:0.78em;border-collapse:collapse;"><thead><tr><th style="text-align:left;padding:3px 6px;">Section</th><th style="text-align:left;padding:3px 6px;">Klaim</th><th style="text-align:left;padding:3px 6px;">Cocok</th></tr></thead><tbody>${weakRows}</tbody></table></div></details>` : ''}
+    </div>`;
+}
+
 export function renderApprovalContent(area, session, handleApproval) {
     const status = session.status;
     let html = '';
@@ -2927,6 +2954,7 @@ ATURAN EDGES:
             <div style="background:rgba(13, 148, 136,0.08);border:1px solid rgba(13, 148, 136,0.3);border-radius:6px;padding:10px 12px;margin-bottom:12px;font-size:0.82em;color:#5eead4;">
                 <strong><span class="ico ico-ai"></span> xAI Info:</strong> Hasil ditulis oleh model Brain (lihat Pengaturan → Model Routing). Proses: 3-pass per section (Draft → Verification → Style Cleanup). Jika output tidak ada \\cite{}, kemungkinan model kurang capable — ganti Brain ke GPT-4o/Claude Sonnet/Gemini Pro.
             </div>
+            ${renderClaimVerify(ms)}
             ${sec('Methods', ms.methods)}${sec('Results', ms.results)}${sec('Discussion', ms.discussion)}${sec('Future Research', ms.future_research)}
             <p style="margin-top:10px;font-size:0.9em;color:#4ade80;"><em>Approve untuk lanjut menulis Introduction/Conclusions/Abstract/Title; atau revisi untuk tulis ulang grup ini.</em></p>
         `);
@@ -2938,6 +2966,7 @@ ATURAN EDGES:
             <div style="background:rgba(13, 148, 136,0.08);border:1px solid rgba(13, 148, 136,0.3);border-radius:6px;padding:10px 12px;margin-bottom:12px;font-size:0.82em;color:#5eead4;">
                 <strong><span class="ico ico-ai"></span> xAI Info:</strong> Hasil ditulis oleh model Brain (lihat Pengaturan → Model Routing). Proses: 3-pass per section (Draft → Verification → Style Cleanup). Jika output tidak ada \\cite{}, kemungkinan model kurang capable — ganti Brain ke GPT-4o/Claude Sonnet/Gemini Pro.
             </div>
+            ${renderClaimVerify(ms)}
             ${sec('Introduction', ms.introduction)}${sec('Conclusions', ms.conclusions)}${sec('Abstract', ms.abstract)}${sec('Title (alternatif)', ms.title)}
             <p style="margin-top:10px;font-size:0.9em;color:#4ade80;"><em>Approve untuk compile akhir (references Crossref + audit + PRISMA + .tex).</em></p>
         `);

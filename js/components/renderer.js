@@ -77,8 +77,8 @@ export function renderExportHub(session) {
       ${row('Manuskrip', b('tex', 'file', 'LaTeX .tex', !ms.latex) + b('bib', 'file', 'BibTeX .bib', !ms.bibtex) + b('mmd', 'file', 'Markdown .md', !ms.final))}
       ${row('Laporan', b('report', 'file', 'Laporan lengkap .md'))}
       ${row('Suplemen Q1', b('protocol', 'file', 'Protokol PROSPERO', !ar.protocol_markdown) + b('repro', 'file', 'Reproducibility', !ar.repro_package_markdown))}
-      ${row('Handoff LLM', b('handoff', 'ai', 'Panduan koneksi DB + regen LaTeX'))}
-      <p style="font-size:0.78em;color:var(--text-secondary);margin-top:8px;">Panduan Handoff = cara mengarahkan LLM lain ke <strong>data Anda</strong> (Mongo/Qdrant/Neo4j, credential-safe) untuk menyempurnakan artikel/laporan LaTeX.</p>
+      ${row('Handoff LLM', b('handoff', 'ai', 'Panduan koneksi DB + regen LaTeX') + b('schema', 'file', 'Skema Data (Live)'))}
+      <p style="font-size:0.78em;color:var(--text-secondary);margin-top:8px;">Panduan Handoff = cara mengarahkan LLM lain ke <strong>data Anda</strong> (Mongo/Qdrant/Neo4j, credential-safe). Skema Data = peta field ter-introspeksi dari DB Anda saat ini (selalu terkini).</p>
     </div>`;
 }
 export function wireExportHub(root, session) {
@@ -92,6 +92,7 @@ export function wireExportHub(root, session) {
     on('repro', () => _clientDownload(`reproducibility_${sid}.md`, ar.repro_package_markdown, 'text/markdown'));
     on('report', async () => { try { showToast('Menyusun laporan…'); await _serverDownload(sid, '/report', `laporan_slr_${sid}.md`); showToast('Laporan diunduh.'); } catch (e) { showToast('Gagal: ' + e.message, 'error'); } });
     on('handoff', async () => { try { showToast('Menyusun panduan handoff…'); await _serverDownload(sid, '/handoff-guide', `handoff_${sid}.md`); showToast('Panduan handoff diunduh.'); } catch (e) { showToast('Gagal: ' + e.message, 'error'); } });
+    on('schema', async () => { try { showToast('Introspeksi skema live…'); await _serverDownload(sid, '/schema-guide', `schema_${sid}.md`); showToast('Skema data diunduh.'); } catch (e) { showToast('Gagal: ' + e.message, 'error'); } });
 }
 // Buka Ruang Ekspor sebagai modal dari ☰ Menu (kapan saja, untuk sesi aktif).
 window.openExportHub = async () => {

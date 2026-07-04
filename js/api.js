@@ -240,6 +240,8 @@ export const API = {
 
     rerunQA: (id) => apiFetch(`/sessions/${id}/m7/rerun-qa`, { method: 'POST' }),
 
+    fixQAErrors: (id) => apiFetch(`/sessions/${id}/m10/fix-qa-errors`, { method: 'POST' }),
+
     // M6 API
     syncQdrant: (id) => apiFetch(`/sessions/${id}/m6/sync-qdrant`, {
         method: 'POST'

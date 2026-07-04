@@ -67,6 +67,13 @@ const PHASES = [
 export function humanizeStatus(status) {
     if (!status) return { line: 'Menunggu…', sub: '', raw: '' };
     if (status === 'COMPLETED') return { line: 'Semua modul selesai', sub: 'SLR selesai — siap ekspor/manuskrip', raw: status };
+    // Modul 10 = gerbang audit pra-submisi (setelah 9 modul). Stepper menampilkan 9 modul
+    // (semua ✓), baris ini menandai fase audit.
+    if (status.startsWith('M10')) {
+        let phase = 'menjalankan audit';
+        for (const [re, ph] of PHASES) { if (re.test(status)) { phase = ph; break; } }
+        return { line: 'Audit Pra-Submisi — Defensibility Gate (Modul 10)', sub: phase, raw: String(status) };
+    }
     const n = currentModuleNum(status);
     const mod = MODULES.find(m => m.n === n);
     const step = currentStepNum(status);

@@ -93,6 +93,46 @@ window.exportCorrectionsAudit = async (sessionId) => {
         document.body.appendChild(a); a.click(); a.remove();
     } catch (e) { showToast('Gagal export: ' + e.message, 'error'); }
 };
+// renderAuditReport merender laporan audit Modul 10 (verdict + cek per-kategori + atestasi).
+function renderAuditReport(rep) {
+    const e = (v) => String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const verdictMap = {
+        READY: ['#10b981', 'SIAP SUBMIT', 'Semua cek lolos.'],
+        READY_WITH_WARNINGS: ['#f59e0b', 'SIAP DENGAN CATATAN', 'Tak ada bloker; tinjau peringatan.'],
+        NOT_READY: ['#ef4444', 'BELUM SIAP', 'Ada bloker yang harus diperbaiki.'],
+    };
+    const [vc, vlabel] = verdictMap[rep.verdict] || ['#a8a29e', rep.verdict || '-', ''];
+    const badge = (st) => {
+        if (st === 'PASS') return `<span style="color:#10b981;font-weight:700;">✓ LOLOS</span>`;
+        if (st === 'WARN') return `<span style="color:#f59e0b;font-weight:700;">⚠ PERINGATAN</span>`;
+        return `<span style="color:#ef4444;font-weight:700;">✗ BLOKER</span>`;
+    };
+    const order = { FAIL: 0, WARN: 1, PASS: 2 };
+    const checks = (rep.checks || []).slice().sort((a, b) => (order[a.status] ?? 3) - (order[b.status] ?? 3));
+    const rows = checks.map(c => `
+        <div style="padding:10px 12px;border-left:3px solid ${c.status === 'FAIL' ? '#ef4444' : c.status === 'WARN' ? '#f59e0b' : '#10b981'};background:rgba(255,255,255,0.03);border-radius:6px;margin-bottom:6px;">
+            <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+                <strong style="font-size:0.92em;">${e(c.name)}</strong>
+                <span style="font-size:0.82em;">${badge(c.status)} <span style="color:#a8a29e;">· ${e(c.category)}</span></span>
+            </div>
+            <div style="font-size:0.85em;color:#d6d3d1;margin-top:4px;">${e(c.detail)}</div>
+            ${c.fix ? `<div style="font-size:0.82em;color:#fcd34d;margin-top:4px;">→ ${e(c.fix)}</div>` : ''}
+        </div>`).join('');
+    return `
+        <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:8px;background:${vc}1a;border:1px solid ${vc}55;margin-bottom:12px;">
+            <span style="font-size:1.05em;font-weight:700;color:${vc};">${e(vlabel)}</span>
+            <span style="font-size:0.9em;color:#d6d3d1;">${e(rep.summary)}</span>
+        </div>
+        <div style="display:flex;gap:14px;font-size:0.82em;color:#a8a29e;margin-bottom:10px;">
+            <span style="color:#10b981;">✓ ${rep.pass_count || 0} lolos</span>
+            <span style="color:#f59e0b;">⚠ ${rep.warn_count || 0} peringatan</span>
+            <span style="color:#ef4444;">✗ ${rep.fail_count || 0} bloker</span>
+        </div>
+        <p style="font-size:0.82em;color:#a8a29e;margin-bottom:10px;">Cek ini <strong>simbolik/deterministik</strong> dari data sesi (bukan hasil tebakan AI). Perbaiki bloker via tombol modul terkait lalu jalankan ulang, atau — sebagai peneliti penanggung jawab — <strong>atestasi</strong> bahwa manuskrip layak submit dengan menekan <em>Setuju &amp; Lanjut</em> (tercatat sebagai jejak audit).</p>
+        ${rows}
+    `;
+}
+
 export function renderApprovalContent(area, session, handleApproval) {
     const status = session.status;
     let html = '';
@@ -2895,6 +2935,9 @@ ATURAN EDGES:
             ${sec('Introduction', ms.introduction)}${sec('Conclusions', ms.conclusions)}${sec('Abstract', ms.abstract)}${sec('Title (alternatif)', ms.title)}
             <p style="margin-top:10px;font-size:0.9em;color:#4ade80;"><em>Approve untuk compile akhir (references Crossref + audit + PRISMA + .tex).</em></p>
         `);
+
+    } else if (status === 'M10_STEP1_WAITING_APPROVAL' && session.audit_report) {
+        html = wrapCard('Modul 10 — Audit Pra-Submisi & Defensibility Gate', renderAuditReport(session.audit_report));
 
     } else if (status === 'M9_COMPILE_WAITING_APPROVAL' && session.manuscript) {
         const ms = session.manuscript;

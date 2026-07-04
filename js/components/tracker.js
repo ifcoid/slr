@@ -403,9 +403,10 @@ function renderApprovalUI(session) {
             // Generic approval for other steps
             area.insertAdjacentHTML('beforeend', `
                 <div style="padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 8px;">
-                    <p style="margin-bottom: 1rem;">Silakan periksa hasil pekerjaan agen di MongoDB Compass. Apakah Anda setuju?</p>
+                    <p style="margin-bottom: 0.5rem;">Tinjau hasil langkah ini pada <strong>Live Log</strong> &amp; panel di atas. Setujui untuk melanjutkan.</p>
+                    <p style="margin-bottom: 1rem; font-size:0.85em; color: var(--text-secondary);">Tidak perlu membuka database — semua koreksi dilakukan lewat tombol/editor di layar ini. Bila ada yang janggal, gunakan <strong>🐞 Lapor / Debug Bug</strong>.</p>
                     <div style="display: flex; gap: 1rem;">
-                        <button id="btn-generic-approve" class="btn btn-success">Setuju & Lanjut</button>
+                        <button id="btn-generic-approve" class="btn btn-success">Setuju &amp; Lanjut</button>
                     </div>
                 </div>
             `);

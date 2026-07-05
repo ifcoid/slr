@@ -50,9 +50,13 @@ window.downloadFullReport = async () => {
 // ── Ruang Ekspor (handoff kit) ──────────────────────────────────────────────
 function _clientDownload(name, content, type) {
     const blob = new Blob([content || ''], { type: type || 'text/plain;charset=utf-8' });
-    const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
-    a.download = name; document.body.appendChild(a); a.click();
-    setTimeout(() => { a.remove(); URL.revokeObjectURL(a.href); }, 0);
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url;
+    a.download = name; document.body.appendChild(a); a.click(); a.remove();
+    // Revoke DITUNDA: revoke di setTimeout(0) balapan dengan proses baca-unduh browser untuk
+    // blob besar (mis. laporan .md) -> entri unduhan muncul tapi file 0 byte / gagal tersimpan.
+    // 60 dtk cukup; blob otomatis dibebaskan saat navigasi/tab ditutup.
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
 }
 async function _serverDownload(sid, path, name) {
     const resp = await fetch(`${getBaseURL()}/sessions/${encodeURIComponent(sid)}${path}`, {
@@ -67,13 +71,25 @@ async function _serverDownload(sid, path, name) {
 export function renderExportHub(session) {
     const ms = session.manuscript || {};
     const ar = session.audit_report || {};
+    // Manuskrip HILANG (M9 gagal / belum tergenerasi) padahal sesi COMPLETED = dead-end:
+    // tombol .tex/.bib/.md di-disable + report .bib (pakai bibtex manuskrip) ikut kosong.
+    // Tampilkan penjelasan + jalur pulih (regen M9), bukan sekadar tooltip kriptik.
+    const noMs = !ms.final && !ms.latex;
     const row = (label, btns) => `<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 0;border-bottom:1px solid var(--surface-border);">
         <span style="min-width:120px;font-weight:600;font-size:0.88em;">${label}</span><span style="display:flex;gap:6px;flex-wrap:wrap;">${btns}</span></div>`;
     const b = (id, ico, text, disabled) => `<button class="btn btn-secondary" data-x="${id}" style="font-size:0.8em;" ${disabled ? 'disabled title="Belum tersedia di sesi ini"' : ''}><span class="ico ico-${ico}"></span> ${text}</button>`;
+    const msWarn = noMs ? `
+      <div style="border:1px solid #b45309;background:rgba(180,83,9,.12);border-radius:8px;padding:10px 12px;margin:6px 0 4px;">
+        <strong style="color:#b45309;">⚠ Manuskrip belum berhasil dibuat</strong>
+        <p style="font-size:0.82em;margin:4px 0 6px;">Sesi berstatus <strong>COMPLETED</strong> tetapi file manuskrip (.tex/.bib/.md) kosong — artinya penulisan Modul 9 <strong>gagal / terputus</strong> (umumnya provider LLM membalas kosong karena <em>context window</em> terlampaui oleh prompt besar, atau server embedding PEDE mati saat menulis). Karena <code>references.bib</code> laporan diambil dari BibTeX manuskrip, laporan .bib pun ikut kosong.</p>
+        <p style="font-size:0.82em;margin:0 0 8px;"><strong>Sebelum mengulang:</strong> (1) nyalakan server embedding <strong>PEDE (Colab)</strong> &amp; pastikan endpoint terisi di Pengaturan; (2) di <strong>Peran LLM → Brain</strong> pilih model <strong>context besar &amp; stabil</strong> (mis. gemini-1.5/2.0, deepseek, glm-4.5 non-flash) — hindari model flash context kecil untuk seksi Introduction.</p>
+        <button class="btn btn-secondary" data-x="regen-ms" style="font-size:0.8em;"><span class="ico ico-refresh"></span> Ulangi Pembuatan Manuskrip (Modul 9)</button>
+      </div>` : '';
     return `
     <div class="export-hub">
       <h3 style="margin-bottom:4px;"><span class="ico ico-download"></span> Ruang Ekspor — SLR Selesai</h3>
       <p style="font-size:0.85em;color:var(--text-secondary);margin-bottom:10px;">Semua artefak final di satu tempat — rantai dokumentasi lengkap untuk submit Q1 &amp; melanjutkan bersama cowork-LLM.</p>
+      ${msWarn}
       ${row('Manuskrip', b('tex', 'file', 'LaTeX .tex', !ms.latex) + b('bib', 'file', 'BibTeX .bib', !ms.bibtex) + b('mmd', 'file', 'Markdown .md', !ms.final))}
       ${row('Laporan', b('reporttex', 'file', 'LaTeX .tex') + b('reportbib', 'file', 'references .bib', !ms.bibtex) + b('report', 'file', 'Markdown .md'))}
       <p style="font-size:0.78em;color:var(--text-secondary);margin:2px 0 6px;">Manuskrip &amp; laporan konsisten <strong>LaTeX + BibTeX</strong> memakai katalog referensi NYATA yang sama (integritas sitasi). Compile: taruh <code>.tex</code> + <code>references.bib</code> di folder yang sama → <code>pdflatex</code> → <code>bibtex</code> → <code>pdflatex</code> ×2. Butuh LaTeX? <a href="#" data-x="tinytex" style="color:var(--accent-color,#0ea5a4);">Panduan install TinyTeX ↓</a></p>
@@ -109,6 +125,20 @@ export function wireExportHub(root, session) {
     on('reportbib', () => _clientDownload('references.bib', ms.bibtex, 'text/plain'));
     const tt = root.querySelector('[data-x="tinytex"]');
     if (tt) tt.addEventListener('click', (e) => { e.preventDefault(); _showTinyTexGuide(); });
+
+    // ── Regenerasi manuskrip (M9) saat manuskrip hilang/gagal ──
+    const regenBtn = root.querySelector('[data-x="regen-ms"]');
+    if (regenBtn) regenBtn.addEventListener('click', async () => {
+        if (!confirm('Ulangi pembuatan manuskrip (Modul 9) dari awal?\n\nData ekstraksi, sintesis, dan keputusan inklusi TETAP dipertahankan — hanya penulisan naskah yang diulang.\n\nPASTIKAN server embedding PEDE (Colab) menyala, jika tidak proses akan menjeda menunggu.')) return;
+        setButtonLoading(regenBtn, true);
+        try {
+            await API.reviseStep(sid, 'Regenerasi manuskrip: penulisan Modul 9 sebelumnya gagal/kosong (context overflow / provider). Ditrigger dari Ruang Ekspor.', 'M9_NEEDS_REVISION');
+            showToast('Modul 9 dijalankan ulang — pantau Live Log. Nyalakan Colab PEDE bila diminta.');
+        } catch (e) {
+            showToast('Gagal memulai regenerasi: ' + e.message, 'error');
+            setButtonLoading(regenBtn, false, '<span class="ico ico-refresh"></span> Ulangi Pembuatan Manuskrip (Modul 9)');
+        }
+    });
 
     // ── Zenodo draft-deposit ──
     async function doZenodoDeposit(btn) {

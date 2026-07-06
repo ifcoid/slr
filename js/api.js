@@ -242,6 +242,10 @@ export const API = {
 
     fixQAErrors: (id) => apiFetch(`/sessions/${id}/m10/fix-qa-errors`, { method: 'POST' }),
 
+    // Ketersediaan artefak manuskrip (muat sesi PENUH server-side). WAJIB dipakai Ruang Ekspor
+    // untuk gating — poll GetSession meng-strip `manuscript` sehingga session.manuscript kosong.
+    manuscriptMeta: (id) => apiFetch(`/sessions/${id}/manuscript/meta`),
+
     listFigures: (id) => apiFetch(`/sessions/${id}/figures`),
     uploadFigures: (id, formData) => apiFetch(`/sessions/${id}/figures`, { method: 'POST', body: formData }),
 

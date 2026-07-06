@@ -58,6 +58,10 @@ function _clientDownload(name, content, type) {
     // 60 dtk cukup; blob otomatis dibebaskan saat navigasi/tab ditutup.
     setTimeout(() => URL.revokeObjectURL(url), 60000);
 }
+function _revealMsWarn(root) {
+    const w = root && root.querySelector('[data-x="ms-warn"]');
+    if (w) w.style.display = '';
+}
 async function _serverDownload(sid, path, name) {
     const resp = await fetch(`${getBaseURL()}/sessions/${encodeURIComponent(sid)}${path}`, {
         headers: { 'Authorization': 'Bearer ' + (localStorage.getItem('auth_token') || '') }
@@ -69,29 +73,30 @@ async function _serverDownload(sid, path, name) {
 // renderExportHub: panel unduhan terpusat semua artefak final (manuskrip/laporan/suplemen
 // Q1 + panduan handoff cowork-LLM). Dipakai inline di COMPLETED & di modal ☰ Menu.
 export function renderExportHub(session) {
-    const ms = session.manuscript || {};
     const ar = session.audit_report || {};
-    // Manuskrip HILANG (M9 gagal / belum tergenerasi) padahal sesi COMPLETED = dead-end:
-    // tombol .tex/.bib/.md di-disable + report .bib (pakai bibtex manuskrip) ikut kosong.
-    // Tampilkan penjelasan + jalur pulih (regen M9), bukan sekadar tooltip kriptik.
-    const noMs = !ms.final && !ms.latex;
+    // CATATAN PENTING: `session.manuscript` dari poll SELALU kosong — backend meng-EXCLUDE
+    // `manuscript` dari proyeksi GetSessionLite (perf/anti-timeout). Maka JANGAN menilai
+    // ketersediaan manuskrip dari objek sesi. wireExportHub memanggil GET /manuscript/meta
+    // SEKALI (muat sesi penuh) lalu meng-gate tombol + reveal banner bila benar-benar absen.
+    // Unduhan manuskrip .tex/.bib/.md dilayani endpoint SERVER (bukan blob dari sesi ter-strip).
     const row = (label, btns) => `<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 0;border-bottom:1px solid var(--surface-border);">
         <span style="min-width:120px;font-weight:600;font-size:0.88em;">${label}</span><span style="display:flex;gap:6px;flex-wrap:wrap;">${btns}</span></div>`;
-    const b = (id, ico, text, disabled) => `<button class="btn btn-secondary" data-x="${id}" style="font-size:0.8em;" ${disabled ? 'disabled title="Belum tersedia di sesi ini"' : ''}><span class="ico ico-${ico}"></span> ${text}</button>`;
-    const msWarn = noMs ? `
-      <div style="border:1px solid #b45309;background:rgba(180,83,9,.12);border-radius:8px;padding:10px 12px;margin:6px 0 4px;">
+    const b = (id, ico, text, disabled) => `<button class="btn btn-secondary" data-x="${id}" style="font-size:0.8em;" ${disabled ? 'disabled' : ''}><span class="ico ico-${ico}"></span> ${text}</button>`;
+    // Banner default TERSEMBUNYI; hanya di-reveal wireExportHub bila /manuscript/meta melapor absen.
+    const msWarn = `
+      <div data-x="ms-warn" style="display:none;border:1px solid #b45309;background:rgba(180,83,9,.12);border-radius:8px;padding:10px 12px;margin:6px 0 4px;">
         <strong style="color:#b45309;">⚠ Manuskrip belum berhasil dibuat</strong>
-        <p style="font-size:0.82em;margin:4px 0 6px;">Sesi berstatus <strong>COMPLETED</strong> tetapi file manuskrip (.tex/.bib/.md) kosong — artinya penulisan Modul 9 <strong>gagal / terputus</strong> (umumnya provider LLM membalas kosong karena <em>context window</em> terlampaui oleh prompt besar, atau server embedding PEDE mati saat menulis). Karena <code>references.bib</code> laporan diambil dari BibTeX manuskrip, laporan .bib pun ikut kosong.</p>
-        <p style="font-size:0.82em;margin:0 0 8px;"><strong>Sebelum mengulang:</strong> (1) nyalakan server embedding <strong>PEDE (Colab)</strong> &amp; pastikan endpoint terisi di Pengaturan; (2) di <strong>Peran LLM → Brain</strong> pilih model <strong>context besar &amp; stabil</strong> (mis. gemini-1.5/2.0, deepseek, glm-4.5 non-flash) — hindari model flash context kecil untuk seksi Introduction.</p>
+        <p style="font-size:0.82em;margin:4px 0 6px;">Penulisan Modul 9 <strong>gagal / terputus</strong> (umumnya provider LLM membalas kosong karena <em>context window</em> terlampaui prompt besar, atau server embedding PEDE mati saat menulis). Karena <code>references.bib</code> laporan diambil dari BibTeX manuskrip, laporan .bib pun ikut kosong.</p>
+        <p style="font-size:0.82em;margin:0 0 8px;"><strong>Sebelum mengulang:</strong> (1) nyalakan server embedding <strong>PEDE (Colab)</strong> &amp; pastikan endpoint terisi di Pengaturan; (2) di <strong>Peran LLM → Brain</strong> pilih model <strong>context besar &amp; stabil</strong> (mis. gemini/deepseek/glm-4.5 non-flash) — hindari model flash context kecil.</p>
         <button class="btn btn-secondary" data-x="regen-ms" style="font-size:0.8em;"><span class="ico ico-refresh"></span> Ulangi Pembuatan Manuskrip (Modul 9)</button>
-      </div>` : '';
+      </div>`;
     return `
     <div class="export-hub">
       <h3 style="margin-bottom:4px;"><span class="ico ico-download"></span> Ruang Ekspor — SLR Selesai</h3>
       <p style="font-size:0.85em;color:var(--text-secondary);margin-bottom:10px;">Semua artefak final di satu tempat — rantai dokumentasi lengkap untuk submit Q1 &amp; melanjutkan bersama cowork-LLM.</p>
       ${msWarn}
-      ${row('Manuskrip', b('tex', 'file', 'LaTeX .tex', !ms.latex) + b('bib', 'file', 'BibTeX .bib', !ms.bibtex) + b('mmd', 'file', 'Markdown .md', !ms.final))}
-      ${row('Laporan', b('reporttex', 'file', 'LaTeX .tex') + b('reportbib', 'file', 'references .bib', !ms.bibtex) + b('report', 'file', 'Markdown .md'))}
+      ${row('Manuskrip', b('tex', 'file', 'LaTeX .tex') + b('bib', 'file', 'BibTeX .bib') + b('mmd', 'file', 'Markdown .md'))}
+      ${row('Laporan', b('reporttex', 'file', 'LaTeX .tex') + b('reportbib', 'file', 'references .bib') + b('report', 'file', 'Markdown .md'))}
       <p style="font-size:0.78em;color:var(--text-secondary);margin:2px 0 6px;">Manuskrip &amp; laporan konsisten <strong>LaTeX + BibTeX</strong> memakai katalog referensi NYATA yang sama (integritas sitasi). Compile: taruh <code>.tex</code> + <code>references.bib</code> di folder yang sama → <code>pdflatex</code> → <code>bibtex</code> → <code>pdflatex</code> ×2. Butuh LaTeX? <a href="#" data-x="tinytex" style="color:var(--accent-color,#0ea5a4);">Panduan install TinyTeX ↓</a></p>
       ${row('Suplemen Q1', b('protocol', 'file', 'Protokol PROSPERO', !ar.protocol_markdown) + b('repro', 'file', 'Reproducibility', !ar.repro_package_markdown))}
       ${row('Arsip Zenodo', `<button class="btn btn-secondary" data-x="zenodo" style="font-size:0.8em;"><span class="ico ico-upload"></span> Buat Draft Zenodo</button><button class="btn btn-secondary" data-x="zenodo-cfg" style="font-size:0.8em;" title="Konfigurasi token Zenodo"><span class="ico ico-file"></span> Token…</button>`)}
@@ -113,18 +118,42 @@ export function renderExportHub(session) {
 }
 export function wireExportHub(root, session) {
     const sid = session.id;
-    const ms = session.manuscript || {}; const ar = session.audit_report || {};
+    const ar = session.audit_report || {};
     const on = (x, fn) => { const el = root.querySelector(`[data-x="${x}"]`); if (el && !el.disabled) el.addEventListener('click', fn); };
-    on('tex', () => _clientDownload(`manuscript_${sid}.tex`, ms.latex, 'application/x-tex'));
-    on('bib', () => _clientDownload(`references_${sid}.bib`, ms.bibtex, 'text/plain'));
-    on('mmd', () => _clientDownload(`manuscript_${sid}.md`, ms.final, 'text/markdown'));
+    // Manuskrip .tex/.bib/.md diunduh dari ENDPOINT SERVER (muat sesi PENUH), BUKAN dari
+    // session.manuscript (poll meng-strip `manuscript` → selalu kosong; itu bug lama yang
+    // membuat tombol "belum tersedia" walau manuskrip ADA di DB).
+    const dl = (x, path, name, startMsg, okMsg) => on(x, async () => {
+        try { if (startMsg) showToast(startMsg); await _serverDownload(sid, path, name); if (okMsg) showToast(okMsg); }
+        catch (e) {
+            if (/HTTP 404/.test(e.message || '')) { showToast('Manuskrip belum tergenerasi untuk sesi ini.', 'error'); _revealMsWarn(root); }
+            else showToast('Gagal: ' + e.message, 'error');
+        }
+    });
+    dl('tex', '/manuscript/download-tex', `manuscript_${sid}.tex`, null, 'Manuskrip .tex diunduh.');
+    dl('bib', '/manuscript/download-bib', `references_${sid}.bib`, null, 'BibTeX .bib diunduh.');
+    dl('mmd', '/manuscript/download-md', `manuscript_${sid}.md`, null, 'Manuskrip .md diunduh.');
+    dl('reportbib', '/manuscript/download-bib', 'references.bib', null, 'references.bib diunduh.');
     on('protocol', () => _clientDownload(`protokol_${sid}.md`, ar.protocol_markdown, 'text/markdown'));
     on('repro', () => _clientDownload(`reproducibility_${sid}.md`, ar.repro_package_markdown, 'text/markdown'));
     on('report', async () => { try { showToast('Menyusun laporan…'); await _serverDownload(sid, '/report', `laporan_slr_${sid}.md`); showToast('Laporan diunduh.'); } catch (e) { showToast('Gagal: ' + e.message, 'error'); } });
     on('reporttex', async () => { try { showToast('Menyusun laporan LaTeX…'); await _serverDownload(sid, '/report-tex', `laporan_slr_${sid}.tex`); showToast('Laporan .tex diunduh (butuh references.bib untuk compile).'); } catch (e) { showToast('Gagal: ' + e.message, 'error'); } });
-    on('reportbib', () => _clientDownload('references.bib', ms.bibtex, 'text/plain'));
     const tt = root.querySelector('[data-x="tinytex"]');
     if (tt) tt.addEventListener('click', (e) => { e.preventDefault(); _showTinyTexGuide(); });
+
+    // Gating akurat: tanya ketersediaan manuskrip SEKALI via endpoint penuh. Bila absen →
+    // disable tombol manuskrip + report.bib dan reveal banner regen. Bila ada → biarkan aktif.
+    (async () => {
+        try {
+            const meta = await API.manuscriptMeta(sid);
+            const setDisabled = (x, off) => { const el = root.querySelector(`[data-x="${x}"]`); if (el) { el.disabled = off; if (off) el.title = 'Belum tersedia di sesi ini'; } };
+            setDisabled('tex', !meta.has_latex);
+            setDisabled('bib', !meta.has_bibtex);
+            setDisabled('mmd', !meta.has_final);
+            setDisabled('reportbib', !meta.has_bibtex);
+            if (!meta.has_latex && !meta.has_final) _revealMsWarn(root);
+        } catch (_) { /* biarkan tombol aktif; klik akan menampilkan pesan bila 404 */ }
+    })();
 
     // ── Regenerasi manuskrip (M9) saat manuskrip hilang/gagal ──
     const regenBtn = root.querySelector('[data-x="regen-ms"]');

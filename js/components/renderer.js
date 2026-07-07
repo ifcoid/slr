@@ -58,10 +58,6 @@ function _clientDownload(name, content, type) {
     // 60 dtk cukup; blob otomatis dibebaskan saat navigasi/tab ditutup.
     setTimeout(() => URL.revokeObjectURL(url), 60000);
 }
-function _revealMsWarn(root) {
-    const w = root && root.querySelector('[data-x="ms-warn"]');
-    if (w) w.style.display = '';
-}
 async function _serverDownload(sid, path, name) {
     const resp = await fetch(`${getBaseURL()}/sessions/${encodeURIComponent(sid)}${path}`, {
         headers: { 'Authorization': 'Bearer ' + (localStorage.getItem('auth_token') || '') }
@@ -90,11 +86,22 @@ export function renderExportHub(session) {
         <p style="font-size:0.82em;margin:0 0 8px;"><strong>Sebelum mengulang:</strong> (1) nyalakan server embedding <strong>PEDE (Colab)</strong> &amp; pastikan endpoint terisi di Pengaturan; (2) di <strong>Peran LLM → Brain</strong> pilih model <strong>context besar &amp; stabil</strong> (mis. gemini/deepseek/glm-4.5 non-flash) — hindari model flash context kecil.</p>
         <button class="btn btn-secondary" data-x="regen-ms" style="font-size:0.8em;"><span class="ico ico-refresh"></span> Ulangi Pembuatan Manuskrip (Modul 9)</button>
       </div>`;
+    // Banner NETRAL "unknown": ditampilkan HANYA saat ketersediaan manuskrip TAK BISA
+    // dipastikan (endpoint /manuscript/meta gagal — koneksi/timeout/backend lama). JANGAN
+    // menyuruh regen di sini (cegah false-negative spt kasus balqis: manuskrip ADA tapi
+    // meta tak terjawab → user telanjur regen & buang kuota). Fail-open: tombol tetap aktif.
+    const msUnknown = `
+      <div data-x="ms-unknown" style="display:none;border:1px solid #64748b;background:rgba(100,116,139,.12);border-radius:8px;padding:10px 12px;margin:6px 0 4px;">
+        <strong style="color:#94a3b8;">ℹ Ketersediaan manuskrip belum bisa dipastikan</strong>
+        <p style="font-size:0.82em;margin:4px 0 6px;">Backend tak bisa dihubungi untuk memeriksa artefak manuskrip (koneksi/timeout, atau versi backend lama). Tombol unduh dibiarkan <strong>aktif</strong> — bila manuskrip Anda memang sudah selesai, unduhan tetap berfungsi. Ini <strong>BUKAN</strong> berarti manuskrip hilang.</p>
+        <button class="btn btn-secondary" data-x="ms-recheck" style="font-size:0.8em;"><span class="ico ico-refresh"></span> Periksa Lagi</button>
+      </div>`;
     return `
     <div class="export-hub">
       <h3 style="margin-bottom:4px;"><span class="ico ico-download"></span> Ruang Ekspor — SLR Selesai</h3>
       <p style="font-size:0.85em;color:var(--text-secondary);margin-bottom:10px;">Semua artefak final di satu tempat — rantai dokumentasi lengkap untuk submit Q1 &amp; melanjutkan bersama cowork-LLM.</p>
       ${msWarn}
+      ${msUnknown}
       ${row('Manuskrip', b('tex', 'file', 'LaTeX .tex') + b('bib', 'file', 'BibTeX .bib') + b('mmd', 'file', 'Markdown .md'))}
       ${row('Laporan', b('reporttex', 'file', 'LaTeX .tex') + b('reportbib', 'file', 'references .bib') + b('report', 'file', 'Markdown .md'))}
       <p style="font-size:0.78em;color:var(--text-secondary);margin:2px 0 6px;">Manuskrip &amp; laporan konsisten <strong>LaTeX + BibTeX</strong> memakai katalog referensi NYATA yang sama (integritas sitasi). Compile: taruh <code>.tex</code> + <code>references.bib</code> di folder yang sama → <code>pdflatex</code> → <code>bibtex</code> → <code>pdflatex</code> ×2. Butuh LaTeX? <a href="#" data-x="tinytex" style="color:var(--accent-color,#0ea5a4);">Panduan install TinyTeX ↓</a></p>
@@ -123,10 +130,24 @@ export function wireExportHub(root, session) {
     // Manuskrip .tex/.bib/.md diunduh dari ENDPOINT SERVER (muat sesi PENUH), BUKAN dari
     // session.manuscript (poll meng-strip `manuscript` → selalu kosong; itu bug lama yang
     // membuat tombol "belum tersedia" walau manuskrip ADA di DB).
+    // Tri-state ketersediaan manuskrip: null = belum tahu, true = TERKONFIRMASI absen (meta
+    // melapor semua artefak kosong), false = ada. Banner regen HANYA saat terkonfirmasi absen.
+    let msConfirmedAbsent = null;
+    const showMsBanner = (which) => { // 'absent' | 'unknown' | 'none'
+        const warn = root.querySelector('[data-x="ms-warn"]');
+        const unk = root.querySelector('[data-x="ms-unknown"]');
+        if (warn) warn.style.display = (which === 'absent') ? '' : 'none';
+        if (unk) unk.style.display = (which === 'unknown') ? '' : 'none';
+    };
     const dl = (x, path, name, startMsg, okMsg) => on(x, async () => {
         try { if (startMsg) showToast(startMsg); await _serverDownload(sid, path, name); if (okMsg) showToast(okMsg); }
         catch (e) {
-            if (/HTTP 404/.test(e.message || '')) { showToast('Manuskrip belum tergenerasi untuk sesi ini.', 'error'); _revealMsWarn(root); }
+            if (/HTTP 404/.test(e.message || '')) {
+                // 404 saja BUKAN bukti manuskrip hilang (bisa transien / endpoint versi lama).
+                // Hanya arahkan ke regen bila meta sudah MEMASTIKAN absen; selain itu → netral.
+                if (msConfirmedAbsent === true) { showToast('Manuskrip belum tergenerasi untuk sesi ini.', 'error'); showMsBanner('absent'); }
+                else { showToast('Server tak mengembalikan file (404). Bila manuskrip Anda sudah selesai, coba lagi atau klik "Periksa Lagi" — ini belum tentu berarti manuskrip hilang.', 'error'); showMsBanner('unknown'); }
+            }
             else showToast('Gagal: ' + e.message, 'error');
         }
     });
@@ -141,19 +162,32 @@ export function wireExportHub(root, session) {
     const tt = root.querySelector('[data-x="tinytex"]');
     if (tt) tt.addEventListener('click', (e) => { e.preventDefault(); _showTinyTexGuide(); });
 
-    // Gating akurat: tanya ketersediaan manuskrip SEKALI via endpoint penuh. Bila absen →
-    // disable tombol manuskrip + report.bib dan reveal banner regen. Bila ada → biarkan aktif.
-    (async () => {
+    // Gating akurat via endpoint penuh (poll meng-strip `manuscript`). Tiga hasil:
+    //  • sukses & ADA  → aktifkan tombol yang tersedia, sembunyikan banner.
+    //  • sukses & ABSEN (semua artefak kosong) → disable tombol + banner regen (SAH).
+    //  • GAGAL (koneksi/timeout/backend lama) → UNKNOWN: JANGAN klaim absen (cegah false-
+    //    negative balqis), biarkan tombol aktif, tampilkan banner netral + 'Periksa Lagi'.
+    const setDisabled = (x, off) => { const el = root.querySelector(`[data-x="${x}"]`); if (el) { el.disabled = off; if (off) el.title = 'Belum tersedia di sesi ini'; else el.removeAttribute('title'); } };
+    async function checkManuscriptMeta() {
         try {
             const meta = await API.manuscriptMeta(sid);
-            const setDisabled = (x, off) => { const el = root.querySelector(`[data-x="${x}"]`); if (el) { el.disabled = off; if (off) el.title = 'Belum tersedia di sesi ini'; } };
             setDisabled('tex', !meta.has_latex);
             setDisabled('bib', !meta.has_bibtex);
             setDisabled('mmd', !meta.has_final);
             setDisabled('reportbib', !meta.has_bibtex);
-            if (!meta.has_latex && !meta.has_final) _revealMsWarn(root);
-        } catch (_) { /* biarkan tombol aktif; klik akan menampilkan pesan bila 404 */ }
-    })();
+            const absent = !meta.has_latex && !meta.has_bibtex && !meta.has_final;
+            msConfirmedAbsent = absent;
+            showMsBanner(absent ? 'absent' : 'none');
+        } catch (_) {
+            // UNKNOWN — fail-open. Tak tahu ≠ tak ada.
+            msConfirmedAbsent = null;
+            ['tex', 'bib', 'mmd', 'reportbib'].forEach(x => setDisabled(x, false));
+            showMsBanner('unknown');
+        }
+    }
+    checkManuscriptMeta();
+    const recheckBtn = root.querySelector('[data-x="ms-recheck"]');
+    if (recheckBtn) recheckBtn.addEventListener('click', () => { showToast('Memeriksa ketersediaan manuskrip…'); checkManuscriptMeta(); });
 
     // ── Regenerasi manuskrip (M9) saat manuskrip hilang/gagal ──
     const regenBtn = root.querySelector('[data-x="regen-ms"]');

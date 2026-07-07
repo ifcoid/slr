@@ -367,6 +367,19 @@ window.skipVerification = async (sessionId) => {
     } catch (e) { showToast('Gagal: ' + e.message, 'error'); }
 };
 
+// Ulangi QA setelah rater provider diperbaiki — dari gerbang M7_STEP3_QA_BLOCKED (QA dijeda
+// karena rater gagal sistemik: rate-limit/overload/ResourceExhausted/context/koneksi).
+// reviseStep → M7_STEP3_QA memicu ResetQAErrors di backend: HANYA paper ERROR yang di-rate
+// ulang; rating & kalibrasi yang sudah ada DIPERTAHANKAN (hemat kuota, jaga reproducibility).
+window.retryQABlocked = async (sessionId) => {
+    if (!confirm('Ulangi penilaian QA?\n\nPastikan provider rater (Reviewer 1 & 2) sudah diperbaiki/diganti dan lolos Test Model. Hanya paper yang ERROR yang akan dinilai ulang — paper yang sudah dinilai & kalibrasi dipertahankan.')) return;
+    try {
+        await API.reviseStep(sessionId, 'Ulangi QA setelah perbaikan provider rater', 'M7_STEP3_QA');
+        showToast('🔁 QA diulang — lihat Live Log.');
+        setTimeout(() => window.location.reload(), 900);
+    } catch (e) { showToast('Gagal: ' + e.message, 'error'); }
+};
+
 window.exportCorrectionsAudit = async (sessionId) => {
     try {
         const s = await API.getSession(sessionId);
@@ -2244,6 +2257,40 @@ export function renderApprovalContent(area, session, handleApproval) {
                 <button onclick="window.skipVerification('${session.id}')" class="btn" style="background:rgba(245,158,11,0.15);color:#fcd34d;border:1px solid rgba(245,158,11,0.3);font-size:0.82em;padding:4px 12px;" title="Lanjut tanpa QA dual-rater; akan dicatat sebagai limitation metodologis"><span class="ico ico-skip"></span> Lanjut tanpa verifikasi (catat sebagai limitation)</button>
             </div>
         `);
+    } else if (status === 'M7_STEP3_QA_BLOCKED') {
+        // Gerbang HITL: penilaian QA (dual-rater) DIJEDA karena rater provider gagal sistemik
+        // (rate-limit/overload/ResourceExhausted, context overflow, endpoint tak terjangkau) —
+        // akan berulang identik di tiap paper. Tampilkan error PENUH + nama model + langkah
+        // perbaikan, lalu 'Ulangi QA' (re-attempt HANYA paper ERROR; rating & kalibrasi aman).
+        const esc = (s) => (s || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        const detail = (session.system_error || 'Rater provider gagal sistemik (kemungkinan rate-limit/overload 429/503, kuota habis, ResourceExhausted, atau endpoint tak terjangkau).');
+        html = wrapCard('⛔ Penilaian QA Dijeda — Rater Provider Perlu Diperbaiki', `
+            <div style="padding:14px 16px;background:rgba(239,68,68,0.12);border-left:4px solid #ef4444;border-radius:8px;color:#fca5a5;margin-bottom:14px;">
+                <strong style="font-size:1.05em;">Penilaian kualitas (QA dual-rater) tidak bisa dilanjutkan.</strong>
+                <p style="margin:8px 0 0;color:#fecaca;">Pipeline sengaja <strong>berhenti di sini</strong> (bukan "sedang merevisi") agar Anda sempat memperbaiki/ganti provider rater sebelum lanjut. Rating yang sudah selesai &amp; hasil kalibrasi <strong>TERSIMPAN &amp; AMAN</strong> — saat Anda 'Ulangi QA', hanya paper yang <strong>ERROR</strong> yang dinilai ulang.</p>
+            </div>
+            <div style="margin-bottom:14px;">
+                <strong style="color:#fcd34d;"><span class="ico ico-search"></span> Detail error (yang harus diperbaiki):</strong>
+                <pre style="white-space:pre-wrap;font-family:monospace;font-size:0.82em;background:rgba(0,0,0,0.35);padding:10px;border-radius:6px;margin-top:6px;color:#fecaca;max-height:260px;overflow-y:auto;">${esc(detail)}</pre>
+            </div>
+            <div style="padding:10px 12px;background:rgba(13, 148, 136,0.1);border:1px solid rgba(13, 148, 136,0.3);border-radius:8px;margin-bottom:14px;font-size:0.88em;color:#d6d3d1;">
+                <strong style="color:#5eead4;">Langkah perbaikan:</strong>
+                <ol style="margin:6px 0 0;padding-left:20px;line-height:1.6;">
+                    <li>Buka <strong>Pengaturan</strong> → role <strong>Reviewer 1</strong> &amp; <strong>Reviewer 2</strong> (rater QA). Ganti ke provider yang stabil / tak kena rate-limit, atau perbaiki API key / nama model / base URL.</li>
+                    <li>Klik <strong><span class="ico ico-flask"></span> Test Model</strong> untuk tiap rater sampai hijau (✓).</li>
+                    <li>Kembali ke sini, klik <strong><span class="ico ico-repeat"></span> Ulangi QA</strong>.</li>
+                </ol>
+                <p style="margin:8px 0 0;color:#a8a29e;">Penyebab umum: kuota/rate-limit habis (429), provider overload (503/ResourceExhausted), nama model salah/terkunci (404), API key salah (401), atau endpoint provider tak berjalan.</p>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;">
+                <button onclick="window.testRoleModel('reviewer1')" class="btn btn-secondary" style="flex:1;min-width:150px;"><span class="ico ico-flask"></span> Test Reviewer 1</button>
+                <button onclick="window.testRoleModel('reviewer2')" class="btn btn-secondary" style="flex:1;min-width:150px;"><span class="ico ico-flask"></span> Test Reviewer 2</button>
+                <button onclick="window.openLLMDebug('${session.id}')" class="btn btn-secondary" style="flex:1;min-width:150px;" title="Lapor bug / lihat prompt+error persis & uji coba (Reproducible Error)"><span class="ico ico-bug"></span> Lapor / Debug Bug</button>
+                <button onclick="document.getElementById('btn-settings')?.click()" class="btn btn-secondary" style="flex:1;min-width:150px;"><span class="ico ico-settings"></span> Buka Pengaturan</button>
+                <button onclick="window.retryQABlocked('${session.id}')" class="btn btn-primary" style="flex:1;min-width:150px;"><span class="ico ico-repeat"></span> Ulangi QA</button>
+            </div>
+        `);
+
     } else if (status === 'M7_STEP2_WAITING_APPROVAL') {
         const l = session.extraction_log || {};
         const rate = (l.disagreement_rate || 0).toFixed(1);

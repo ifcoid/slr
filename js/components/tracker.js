@@ -15,6 +15,95 @@ let pollFailStreak = 0;
 let fetchInFlight = false; // cegah poll tumpang-tindih saat backend lambat (request menumpuk)
 const POLL_FAIL_THRESHOLD = 3;
 
+// P2 — deteksi macet/loop (no-progress). Sinyal kemajuan = MUNCULNYA baris log BARU (novel)
+// atau perubahan token status. Job yang me-loop (mis. QA me-retry paper ERROR yang sama
+// karena provider rate-limited) TETAP memuntahkan baris log, tapi baris itu BERULANG (tak
+// novel) — jadi "tak ada log" bukan sinyal andal; "tak ada log BARU" itulah sinyalnya.
+let stallInterval = null;
+let lastNovelLogAt = 0;      // timestamp baris log novel terakhir (0 = belum ada)
+let lastStatusToken = null;  // token status terakhir (perubahan = kemajuan)
+let activeCompute = false;   // true bila poll terakhir melihat state "agen sedang bekerja"
+let stallShown = false;      // banner stall sedang tampil (hindari re-render tiap tick)
+const recentLog = [];        // rolling window baris log untuk cek novelty
+const recentLogSet = new Set();
+const STALL_MS = 6 * 60 * 1000; // 6 mnt tanpa kemajuan baru → curigai macet/loop
+
+// Status yang berarti "agen sedang bekerja" (spinner) — negasi dari semua cabang gerbang/
+// error/selesai. Hanya di state inilah stall relevan (gerbang WAITING memang menunggu user).
+function isActiveComputeStatus(status) {
+    if (!status) return false;
+    if (status.includes('WAITING') || status.includes('DONE') || status.includes('LOW_KAPPA')
+        || status === 'M7_STEP2_VERIFY_BLOCKED' || status === 'M7_STEP3_QA_BLOCKED') return false;
+    if (status === 'COMPLETED') return false;
+    if (status.includes('NEEDS_REVISION') && !status.includes('ERROR')) return false;
+    if (status.includes('ERROR') || status.includes('FAILED')) return false;
+    return true;
+}
+
+function noteLogNovelty(line) {
+    if (typeof line !== 'string') return;
+    const t = line.trim();
+    if (!t || recentLogSet.has(t)) return; // baris berulang (mis. loop) = bukan kemajuan
+    recentLogSet.add(t);
+    recentLog.push(t);
+    if (recentLog.length > 250) { const old = recentLog.shift(); recentLogSet.delete(old); }
+    lastNovelLogAt = Date.now();
+    if (stallShown) hideStall(); // kemajuan baru → sembunyikan peringatan
+}
+
+function resetStallState() {
+    lastNovelLogAt = 0;
+    lastStatusToken = null;
+    activeCompute = false;
+    recentLog.length = 0;
+    recentLogSet.clear();
+    hideStall();
+}
+
+function evaluateStall() {
+    if (!currentSessionId) return;
+    const wsConnected = ws && ws.readyState === WebSocket.OPEN;
+    // Hanya relevan bila: agen sedang bekerja, WS tersambung (kalau putus, LED merah sudah
+    // menandakan), dan kita sudah pernah lihat baris novel (punya baseline waktu).
+    if (!activeCompute || !wsConnected || !lastNovelLogAt) { hideStall(); return; }
+    const idleMs = Date.now() - lastNovelLogAt;
+    if (idleMs > STALL_MS) showStall(Math.floor(idleMs / 60000));
+    else hideStall();
+}
+
+function showStall(minutes) {
+    const term = document.getElementById('terminal-logs');
+    if (!term || !term.parentNode) return;
+    let el = document.getElementById('stall-warning');
+    if (!el) {
+        el = document.createElement('div');
+        el.id = 'stall-warning';
+        el.style.cssText = 'margin:10px 0;padding:12px 14px;background:rgba(234,179,8,0.12);border-left:4px solid #eab308;border-radius:8px;color:#fde68a;font-size:0.9em;';
+        term.parentNode.insertBefore(el, term);
+    }
+    if (!stallShown) {
+        el.innerHTML = `
+            <strong>⏳ Proses tampak tidak maju (~<span data-x="mins">${minutes}</span> menit tanpa kemajuan baru).</strong>
+            <p style="margin:6px 0 0;color:#fef3c7;">Bila ini lebih lama dari biasanya, kemungkinan rater/provider LLM sedang bermasalah (rate-limit/overload/kuota) atau proses berulang di item yang sama. Cek Live Log di bawah. Anda bisa menghentikan proses & memperbaiki provider, lalu ulangi.</p>
+            <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
+                <button onclick="(document.getElementById('force-revise-block')||{style:{}}).style.display='block';document.getElementById('force-revise-block')?.scrollIntoView({behavior:'smooth'});" class="btn btn-secondary" style="padding:3px 10px;font-size:0.82em;"><span class="ico ico-stop"></span> Hentikan &amp; Revisi</button>
+                <button onclick="document.getElementById('btn-settings')?.click()" class="btn btn-secondary" style="padding:3px 10px;font-size:0.82em;"><span class="ico ico-settings"></span> Buka Pengaturan</button>
+                <button onclick="window.openLLMDebug('${currentSessionId}')" class="btn btn-secondary" style="padding:3px 10px;font-size:0.82em;" title="Lapor bug / lihat prompt+error persis"><span class="ico ico-bug"></span> Lapor / Debug Bug</button>
+            </div>`;
+        stallShown = true;
+    } else {
+        const span = el.querySelector('[data-x="mins"]');
+        if (span) span.textContent = minutes;
+    }
+    el.style.display = 'block';
+}
+
+function hideStall() {
+    const el = document.getElementById('stall-warning');
+    if (el) el.style.display = 'none';
+    stallShown = false;
+}
+
 export function startTracking(sessionId) {
     currentSessionId = sessionId;
     window.currentSessionId = sessionId; // dipakai lintas-modul (mis. Debug LLM dari Pengaturan/Health)
@@ -22,17 +111,24 @@ export function startTracking(sessionId) {
     
     // Clear terminal
     document.getElementById('terminal-logs').innerHTML = '';
-    
+
+    // P2: bersihkan state deteksi-macet untuk sesi baru.
+    resetStallState();
+
     // Connect WebSocket
     connectWebSocket(sessionId);
-    
+
     // Initial fetch and wake up backend worker
     fetchSessionStatus();
     API.resumeSession(sessionId).catch(e => console.log('Resume attempt info:', e));
-    
+
     // Start polling every 3 seconds for UI status
     if (pollingInterval) clearInterval(pollingInterval);
     pollingInterval = setInterval(fetchSessionStatus, 3000);
+
+    // P2: cek stall terpisah dari poll (poll bisa early-return saat renderKey tak berubah).
+    if (stallInterval) clearInterval(stallInterval);
+    stallInterval = setInterval(evaluateStall, 15000);
     
     const btnRefresh = document.getElementById('btn-refresh');
     if (btnRefresh) {
@@ -108,8 +204,10 @@ function connectWebSocket(id) {
         // tidak menumpuk duplikat (startTracking sudah clear, ini untuk reconnect berikutnya).
         const terminal = document.getElementById('terminal-logs');
         if (terminal) terminal.innerHTML = '';
+        // Reconnect = aktivitas re-sync; jangan langsung anggap macet saat backlog replay.
+        lastNovelLogAt = Date.now();
     };
-    
+
     ws.onmessage = (event) => {
         const terminal = document.getElementById('terminal-logs');
         const p = document.createElement('p');
@@ -117,6 +215,8 @@ function connectWebSocket(id) {
         terminal.appendChild(p);
         // Auto scroll
         terminal.scrollTop = terminal.scrollHeight;
+        // P2: catat kemajuan hanya bila baris ini BARU (novel) — baris berulang (loop) diabaikan.
+        noteLogNovelty(event.data);
     };
     
     ws.onerror = (err) => {
@@ -141,6 +241,11 @@ export function stopTracking() {
         clearInterval(pollingInterval);
         pollingInterval = null;
     }
+    if (stallInterval) {
+        clearInterval(stallInterval);
+        stallInterval = null;
+    }
+    resetStallState();
     if (ws) {
         ws.close();
         ws = null;
@@ -161,6 +266,16 @@ async function fetchSessionStatus() {
         const session = await API.getSession(currentSessionId);
         pollFailStreak = 0; // sukses → reset hitungan kegagalan beruntun
         displayStatus.textContent = session.status || 'UNKNOWN';
+
+        // P2: hitung sinyal stall SEBELUM early-return renderKey (poll bisa berhenti dini saat
+        // status/error tak berubah, jadi ini harus jalan tiap poll). Perubahan token status =
+        // kemajuan nyata; state non-aktif (gerbang/selesai/error) → sembunyikan peringatan.
+        activeCompute = isActiveComputeStatus(session.status);
+        if (session.status && session.status !== lastStatusToken) {
+            lastStatusToken = session.status;
+            lastNovelLogAt = Date.now();
+        }
+        if (!activeCompute) hideStall();
 
         // Titik merah REAKTIF di tombol Pengaturan: nyala HANYA bila error LLM-terkait
         // benar terjadi (tanpa polling health). Penyebab umum: provider down/limit/key salah.

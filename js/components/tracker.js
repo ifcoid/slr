@@ -33,7 +33,7 @@ const STALL_MS = 6 * 60 * 1000; // 6 mnt tanpa kemajuan baru → curigai macet/l
 function isActiveComputeStatus(status) {
     if (!status) return false;
     if (status.includes('WAITING') || status.includes('DONE') || status.includes('LOW_KAPPA')
-        || status === 'M7_STEP2_VERIFY_BLOCKED' || status === 'M7_STEP3_QA_BLOCKED') return false;
+        || status.endsWith('_BLOCKED')) return false;
     if (status === 'COMPLETED') return false;
     if (status.includes('NEEDS_REVISION') && !status.includes('ERROR')) return false;
     if (status.includes('ERROR') || status.includes('FAILED')) return false;
@@ -310,7 +310,7 @@ async function fetchSessionStatus() {
         const errDot = document.getElementById('settings-error-dot');
         if (errDot) {
             const st = session.status || '';
-            const isErr = st.includes('ERROR') || st.includes('FAILED') || st.includes('WAITING_EMBED') || st === 'M7_STEP2_VERIFY_BLOCKED' || st === 'M7_STEP3_QA_BLOCKED';
+            const isErr = st.includes('ERROR') || st.includes('FAILED') || st.includes('WAITING_EMBED') || st.endsWith('_BLOCKED');
             const errText = `${session.system_error || ''} ${session.embed_error || ''}`;
             const llmRelated = isErr && /role |provider|pengaturan llm|api key|rate|kuota|quota|dihubungi|beruntun|stream kosong|extractor|reviewer|supervisor|brain|auditor|embedding/i.test(errText);
             errDot.classList.toggle('hidden', !llmRelated);
@@ -334,7 +334,7 @@ async function fetchSessionStatus() {
         renderStepper('module-stepper', session, showModulePeek);
 
         // Logic for animation and interaction based on status
-        if (session.status && (session.status.includes('WAITING') || session.status.includes('DONE') || session.status.includes('LOW_KAPPA') || session.status === 'M7_STEP2_VERIFY_BLOCKED' || session.status === 'M7_STEP3_QA_BLOCKED')) {
+        if (session.status && (session.status.includes('WAITING') || session.status.includes('DONE') || session.status.includes('LOW_KAPPA') || session.status.endsWith('_BLOCKED'))) {
             toggleHidden('status-spinner', false); // Hide spinner
             renderApprovalUI(session);
         } else if (session.status === 'COMPLETED') {

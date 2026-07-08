@@ -422,6 +422,18 @@ window.retryQABlocked = async (sessionId) => {
     } catch (e) { showToast('Gagal: ' + e.message, 'error'); }
 };
 
+// Lanjutkan M9 setelah provider penulis (Brain/Supervisor) diperbaiki — dari gerbang
+// M9_*_BLOCKED. approveStep melepas akhiran _BLOCKED di backend → resume ke fase tertunda
+// (GROUPA/GROUPB/COMPILE); manuskrip yang sudah ditulis dipertahankan.
+window.resumeM9Blocked = async (sessionId) => {
+    if (!confirm('Lanjutkan pembuatan manuskrip?\n\nPastikan provider Brain & Supervisor sudah diperbaiki/diganti ke model chat yang stabil & tidak rate-limited (lolos Test Model). Bagian manuskrip yang sudah ditulis dipertahankan.')) return;
+    try {
+        await API.approveStep(sessionId, {});
+        showToast('🔁 Manuskrip dilanjutkan — pantau Live Log.');
+        setTimeout(() => window.location.reload(), 900);
+    } catch (e) { showToast('Gagal: ' + e.message, 'error'); }
+};
+
 window.exportCorrectionsAudit = async (sessionId) => {
     try {
         const s = await API.getSession(sessionId);
@@ -2334,6 +2346,39 @@ export function renderApprovalContent(area, session, handleApproval) {
                 <button onclick="window.openLLMDebug('${session.id}')" class="btn btn-secondary" style="flex:1;min-width:150px;" title="Lapor bug / lihat prompt+error persis & uji coba (Reproducible Error)"><span class="ico ico-bug"></span> Lapor / Debug Bug</button>
                 <button onclick="document.getElementById('btn-settings')?.click()" class="btn btn-secondary" style="flex:1;min-width:150px;"><span class="ico ico-settings"></span> Buka Pengaturan</button>
                 <button onclick="window.retryQABlocked('${session.id}')" class="btn btn-primary" style="flex:1;min-width:150px;"><span class="ico ico-repeat"></span> Ulangi QA</button>
+            </div>
+        `);
+
+    } else if (status.startsWith('M9_') && status.endsWith('_BLOCKED')) {
+        // Gerbang HITL: penulisan manuskrip (M9) dijeda karena provider penulis (Brain/
+        // Supervisor) gagal sistemik (rate-limit/overload/ResourceExhausted/context/koneksi).
+        // Tampilkan error + langkah + 'Lanjutkan Manuskrip' (resume fase; naskah dipertahankan).
+        const esc = (s) => (s || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        const detail = (session.system_error || 'Provider penulis manuskrip gagal sistemik (kemungkinan rate-limit/overload 429/503, kuota habis, ResourceExhausted, context overflow, atau endpoint tak terjangkau).');
+        html = wrapCard('⛔ Penulisan Manuskrip Dijeda — Provider Perlu Diperbaiki', `
+            <div style="padding:14px 16px;background:rgba(239,68,68,0.12);border-left:4px solid #ef4444;border-radius:8px;color:#fca5a5;margin-bottom:14px;">
+                <strong style="font-size:1.05em;">Modul 9 (penulisan manuskrip) tidak bisa dilanjutkan.</strong>
+                <p style="margin:8px 0 0;color:#fecaca;">Pipeline sengaja <strong>berhenti di sini</strong> (bukan macet diam) agar Anda memperbaiki/ganti provider penulis sebelum lanjut. Bagian manuskrip yang sudah ditulis <strong>DIPERTAHANKAN</strong> — saat Anda 'Lanjutkan Manuskrip', proses menyambung dari fase yang tertunda.</p>
+            </div>
+            <div style="margin-bottom:14px;">
+                <strong style="color:#fcd34d;"><span class="ico ico-search"></span> Detail error (yang harus diperbaiki):</strong>
+                <pre style="white-space:pre-wrap;font-family:monospace;font-size:0.82em;background:rgba(0,0,0,0.35);padding:10px;border-radius:6px;margin-top:6px;color:#fecaca;max-height:260px;overflow-y:auto;">${esc(detail)}</pre>
+            </div>
+            <div style="padding:10px 12px;background:rgba(13, 148, 136,0.1);border:1px solid rgba(13, 148, 136,0.3);border-radius:8px;margin-bottom:14px;font-size:0.88em;color:#d6d3d1;">
+                <strong style="color:#5eead4;">Langkah perbaikan:</strong>
+                <ol style="margin:6px 0 0;padding-left:20px;line-height:1.6;">
+                    <li>Buka <strong>Pengaturan → Model Routing</strong>, ubah role <strong>Brain</strong> &amp; <strong>Supervisor</strong> ke model chat yang stabil &amp; tidak rate-limited (hindari provider yang kena 429/ResourceExhausted &amp; endpoint agen/coding).</li>
+                    <li>Klik <strong><span class="ico ico-flask"></span> Test Model</strong> untuk Brain &amp; Supervisor sampai hijau (✓).</li>
+                    <li>Kembali ke sini, klik <strong><span class="ico ico-repeat"></span> Lanjutkan Manuskrip</strong>.</li>
+                </ol>
+                <p style="margin:8px 0 0;color:#a8a29e;">Penyebab umum: kuota/rate-limit (429), overload (503/ResourceExhausted), context window terlampaui, nama model salah (404), API key salah (401), atau endpoint tak berjalan.</p>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;">
+                <button onclick="window.testRoleModel('brain')" class="btn btn-secondary" style="flex:1;min-width:150px;"><span class="ico ico-flask"></span> Test Brain</button>
+                <button onclick="window.testRoleModel('supervisor')" class="btn btn-secondary" style="flex:1;min-width:150px;"><span class="ico ico-flask"></span> Test Supervisor</button>
+                <button onclick="window.openLLMDebug('${session.id}')" class="btn btn-secondary" style="flex:1;min-width:150px;" title="Lapor bug / lihat prompt+error persis & uji coba (Reproducible Error)"><span class="ico ico-bug"></span> Lapor / Debug Bug</button>
+                <button onclick="document.getElementById('btn-settings')?.click()" class="btn btn-secondary" style="flex:1;min-width:150px;"><span class="ico ico-settings"></span> Buka Pengaturan</button>
+                <button onclick="window.resumeM9Blocked('${session.id}')" class="btn btn-primary" style="flex:1;min-width:150px;"><span class="ico ico-repeat"></span> Lanjutkan Manuskrip</button>
             </div>
         `);
 

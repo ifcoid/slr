@@ -1403,6 +1403,10 @@ export function renderApprovalContent(area, session, handleApproval) {
                     <h5 style="color: #5eead4; margin-top: 0;">Deduplication</h5>
                     <p>Total Unique: <span style="color: #4ade80;">${dedup.total_unique || 0}</span></p>
                     <p>Duplicates Removed: <span style="color: #fca5a5;">${dedup.total_duplicates || 0}</span> (Primary/DOI: ${dedup.primary_match || 0}, Secondary/Title: ${dedup.secondary_match || 0})</p>
+                    ${dedup.pre_dedup_warning ? `
+                    <div style="margin:8px 0;padding:10px 12px;background:rgba(234,179,8,0.12);border-left:4px solid #eab308;border-radius:8px;color:#fde68a;font-size:0.82em;">
+                        <strong>⚠ Integritas PRISMA:</strong> ${dedup.pre_dedup_warning}
+                    </div>` : ''}
                     ${dedup.per_database_total && Object.keys(dedup.per_database_total).length > 0 ? `
                     <table style="width: 100%; margin-top: 10px; background: rgba(0,0,0,0.2); border-radius: 6px; border-collapse: collapse; font-size: 0.9em;">
                         <thead>

@@ -49,6 +49,7 @@ function noteLogNovelty(line) {
     if (recentLog.length > 250) { const old = recentLog.shift(); recentLogSet.delete(old); }
     lastNovelLogAt = Date.now();
     if (stallShown) hideStall(); // kemajuan baru → sembunyikan peringatan
+    updateLiveActivity();       // segarkan indikator "masih bekerja"
 }
 
 function resetStallState() {
@@ -58,6 +59,8 @@ function resetStallState() {
     recentLog.length = 0;
     recentLogSet.clear();
     hideStall();
+    const la = document.getElementById('live-activity');
+    if (la) la.style.display = 'none';
 }
 
 function evaluateStall() {
@@ -69,6 +72,7 @@ function evaluateStall() {
     const idleMs = Date.now() - lastNovelLogAt;
     if (idleMs > STALL_MS) showStall(Math.floor(idleMs / 60000));
     else hideStall();
+    updateLiveActivity(); // segarkan "aktivitas terakhir X dtk lalu" (& sembunyi bila stall)
 }
 
 function showStall(minutes) {
@@ -102,6 +106,29 @@ function hideStall() {
     const el = document.getElementById('stall-warning');
     if (el) el.style.display = 'none';
     stallShown = false;
+}
+
+// P2 pelengkap: indikator POSITIF "masih bekerja" untuk run yang LAMBAT tapi MAJU. Stall
+// banner hanya muncul saat MACET (tak ada kemajuan >6mnt); tanpa sinyal positif, user tak
+// bisa bedakan "lambat-tapi-jalan" dari "hang" → sering bertanya "apa ini stuck?" (tiket
+// Sindy M9). Tampilkan aktivitas terakhir agar user yakin proses panjang (QA/manuskrip) jalan.
+function updateLiveActivity() {
+    const term = document.getElementById('terminal-logs');
+    if (!term || !term.parentNode) return;
+    let el = document.getElementById('live-activity');
+    const active = activeCompute && ws && ws.readyState === WebSocket.OPEN && lastNovelLogAt;
+    // Saat tak aktif ATAU stall banner sudah tampil (P2 ambil alih) → sembunyikan.
+    if (!active || stallShown) { if (el) el.style.display = 'none'; return; }
+    if (!el) {
+        el = document.createElement('div');
+        el.id = 'live-activity';
+        el.style.cssText = 'margin:8px 0;padding:8px 12px;background:rgba(13,148,136,.12);border-left:4px solid #0ea5a4;border-radius:8px;color:#5eead4;font-size:0.85em;';
+        term.parentNode.insertBefore(el, term);
+    }
+    const secs = Math.max(0, Math.round((Date.now() - lastNovelLogAt) / 1000));
+    const ago = secs < 3 ? 'baru saja' : (secs < 60 ? secs + ' dtk lalu' : Math.floor(secs / 60) + ' mnt lalu');
+    el.innerHTML = `🔄 <strong>Agen sedang bekerja</strong> — aktivitas terakhir ${ago}. Proses panjang (screening/QA/penulisan manuskrip) memang bertahap &amp; bisa lama, apalagi bila provider LLM kena rate-limit (retry otomatis). Selama masih ada aktivitas, ini <strong>normal</strong> — pantau Live Log di bawah.`;
+    el.style.display = 'block';
 }
 
 export function startTracking(sessionId) {
@@ -276,6 +303,7 @@ async function fetchSessionStatus() {
             lastNovelLogAt = Date.now();
         }
         if (!activeCompute) hideStall();
+        updateLiveActivity();
 
         // Titik merah REAKTIF di tombol Pengaturan: nyala HANYA bila error LLM-terkait
         // benar terjadi (tanpa polling health). Penyebab umum: provider down/limit/key salah.

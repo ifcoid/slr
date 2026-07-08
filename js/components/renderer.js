@@ -103,6 +103,7 @@ export function renderExportHub(session) {
       ${msWarn}
       ${msUnknown}
       ${row('Manuskrip', b('tex', 'file', 'LaTeX .tex') + b('bib', 'file', 'BibTeX .bib') + b('mmd', 'file', 'Markdown .md'))}
+      <p style="font-size:0.76em;color:var(--text-secondary);margin:2px 0 6px;">Isi manuskrip <strong>kurang tepat / kosong / bukan naskah</strong> (mis. provider Brain membalas teks agen atau kena limit saat menulis)? <a href="#" data-x="regen-ms-link" style="color:#b45309;">↻ Ulangi Pembuatan Manuskrip (Modul 9)</a> — data ekstraksi &amp; sintesis tetap dipertahankan.</p>
       ${row('Laporan', b('reporttex', 'file', 'LaTeX .tex') + b('reportbib', 'file', 'references .bib') + b('report', 'file', 'Markdown .md'))}
       <p style="font-size:0.78em;color:var(--text-secondary);margin:2px 0 6px;">Manuskrip &amp; laporan konsisten <strong>LaTeX + BibTeX</strong> memakai katalog referensi NYATA yang sama (integritas sitasi). Compile: taruh <code>.tex</code> + <code>references.bib</code> di folder yang sama → <code>pdflatex</code> → <code>bibtex</code> → <code>pdflatex</code> ×2. Butuh LaTeX? <a href="#" data-x="tinytex" style="color:var(--accent-color,#0ea5a4);">Panduan install TinyTeX ↓</a></p>
       ${row('Suplemen Q1', b('protocol', 'file', 'Protokol PROSPERO', !ar.protocol_markdown) + b('repro', 'file', 'Reproducibility', !ar.repro_package_markdown))}
@@ -189,19 +190,26 @@ export function wireExportHub(root, session) {
     const recheckBtn = root.querySelector('[data-x="ms-recheck"]');
     if (recheckBtn) recheckBtn.addEventListener('click', () => { showToast('Memeriksa ketersediaan manuskrip…'); checkManuscriptMeta(); });
 
-    // ── Regenerasi manuskrip (M9) saat manuskrip hilang/gagal ──
-    const regenBtn = root.querySelector('[data-x="regen-ms"]');
-    if (regenBtn) regenBtn.addEventListener('click', async () => {
-        if (!confirm('Ulangi pembuatan manuskrip (Modul 9) dari awal?\n\nData ekstraksi, sintesis, dan keputusan inklusi TETAP dipertahankan — hanya penulisan naskah yang diulang.\n\nPASTIKAN server embedding PEDE (Colab) menyala, jika tidak proses akan menjeda menunggu.')) return;
-        setButtonLoading(regenBtn, true);
+    // ── Regenerasi manuskrip (M9) — dari banner "absen" ATAU link "present-but-bad" ──
+    // Manuskrip bisa ADA tapi ISINYA sampah (mis. provider Brain membalas teks agen "I'll
+    // explore the workspace…" atau kena 429 saat menulis). Karena meta melaporkan "ada",
+    // banner regen tak muncul → sediakan pemicu yang SELALU tampil (link di bawah baris
+    // Manuskrip) agar user bisa mengulang M9 tanpa harus manuskripnya benar-benar kosong.
+    async function doRegenManuscript(trigger) {
+        if (!confirm('Ulangi pembuatan manuskrip (Modul 9) dari awal?\n\nData ekstraksi, sintesis, dan keputusan inklusi TETAP dipertahankan — hanya penulisan naskah yang diulang.\n\nTips: pastikan provider Brain adalah model CHAT sungguhan (bukan endpoint agen/coding), punya kuota (hindari free-tier yang cepat 429), dan server embedding PEDE (Colab) menyala.')) return;
+        if (trigger && trigger.tagName === 'BUTTON') setButtonLoading(trigger, true);
         try {
-            await API.reviseStep(sid, 'Regenerasi manuskrip: penulisan Modul 9 sebelumnya gagal/kosong (context overflow / provider). Ditrigger dari Ruang Ekspor.', 'M9_NEEDS_REVISION');
+            await API.reviseStep(sid, 'Regenerasi manuskrip: penulisan Modul 9 sebelumnya gagal/kosong/bukan-naskah (context overflow / provider agen / rate-limit). Ditrigger dari Ruang Ekspor.', 'M9_NEEDS_REVISION');
             showToast('Modul 9 dijalankan ulang — pantau Live Log. Nyalakan Colab PEDE bila diminta.');
         } catch (e) {
             showToast('Gagal memulai regenerasi: ' + e.message, 'error');
-            setButtonLoading(regenBtn, false, '<span class="ico ico-refresh"></span> Ulangi Pembuatan Manuskrip (Modul 9)');
+            if (trigger && trigger.tagName === 'BUTTON') setButtonLoading(trigger, false, '<span class="ico ico-refresh"></span> Ulangi Pembuatan Manuskrip (Modul 9)');
         }
-    });
+    }
+    const regenBtn = root.querySelector('[data-x="regen-ms"]');
+    if (regenBtn) regenBtn.addEventListener('click', () => doRegenManuscript(regenBtn));
+    const regenLink = root.querySelector('[data-x="regen-ms-link"]');
+    if (regenLink) regenLink.addEventListener('click', (e) => { e.preventDefault(); doRegenManuscript(regenLink); });
 
     // ── Zenodo draft-deposit ──
     async function doZenodoDeposit(btn) {

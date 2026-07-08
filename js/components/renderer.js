@@ -109,8 +109,8 @@ export function renderExportHub(session) {
       ${row('Suplemen Q1', b('protocol', 'file', 'Protokol PROSPERO', !ar.protocol_markdown) + b('repro', 'file', 'Reproducibility', !ar.repro_package_markdown))}
       ${row('Arsip Zenodo', `<button class="btn btn-secondary" data-x="zenodo" style="font-size:0.8em;"><span class="ico ico-upload"></span> Buat Draft Zenodo</button><button class="btn btn-secondary" data-x="zenodo-cfg" style="font-size:0.8em;" title="Konfigurasi token Zenodo"><span class="ico ico-file"></span> Token…</button>`)}
       <p style="font-size:0.78em;color:var(--text-secondary);margin:2px 0 6px;">Membuat <strong>draft</strong> deposition (unggah kit + prefill metadata) — <strong>PUBLISH tetap Anda lakukan sendiri</strong> di Zenodo setelah melengkapi nama penulis/ORCID (DOI permanen = perlu review). DOI lalu disitasi di Data Availability manuskrip.</p>
-      ${row('Handoff LLM', b('handoff', 'ai', 'Panduan koneksi DB + regen LaTeX') + b('schema', 'file', 'Skema Data (Live)'))}
-      <p style="font-size:0.78em;color:var(--text-secondary);margin-top:8px;">Panduan Handoff = cara mengarahkan LLM lain ke <strong>data Anda</strong> (Mongo/Qdrant/Neo4j, credential-safe). Skema Data = peta field ter-introspeksi dari DB Anda saat ini (selalu terkini).</p>
+      ${row('Handoff LLM', b('handoff', 'ai', 'AGENTS.md (instruksi + koneksi DB)') + b('schema', 'file', 'Skema Data (Live)'))}
+      <p style="font-size:0.78em;color:var(--text-secondary);margin-top:8px;"><strong>AGENTS.md</strong> = Project Instructions untuk cowork-LLM (mengarahkan agent ke <strong>data Anda</strong> Mongo/Qdrant/Neo4j + protokol Q1, credential-safe). Taruh di root workspace → Cursor/Copilot/Codex/Claude Code otomatis membacanya sebagai instruksi. Skema Data = peta field ter-introspeksi dari DB Anda saat ini (selalu terkini).</p>
       <div style="border-top:1px solid var(--surface-border);margin-top:10px;padding-top:10px;">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
           <strong style="font-size:0.9em;">Figur Bibliometrik / SLNA</strong>
@@ -226,7 +226,9 @@ export function wireExportHub(root, session) {
     if (zBtn) zBtn.addEventListener('click', () => doZenodoDeposit(zBtn));
     const zCfg = root.querySelector('[data-x="zenodo-cfg"]');
     if (zCfg) zCfg.addEventListener('click', () => _showZenodoConfig(null));
-    on('handoff', async () => { try { showToast('Menyusun panduan handoff…'); await _serverDownload(sid, '/handoff-guide', `handoff_${sid}.md`); showToast('Panduan handoff diunduh.'); } catch (e) { showToast('Gagal: ' + e.message, 'error'); } });
+    // Diunduh sebagai AGENTS.md (standar agents.md): begitu di-drop ke workspace, cowork-LLM/
+    // agent (Cursor/Copilot/Codex/Claude Code) auto-mengenalinya sebagai Project Instructions.
+    on('handoff', async () => { try { showToast('Menyusun AGENTS.md (panduan handoff)…'); await _serverDownload(sid, '/handoff-guide', `AGENTS.md`); showToast('AGENTS.md diunduh — taruh di root workspace cowork-LLM.'); } catch (e) { showToast('Gagal: ' + e.message, 'error'); } });
     on('schema', async () => { try { showToast('Introspeksi skema live…'); await _serverDownload(sid, '/schema-guide', `schema_${sid}.md`); showToast('Skema data diunduh.'); } catch (e) { showToast('Gagal: ' + e.message, 'error'); } });
 
     // ── Figur bibliometrik: unggah + daftar + preview ──

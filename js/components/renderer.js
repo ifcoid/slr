@@ -70,6 +70,7 @@ async function _serverDownload(sid, path, name) {
 // Q1 + panduan handoff cowork-LLM). Dipakai inline di COMPLETED & di modal ☰ Menu.
 export function renderExportHub(session) {
     const ar = session.audit_report || {};
+    const sid = session.id || ''; // dipakai di beberapa template (mis. SESSION_ID contoh di bagian Figur)
     // CATATAN PENTING: `session.manuscript` dari poll SELALU kosong — backend meng-EXCLUDE
     // `manuscript` dari proyeksi GetSessionLite (perf/anti-timeout). Maka JANGAN menilai
     // ketersediaan manuskrip dari objek sesi. wireExportHub memanggil GET /manuscript/meta

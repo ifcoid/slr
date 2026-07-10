@@ -115,11 +115,12 @@ export function renderExportHub(session) {
         <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
           <strong style="font-size:0.9em;">Figur Bibliometrik / SLNA</strong>
           <span style="display:flex;gap:6px;">
+            <a href="https://colab.research.google.com/github/ifcoid/pede/blob/main/notebooks/biblio_colab.ipynb" target="_blank" rel="noopener" class="btn btn-secondary" style="font-size:0.8em;text-decoration:none;"><span class="ico ico-ai"></span> Buka Notebook Figur (Colab)</a>
             <button class="btn btn-secondary" data-x="fig-upload" style="font-size:0.8em;"><span class="ico ico-file"></span> Unggah Figur</button>
             <input type="file" data-x="fig-input" accept=".svg,.png,.pdf,.csv,.json" multiple style="display:none;">
           </span>
         </div>
-        <p style="font-size:0.78em;color:var(--text-secondary);margin:4px 0;">Di-generate dari notebook PEDE (thematic map, co-occurrence, tren, kolaborasi). Unggah folder hasil (SVG/PNG + CSV) agar tersimpan &amp; masuk arsip Zenodo. SVG untuk kualitas Q1.</p>
+        <p style="font-size:0.78em;color:var(--text-secondary);margin:4px 0;"><strong>Belum punya figur?</strong> Klik <strong>Buka Notebook Figur (Colab)</strong> di atas → di sel <em>Konfigurasi</em> isi Secret <code>MONGO_URI</code> &amp; <code>SESSION_ID</code>=<code>${sid}</code> → Run all. Notebook meng-generate langsung dari data sesi Anda (tanpa GPU): <strong>Annual Production</strong> (grafik batang tahunan), <strong>Most Relevant Sources</strong> (grafik batang jurnal), <strong>Thematic Map</strong>, dan <strong>Collaboration Network</strong> — PNG/SVG/PDF + CSV. Lalu <strong>Unggah Figur</strong> di sini (SVG untuk kualitas Q1) agar tersimpan &amp; masuk arsip Zenodo. <em>Catatan: penyebaran per-NEGARA belum di-generate otomatis (data afiliasi/negara tak tersedia di korpus screening).</em></p>
         <div data-x="fig-list" style="font-size:0.82em;color:var(--text-secondary);">Memuat figur…</div>
       </div>
     </div>`;
@@ -247,7 +248,7 @@ export function wireExportHub(root, session) {
         try {
             const r = await API.listFigures(sid);
             const figs = (r && r.figures) || [];
-            if (!figs.length) { figList.innerHTML = '<em>Belum ada figur. Jalankan notebook PEDE lalu unggah hasilnya.</em>'; return; }
+            if (!figs.length) { figList.innerHTML = '<em>Belum ada figur. Klik <strong>Buka Notebook Figur (Colab)</strong> di atas, jalankan (isi SESSION_ID), lalu <strong>Unggah Figur</strong> hasilnya.</em>'; return; }
             const isImg = (n) => /\.(png|svg)$/i.test(n);
             figList.innerHTML = `<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;">` +
                 figs.map(f => {

@@ -136,6 +136,13 @@ export const API = {
         method: 'PUT'
     }),
 
+    // Koreksi angka PRISMA (identified/duplikat) dari export MENTAH yang diunggah ulang —
+    // NON-destruktif (screening/ekstraksi/manuskrip tak diubah). formData berisi 'files'.
+    recountIdentification: (id, formData) => apiFetch(`/sessions/${id}/m4/recount-identification`, {
+        method: 'POST',
+        body: formData
+    }),
+
     saveFrameworkColumns: (id, columns) => apiFetch(`/sessions/${id}/framework/columns`, {
         method: 'PUT',
         body: JSON.stringify({ columns })

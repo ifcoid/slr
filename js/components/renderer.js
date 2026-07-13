@@ -106,6 +106,13 @@ export function renderExportHub(session) {
       ${row('Manuskrip', b('tex', 'file', 'LaTeX .tex') + b('bib', 'file', 'BibTeX .bib') + b('mmd', 'file', 'Markdown .md'))}
       <p style="font-size:0.76em;color:var(--text-secondary);margin:2px 0 6px;">Isi manuskrip <strong>kurang tepat / kosong / bukan naskah</strong> (mis. provider Brain membalas teks agen atau kena limit saat menulis)? <a href="#" data-x="regen-ms-link" style="color:#b45309;">↻ Ulangi Pembuatan Manuskrip (Modul 9)</a> — data ekstraksi &amp; sintesis tetap dipertahankan.</p>
       ${row('Laporan', b('reporttex', 'file', 'LaTeX .tex') + b('reportbib', 'file', 'references .bib') + b('report', 'file', 'Markdown .md'))}
+      <details style="margin:2px 0 6px;background:rgba(0,0,0,.15);border-radius:8px;padding:6px 10px;">
+        <summary style="cursor:pointer;font-size:0.8em;color:#fcd34d;">🔧 Koreksi hitungan PRISMA (records identified / duplikat)</summary>
+        <p style="font-size:0.78em;color:var(--text-secondary);margin:6px 0;">Bila diagram/laporan PRISMA menampilkan <strong>records identified = jumlah PASCA-dedup</strong> dan <strong>duplicates removed = 0</strong> (mis. data ter-dedup sebelum masuk sistem / bug backend lama), unggah ULANG file export <strong>MENTAH</strong> tiap database (semua digabung, <strong>duplikat MASIH ADA</strong>). Sistem menghitung ulang identified + duplikat memakai logika dedup yang sama dengan Modul 4 — <strong>screening, ekstraksi, dan manuskrip Anda TIDAK diubah</strong>.</p>
+        <button class="btn btn-secondary" data-x="recount-btn" style="font-size:0.8em;"><span class="ico ico-import"></span> Unggah Export Mentah &amp; Hitung Ulang</button>
+        <input type="file" data-x="recount-input" accept=".csv,.ris,.bib,.txt" multiple style="display:none;">
+        <div data-x="recount-result" style="font-size:0.82em;margin-top:6px;"></div>
+      </details>
       <p style="font-size:0.78em;color:var(--text-secondary);margin:2px 0 6px;">Manuskrip &amp; laporan konsisten <strong>LaTeX + BibTeX</strong> memakai katalog referensi NYATA yang sama (integritas sitasi). Compile: taruh <code>.tex</code> + <code>references.bib</code> di folder yang sama → <code>pdflatex</code> → <code>bibtex</code> → <code>pdflatex</code> ×2. Butuh LaTeX? <a href="#" data-x="tinytex" style="color:var(--accent-color,#0ea5a4);">Panduan install TinyTeX ↓</a></p>
       ${row('Suplemen Q1', b('protocol', 'file', 'Protokol PROSPERO', !ar.protocol_markdown) + b('repro', 'file', 'Reproducibility', !ar.repro_package_markdown))}
       ${row('Arsip Zenodo', `<button class="btn btn-secondary" data-x="zenodo" style="font-size:0.8em;"><span class="ico ico-upload"></span> Buat Draft Zenodo</button><button class="btn btn-secondary" data-x="zenodo-cfg" style="font-size:0.8em;" title="Konfigurasi token Zenodo"><span class="ico ico-file"></span> Token…</button>`)}
@@ -164,6 +171,34 @@ export function wireExportHub(root, session) {
     on('reporttex', async () => { try { showToast('Menyusun laporan LaTeX…'); await _serverDownload(sid, '/report-tex', `laporan_slr_${sid}.tex`); showToast('Laporan .tex diunduh (butuh references.bib untuk compile).'); } catch (e) { showToast('Gagal: ' + e.message, 'error'); } });
     const tt = root.querySelector('[data-x="tinytex"]');
     if (tt) tt.addEventListener('click', (e) => { e.preventDefault(); _showTinyTexGuide(); });
+
+    // Koreksi PRISMA (identified/duplikat) dari export mentah — non-destruktif.
+    const recountBtn = root.querySelector('[data-x="recount-btn"]');
+    const recountInput = root.querySelector('[data-x="recount-input"]');
+    const recountResult = root.querySelector('[data-x="recount-result"]');
+    if (recountBtn && recountInput) {
+        recountBtn.addEventListener('click', () => recountInput.click());
+        recountInput.addEventListener('change', async () => {
+            if (!recountInput.files || !recountInput.files.length) return;
+            const fd = new FormData();
+            for (const f of recountInput.files) fd.append('files', f);
+            setButtonLoading(recountBtn, true);
+            if (recountResult) recountResult.innerHTML = '';
+            try {
+                const r = await API.recountIdentification(sid, fd);
+                if (recountResult) recountResult.innerHTML =
+                    `<div style="padding:8px 10px;background:rgba(34,197,94,.12);border-left:3px solid #22c55e;border-radius:6px;color:#86efac;">✅ PRISMA diperbarui — <strong>Records identified: ${r.identified}</strong>, <strong>Duplicates removed: ${r.duplicates_removed}</strong> (unik: ${r.unique}, dari ${r.parsed_files} file). Unduh ulang Laporan/manuskrip untuk angka baru. Screening &amp; manuskrip Anda tidak diubah.</div>`;
+                showToast(`✅ PRISMA: ${r.identified} identified, ${r.duplicates_removed} duplikat`);
+            } catch (e) {
+                if (recountResult) recountResult.innerHTML =
+                    `<div style="padding:8px 10px;background:rgba(239,68,68,.12);border-left:3px solid #ef4444;border-radius:6px;color:#fca5a5;">Gagal: ${e.message}</div>`;
+                showToast('Gagal hitung ulang: ' + e.message, 'error');
+            } finally {
+                setButtonLoading(recountBtn, false, '<span class="ico ico-import"></span> Unggah Export Mentah & Hitung Ulang');
+                recountInput.value = '';
+            }
+        });
+    }
 
     // Gating akurat via endpoint penuh (poll meng-strip `manuscript`). Tiga hasil:
     //  • sukses & ADA  → aktifkan tombol yang tersedia, sembunyikan banner.

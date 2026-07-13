@@ -30,16 +30,64 @@ export function initSetup() {
     });
     if (selectModel) selectModel.addEventListener('change', markConfigDirty);
 
-    // Load initial Base URL to input
+    // Probe endpoint PUBLIK GET <base>/version (tanpa auth) untuk memastikan backend benar
+    // terjangkau SEBELUM menyimpan Base URL. Return string commit backend bila hidup, else null.
+    const probeBackendVersion = async (base) => {
+        const url = String(base || '').trim().replace(/\/+$/, '') + '/version';
+        const ctrl = new AbortController();
+        const t = setTimeout(() => ctrl.abort(), 6000);
+        try {
+            const resp = await fetch(url, { signal: ctrl.signal, headers: { 'Accept': 'application/json' } });
+            if (!resp.ok) return null;
+            const data = await resp.json().catch(() => ({}));
+            return data && data.ok ? (data.backend_version || 'unknown') : null;
+        } catch (_) { return null; } finally { clearTimeout(t); }
+    };
+
+    // Test-before-save: uji koneksi DULU; simpan hanya bila backend terjangkau. Kalau URL kurang
+    // '/api', auto-coba '<url>/api'. Kalau tetap gagal → jangan diam-diam simpan (kesalahan aulia:
+    // 404 misterius belakangan) → konfirmasi override supaya user yang backend-nya belum jalan
+    // tetap bisa lanjut, tapi SADAR.
     if (inputBaseUrl) {
         inputBaseUrl.value = getBaseURL();
-        inputBaseUrl.addEventListener('change', (e) => {
-            setBaseURL(e.target.value);
-            showToast('Base URL API berhasil diperbarui!');
-            
-            if (btnSettings) {
-                btnSettings.style.color = '#10b981';
-                btnSettings.innerHTML = '<span class="ico ico-settings"></span> Configured';
+        inputBaseUrl.addEventListener('change', async (e) => {
+            const candidate = String(e.target.value || '').trim().replace(/\/+$/, '');
+            if (!candidate) { showToast('Base URL kosong.', 'error'); e.target.value = getBaseURL(); return; }
+            inputBaseUrl.disabled = true;
+            showToast('🔌 Menguji koneksi ke backend…');
+            try {
+                let finalUrl = candidate;
+                let ver = await probeBackendVersion(candidate);
+                if (!ver && !/\/api$/i.test(candidate)) {
+                    const withApi = candidate + '/api';
+                    const ver2 = await probeBackendVersion(withApi);
+                    if (ver2) { ver = ver2; finalUrl = withApi; }
+                }
+                if (ver) {
+                    setBaseURL(finalUrl);
+                    inputBaseUrl.value = finalUrl;
+                    showToast(`✅ Terhubung — backend ${String(ver).slice(0, 7)}. Base URL tersimpan${finalUrl !== candidate ? ' (ditambah /api)' : ''}.`);
+                    if (btnSettings) {
+                        btnSettings.style.color = '#10b981';
+                        btnSettings.innerHTML = '<span class="ico ico-settings"></span> Configured';
+                    }
+                } else {
+                    const alsoTried = !/\/api$/i.test(candidate) ? `\n(juga dicoba: ${candidate}/api)` : '';
+                    const proceed = confirm(
+                        `⛔ Backend TAK terjangkau di:\n${candidate}${alsoTried}\n\n` +
+                        `Kemungkinan: backend belum dijalankan, URL salah, kurang '/api' di belakang, atau tunnel/cloudflare mati.\n\n` +
+                        `Tetap simpan URL ini?`
+                    );
+                    if (proceed) {
+                        setBaseURL(candidate);
+                        showToast('⚠ Base URL disimpan MESKI backend belum terjangkau. Jalankan backend, lalu Ctrl+F5.', 'error');
+                    } else {
+                        e.target.value = getBaseURL();
+                        showToast('Dibatalkan — Base URL lama dipertahankan.');
+                    }
+                }
+            } finally {
+                inputBaseUrl.disabled = false;
             }
         });
     }

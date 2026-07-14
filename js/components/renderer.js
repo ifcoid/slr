@@ -187,7 +187,7 @@ export function wireExportHub(root, session) {
             try {
                 const r = await API.recountIdentification(sid, fd);
                 if (recountResult) recountResult.innerHTML =
-                    `<div style="padding:8px 10px;background:rgba(34,197,94,.12);border-left:3px solid #22c55e;border-radius:6px;color:#86efac;">✅ PRISMA diperbarui — <strong>Records identified: ${r.identified}</strong>, <strong>Duplicates removed: ${r.duplicates_removed}</strong> (unik: ${r.unique}, dari ${r.parsed_files} file). Unduh ulang Laporan/manuskrip untuk angka baru. Screening &amp; manuskrip Anda tidak diubah.</div>`;
+                    `<div style="padding:8px 10px;background:rgba(34,197,94,.12);border-left:3px solid #22c55e;border-radius:6px;color:#86efac;">✅ PRISMA diperbarui — <strong>Records identified: ${r.identified}</strong>, <strong>Duplicates removed: ${r.duplicates_removed}</strong> (unik: ${r.unique}, dari ${r.parsed_files} file).<br>• <strong>LAPORAN</strong> (.tex/.md) langsung memakai angka baru — cukup <strong>unduh ulang</strong>.<br>• <strong>MANUSKRIP</strong> masih memuat angka LAMA: naskah &amp; diagram PRISMA ditulis AI sebelum koreksi ini, jadi tidak ikut berubah saat diunduh ulang. Untuk memasukkan angka baru ke naskah &amp; diagram, klik <strong>↻ Ulangi Pembuatan Manuskrip (Modul 9)</strong> di atas (pakai model Brain context besar). Screening &amp; data Anda tidak diubah.</div>`;
                 showToast(`✅ PRISMA: ${r.identified} identified, ${r.duplicates_removed} duplikat`);
             } catch (e) {
                 if (recountResult) recountResult.innerHTML =
